@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ExerciseLibrary } from '@/components/ExerciseLibrary';
 import { ClassBuilder } from '@/components/ClassBuilder';
@@ -75,6 +76,7 @@ const Index = () => {
           onRemoveExercise={removeExerciseFromClass}
           onReorderExercises={reorderExercises}
           savedClasses={savedClasses}
+          onAddExercise={addExerciseToClass}
         />
       </div>
     </div>

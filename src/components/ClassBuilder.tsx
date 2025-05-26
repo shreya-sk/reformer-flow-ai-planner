@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,37 +7,39 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trash2, Clock, GripVertical, BookOpen } from 'lucide-react';
 import { ClassPlan, Exercise } from '@/types/reformer';
+import { ExerciseSuggestions } from './ExerciseSuggestions';
 
 interface ClassBuilderProps {
   currentClass: ClassPlan;
   onRemoveExercise: (exerciseId: string) => void;
   onReorderExercises: (exercises: Exercise[]) => void;
   savedClasses: ClassPlan[];
+  onAddExercise: (exercise: Exercise) => void;
 }
 
-export const ClassBuilder = ({ currentClass, onRemoveExercise, onReorderExercises, savedClasses }: ClassBuilderProps) => {
+export const ClassBuilder = ({ currentClass, onRemoveExercise, onReorderExercises, savedClasses, onAddExercise }: ClassBuilderProps) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const getSpringVisual = (springs: string) => {
     const springConfig = {
-      'light': { dots: [{ color: 'bg-green-500', count: 1 }] },
-      'medium': { dots: [{ color: 'bg-yellow-500', count: 1 }] },
-      'heavy': { dots: [{ color: 'bg-red-500', count: 2 }] },
-      'mixed': { dots: [
+      'light': [{ color: 'bg-green-500', count: 1 }],
+      'medium': [{ color: 'bg-yellow-500', count: 1 }],
+      'heavy': [{ color: 'bg-red-500', count: 2 }],
+      'mixed': [
         { color: 'bg-red-500', count: 1 },
         { color: 'bg-yellow-500', count: 1 },
         { color: 'bg-green-500', count: 1 }
-      ]}
+      ]
     };
 
     const config = springConfig[springs as keyof typeof springConfig] || springConfig.light;
     
     return (
       <div className="flex items-center gap-1">
-        {config.dots.map((dot, index) => (
+        {config.map((spring, index) => (
           <div key={index} className="flex gap-0.5">
-            {Array.from({ length: dot.count }).map((_, i) => (
-              <div key={i} className={`w-2 h-2 rounded-full ${dot.color}`} />
+            {Array.from({ length: spring.count }).map((_, i) => (
+              <div key={i} className={`w-2 h-2 rounded-full ${spring.color}`} />
             ))}
           </div>
         ))}
@@ -85,19 +88,16 @@ export const ClassBuilder = ({ currentClass, onRemoveExercise, onReorderExercise
       <Card className="border-sage-200 hover:shadow-lg hover:border-sage-300 transition-all duration-200">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            {/* Drag Handle */}
             <div className="flex-shrink-0 cursor-grab active:cursor-grabbing opacity-40 group-hover:opacity-100 transition-opacity">
               <GripVertical className="h-5 w-5 text-sage-500" />
             </div>
 
-            {/* Exercise Image */}
             <div className="flex-shrink-0">
               <div className="w-16 h-16 bg-gradient-to-br from-sage-100 to-sage-200 rounded-lg flex items-center justify-center">
                 <span className="text-2xl font-bold text-sage-600">{index + 1}</span>
               </div>
             </div>
 
-            {/* Exercise Details */}
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between mb-2">
                 <h3 className="font-semibold text-sage-800 text-sm leading-tight">
@@ -156,7 +156,6 @@ export const ClassBuilder = ({ currentClass, onRemoveExercise, onReorderExercise
 
         <TabsContent value="current" className="flex-1 p-6">
           <div className="grid grid-cols-4 gap-6 h-full">
-            {/* Class Timeline */}
             <div className="col-span-3">
               <Card className="h-full shadow-sm border-sage-200">
                 <CardHeader className="border-b border-sage-100 bg-white">
@@ -181,6 +180,10 @@ export const ClassBuilder = ({ currentClass, onRemoveExercise, onReorderExercise
                       </div>
                     ) : (
                       <div className="space-y-0">
+                        <ExerciseSuggestions 
+                          currentClass={currentClass} 
+                          onAddExercise={onAddExercise}
+                        />
                         {currentClass.exercises.map((exercise, index) => (
                           <ExerciseCard key={exercise.id} exercise={exercise} index={index} />
                         ))}
