@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ExerciseLibrary } from '@/components/ExerciseLibrary';
 import { ClassBuilder } from '@/components/ClassBuilder';
@@ -35,6 +34,13 @@ const Index = () => {
     }
   };
 
+  const reorderExercises = (exercises: Exercise[]) => {
+    setCurrentClass(prev => ({
+      ...prev,
+      exercises,
+    }));
+  };
+
   const saveClass = () => {
     if (currentClass.exercises.length === 0) return;
     
@@ -67,6 +73,7 @@ const Index = () => {
         <ClassBuilder 
           currentClass={currentClass}
           onRemoveExercise={removeExerciseFromClass}
+          onReorderExercises={reorderExercises}
           savedClasses={savedClasses}
         />
       </div>
