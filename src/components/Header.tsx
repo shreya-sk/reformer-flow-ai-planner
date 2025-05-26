@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Save, Clock, Users } from 'lucide-react';
+import { Save, Clock, Users, FolderOpen } from 'lucide-react';
 import { ClassPlan } from '@/types/reformer';
 import { toast } from '@/hooks/use-toast';
 
@@ -10,9 +10,17 @@ interface HeaderProps {
   currentClass: ClassPlan;
   onSaveClass: () => void;
   onUpdateClassName: (name: string) => void;
+  onToggleClassManager: () => void;
+  showClassManager: boolean;
 }
 
-export const Header = ({ currentClass, onSaveClass, onUpdateClassName }: HeaderProps) => {
+export const Header = ({ 
+  currentClass, 
+  onSaveClass, 
+  onUpdateClassName, 
+  onToggleClassManager,
+  showClassManager 
+}: HeaderProps) => {
   const [isEditing, setIsEditing] = useState(false);
 
   const handleSave = () => {
@@ -75,6 +83,15 @@ export const Header = ({ currentClass, onSaveClass, onUpdateClassName }: HeaderP
           <Users className="h-4 w-4" />
           <span className="font-medium">{currentClass.exercises.length} exercises</span>
         </div>
+
+        <Button 
+          onClick={onToggleClassManager}
+          variant={showClassManager ? "default" : "outline"}
+          className="bg-sage-100 hover:bg-sage-200 text-sage-700"
+        >
+          <FolderOpen className="h-4 w-4 mr-2" />
+          My Classes
+        </Button>
 
         <Button 
           onClick={handleSave}

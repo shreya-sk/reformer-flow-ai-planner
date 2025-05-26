@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,11 +12,19 @@ interface ClassBuilderProps {
   currentClass: ClassPlan;
   onRemoveExercise: (exerciseId: string) => void;
   onReorderExercises: (exercises: Exercise[]) => void;
+  onUpdateExercise: (updatedExercise: Exercise) => void;
   savedClasses: ClassPlan[];
   onAddExercise: (exercise: Exercise) => void;
 }
 
-export const ClassBuilder = ({ currentClass, onRemoveExercise, onReorderExercises, savedClasses, onAddExercise }: ClassBuilderProps) => {
+export const ClassBuilder = ({ 
+  currentClass, 
+  onRemoveExercise, 
+  onReorderExercises, 
+  onUpdateExercise,
+  savedClasses, 
+  onAddExercise 
+}: ClassBuilderProps) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const getSpringVisual = (springs: string) => {
