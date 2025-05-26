@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ExerciseLibrary } from '@/components/ExerciseLibrary';
 import { ClassBuilder } from '@/components/ClassBuilder';
 import { Header } from '@/components/Header';
+import { ClassPlanManager } from '@/components/ClassPlanManager';
 import { Exercise, ClassPlan } from '@/types/reformer';
 
 const Index = () => {
@@ -12,9 +13,11 @@ const Index = () => {
     exercises: [],
     totalDuration: 0,
     createdAt: new Date(),
+    notes: '',
   });
 
   const [savedClasses, setSavedClasses] = useState<ClassPlan[]>([]);
+  const [showClassManager, setShowClassManager] = useState(false);
 
   const addExerciseToClass = (exercise: Exercise) => {
     setCurrentClass(prev => ({
@@ -42,6 +45,15 @@ const Index = () => {
     }));
   };
 
+  const updateExerciseInClass = (updatedExercise: Exercise) => {
+    setCurrentClass(prev => ({
+      ...prev,
+      exercises: prev.exercises.map(ex => 
+        ex.id === updatedExercise.id ? updatedExercise : ex
+      ),
+    }));
+  };
+
   const saveClass = () => {
     if (currentClass.exercises.length === 0) return;
     
@@ -58,7 +70,17 @@ const Index = () => {
       exercises: [],
       totalDuration: 0,
       createdAt: new Date(),
+      notes: '',
     });
+  };
+
+  const deleteClass = (classId: string) => {
+    setSavedClasses(prev => prev.filter(c => c.id !== classId));
+  };
+
+  const loadClass = (classPlan: ClassPlan) => {
+    setCurrentClass(classPlan);
+    setShowClassManager(false);
   };
 
   return (
@@ -67,14 +89,31 @@ const Index = () => {
         currentClass={currentClass}
         onSaveClass={saveClass}
         onUpdateClassName={(name) => setCurrentClass(prev => ({ ...prev, name }))}
+        onToggleClassManager={() => setShowClassManager(!showClassManager)}
+        showClassManager={showClassManager}
       />
       
       <div className="flex h-[calc(100vh-80px)]">
-        <ExerciseLibrary onAddExercise={addExerciseToClass} />
+        {showClassManager ? (
+          <div className="w-96 bg-white border-r border-sage-200 p-4 overflow-y-auto">
+            <ClassPlanManager
+              currentClass={currentClass}
+              savedClasses={savedClasses}
+              onUpdateClassName={(name) => setCurrentClass(prev => ({ ...prev, name }))}
+              onUpdateClassNotes={(notes) => setCurrentClass(prev => ({ ...prev, notes }))}
+              onDeleteClass={deleteClass}
+              onLoadClass={loadClass}
+            />
+          </div>
+        ) : (
+          <ExerciseLibrary onAddExercise={addExerciseToClass} />
+        )}
+        
         <ClassBuilder 
           currentClass={currentClass}
           onRemoveExercise={removeExerciseFromClass}
           onReorderExercises={reorderExercises}
+          onUpdateExercise={updateExerciseInClass}
           savedClasses={savedClasses}
           onAddExercise={addExerciseToClass}
         />

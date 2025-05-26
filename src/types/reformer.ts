@@ -9,6 +9,10 @@ export interface Exercise {
   muscleGroups: MuscleGroup[];
   equipment: Equipment[];
   description?: string;
+  image?: string;
+  videoUrl?: string;
+  notes?: string;
+  cues?: string[];
   transitions?: string[];
   contraindications?: string[];
 }

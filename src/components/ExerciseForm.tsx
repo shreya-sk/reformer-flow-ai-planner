@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,7 +25,13 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
     muscleGroups: exercise?.muscleGroups || [] as MuscleGroup[],
     equipment: exercise?.equipment || [] as Equipment[],
     description: exercise?.description || '',
+    image: exercise?.image || '',
+    videoUrl: exercise?.videoUrl || '',
+    notes: exercise?.notes || '',
+    cues: exercise?.cues || [] as string[],
   });
+
+  const [newCue, setNewCue] = useState('');
 
   const muscleGroupOptions: MuscleGroup[] = ['core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body'];
   const equipmentOptions: Equipment[] = ['straps', 'weights', 'magic-circle', 'theraband', 'none'];
@@ -46,6 +51,23 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
       equipment: prev.equipment.includes(equip)
         ? prev.equipment.filter(e => e !== equip)
         : [...prev.equipment, equip]
+    }));
+  };
+
+  const addCue = () => {
+    if (newCue.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        cues: [...prev.cues, newCue.trim()]
+      }));
+      setNewCue('');
+    }
+  };
+
+  const removeCue = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      cues: prev.cues.filter((_, i) => i !== index)
     }));
   };
 
@@ -85,6 +107,29 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
               placeholder="Enter exercise name"
               required
             />
+          </div>
+
+          {/* Image and Video URL fields */}
+          <div className="grid grid-cols-1 gap-3">
+            <div>
+              <Label htmlFor="image">Reference Image URL</Label>
+              <Input
+                id="image"
+                value={formData.image}
+                onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
+                placeholder="https://example.com/image.jpg"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="videoUrl">Video Reference URL</Label>
+              <Input
+                id="videoUrl"
+                value={formData.videoUrl}
+                onChange={(e) => setFormData(prev => ({ ...prev, videoUrl: e.target.value }))}
+                placeholder="https://youtube.com/watch?v=..."
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -188,14 +233,66 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
           </div>
 
           <div>
-            <Label htmlFor="description">Description (optional)</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Exercise description..."
-              rows={3}
+              rows={2}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="notes">Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+              placeholder="Exercise notes..."
+              rows={2}
+            />
+          </div>
+
+          <div>
+            <Label>Teaching Cues</Label>
+            <div className="space-y-2 mt-2">
+              {formData.cues.map((cue, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input
+                    value={cue}
+                    onChange={(e) => {
+                      const newCues = [...formData.cues];
+                      newCues[index] = e.target.value;
+                      setFormData(prev => ({ ...prev, cues: newCues }));
+                    }}
+                    placeholder="Teaching cue..."
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => removeCue(index)}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              
+              <div className="flex gap-2">
+                <Input
+                  value={newCue}
+                  onChange={(e) => setNewCue(e.target.value)}
+                  placeholder="Add a teaching cue..."
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCue())}
+                />
+                <Button type="button" onClick={addCue} size="sm">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
 
           <div className="flex gap-2 pt-2">
