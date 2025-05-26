@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,7 @@ import { Search, Plus, Clock, Edit, Copy } from 'lucide-react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { exerciseDatabase } from '@/data/exercises';
 import { ExerciseForm } from './ExerciseForm';
+import { ExerciseDetailModal } from './ExerciseDetailModal';
 
 interface ExerciseLibraryProps {
   onAddExercise: (exercise: Exercise) => void;
@@ -22,6 +22,8 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const [showForm, setShowForm] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [exercises, setExercises] = useState(exerciseDatabase);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const muscleGroups: { value: MuscleGroup | 'all'; label: string }[] = [
     { value: 'all', label: 'All' },
@@ -100,12 +102,14 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     setEditingExercise(null);
   };
 
-  const handleEditExercise = (exercise: Exercise) => {
+  const handleEditExercise = (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
     setEditingExercise(exercise);
     setShowForm(true);
   };
 
-  const handleDuplicateExercise = (exercise: Exercise) => {
+  const handleDuplicateExercise = (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
     const duplicated = {
       ...exercise,
       id: `${exercise.id}-copy-${Date.now()}`,
@@ -113,6 +117,21 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     };
     setEditingExercise(duplicated);
     setShowForm(true);
+  };
+
+  const handleAddExercise = (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddExercise(exercise);
+  };
+
+  const handleCardClick = (exercise: Exercise) => {
+    setSelectedExercise(exercise);
+    setShowDetailModal(true);
+  };
+
+  const handleUpdateExercise = (updatedExercise: Exercise) => {
+    setExercises(prev => prev.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    setSelectedExercise(updatedExercise);
   };
 
   return (
@@ -188,7 +207,11 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {filteredExercises.map((exercise) => (
-            <Card key={exercise.id} className="group hover:shadow-md transition-all duration-200 border-sage-200 hover:border-sage-300">
+            <Card 
+              key={exercise.id} 
+              className="group hover:shadow-md transition-all duration-200 border-sage-200 hover:border-sage-300 cursor-pointer"
+              onClick={() => handleCardClick(exercise)}
+            >
               <CardContent className="p-4">
                 <div className="flex gap-3">
                   <div className="flex-shrink-0">
@@ -208,7 +231,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleEditExercise(exercise)}
+                          onClick={(e) => handleEditExercise(exercise, e)}
                           className="h-6 w-6 p-0 text-sage-600 hover:text-sage-800"
                         >
                           <Edit className="h-3 w-3" />
@@ -216,14 +239,14 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleDuplicateExercise(exercise)}
+                          onClick={(e) => handleDuplicateExercise(exercise, e)}
                           className="h-6 w-6 p-0 text-sage-600 hover:text-sage-800"
                         >
                           <Copy className="h-3 w-3" />
                         </Button>
                         <Button
                           size="sm"
-                          onClick={() => onAddExercise(exercise)}
+                          onClick={(e) => handleAddExercise(exercise, e)}
                           className="bg-sage-600 hover:bg-sage-700 text-white h-6 w-6 p-0"
                         >
                           <Plus className="h-3 w-3" />
@@ -280,6 +303,18 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
           />
         </DialogContent>
       </Dialog>
+
+      {selectedExercise && (
+        <ExerciseDetailModal
+          exercise={selectedExercise}
+          isOpen={showDetailModal}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedExercise(null);
+          }}
+          onUpdate={handleUpdateExercise}
+        />
+      )}
     </>
   );
 };
