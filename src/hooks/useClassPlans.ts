@@ -159,6 +159,7 @@ export const useClassPlans = () => {
           description: "Failed to update the class plan.",
           variant: "destructive",
         });
+        return false;
       } else {
         setSavedClasses(prev => prev.map(c => 
           c.id === updatedClass.id ? updatedClass : c
@@ -167,9 +168,11 @@ export const useClassPlans = () => {
           title: "Class updated",
           description: "Class plan has been updated successfully.",
         });
+        return true;
       }
     } catch (error) {
       console.error('Error:', error);
+      return false;
     }
   };
 

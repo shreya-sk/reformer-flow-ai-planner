@@ -8,6 +8,7 @@ import { ClassBuilder } from '@/components/ClassBuilder';
 import { Header } from '@/components/Header';
 import { ClassPlanManager } from '@/components/ClassPlanManager';
 import { Exercise, ClassPlan } from '@/types/reformer';
+import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -44,6 +45,13 @@ const Index = () => {
       exercises: [...prev.exercises, { ...exercise, id: `${exercise.id}-${Date.now()}` }],
       totalDuration: prev.totalDuration + exercise.duration,
     }));
+
+    // Show quick success feedback
+    toast({
+      title: "Exercise added!",
+      description: `${exercise.name} added to your class`,
+      duration: 2000,
+    });
   };
 
   const removeExerciseFromClass = (exerciseId: string) => {
@@ -120,6 +128,7 @@ const Index = () => {
                 onUpdateClassNotes={(notes) => setCurrentClass(prev => ({ ...prev, notes }))}
                 onDeleteClass={deleteClassPlan}
                 onLoadClass={loadClass}
+                onUpdateClass={updateClassPlan}
               />
             </div>
           </div>

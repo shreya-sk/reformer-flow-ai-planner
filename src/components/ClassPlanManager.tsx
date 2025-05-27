@@ -17,6 +17,7 @@ interface ClassPlanManagerProps {
   onUpdateClassNotes: (notes: string) => void;
   onDeleteClass: (classId: string) => void;
   onLoadClass: (classPlan: ClassPlan) => void;
+  onUpdateClass: (updatedClass: ClassPlan) => Promise<boolean>;
 }
 
 export const ClassPlanManager = ({
@@ -25,7 +26,8 @@ export const ClassPlanManager = ({
   onUpdateClassName,
   onUpdateClassNotes,
   onDeleteClass,
-  onLoadClass
+  onLoadClass,
+  onUpdateClass
 }: ClassPlanManagerProps) => {
   const [showSavedClasses, setShowSavedClasses] = useState(false);
   const [editingClass, setEditingClass] = useState<ClassPlan | null>(null);
@@ -43,15 +45,24 @@ export const ClassPlanManager = ({
     setViewingClass(classPlan);
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingClass) {
       const updatedClass = {
         ...editingClass,
         name: editName,
         notes: editNotes
       };
-      onLoadClass(updatedClass);
-      setEditingClass(null);
+      
+      const success = await onUpdateClass(updatedClass);
+      if (success) {
+        setEditingClass(null);
+      }
+    }
+  };
+
+  const handleDeleteClass = (classId: string, className: string) => {
+    if (window.confirm(`Are you sure you want to delete "${className}"? This action cannot be undone.`)) {
+      onDeleteClass(classId);
     }
   };
 
@@ -200,7 +211,7 @@ export const ClassPlanManager = ({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => onDeleteClass(classPlan.id)}
+                          onClick={() => handleDeleteClass(classPlan.id, classPlan.name)}
                           className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
                           title="Delete class"
                         >
@@ -260,7 +271,7 @@ export const ClassPlanManager = ({
               )}
 
               <div>
-                <h4 className="font-medium text-sage-700 mb-3">Exercises</h4>
+                <h4 className="font-medium text-sage-700 mb-3">Exercises ({viewingClass.exercises.length})</h4>
                 <div className="space-y-2">
                   {viewingClass.exercises.map((exercise, index) => (
                     <div key={exercise.id} className="flex items-center gap-3 p-3 bg-sage-50 rounded-lg">
@@ -269,7 +280,14 @@ export const ClassPlanManager = ({
                       </div>
                       <div className="flex-1">
                         <div className="font-medium text-sage-800">{exercise.name}</div>
-                        <div className="text-sm text-sage-600">{exercise.duration}min • {exercise.category}</div>
+                        <div className="text-sm text-sage-600">{exercise.duration}min • {exercise.category} • {exercise.springs} springs</div>
+                        <div className="flex gap-1 mt-1">
+                          {exercise.muscleGroups.slice(0, 3).map(group => (
+                            <Badge key={group} variant="secondary" className="text-xs bg-sage-100 text-sage-600">
+                              {group}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   ))}
