@@ -32,7 +32,7 @@ export const useClassPlans = () => {
         // Transform Supabase data to match our ClassPlan interface
         const transformedData: ClassPlan[] = data.map(item => {
           // Ensure exercises is an array and properly typed
-          const exercises = Array.isArray(item.exercises) ? item.exercises as Exercise[] : [];
+          const exercises = Array.isArray(item.exercises) ? (item.exercises as unknown) as Exercise[] : [];
           
           return {
             id: item.id,
@@ -94,7 +94,7 @@ export const useClassPlans = () => {
         const newClass: ClassPlan = {
           id: data.id,
           name: data.class_name,
-          exercises: Array.isArray(data.exercises) ? data.exercises as Exercise[] : [],
+          exercises: Array.isArray(data.exercises) ? (data.exercises as unknown) as Exercise[] : [],
           totalDuration: classPlan.totalDuration,
           createdAt: new Date(data.created_at),
           notes: '',
