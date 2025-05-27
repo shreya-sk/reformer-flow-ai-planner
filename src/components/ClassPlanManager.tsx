@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, FileText, Calendar, Clock, Eye, Play } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Edit2, Trash2, Copy, Calendar, Clock, ChevronDown, ChevronRight, Save, X } from 'lucide-react';
 import { ClassPlan } from '@/types/reformer';
 
 interface ClassPlanManagerProps {
@@ -18,6 +18,7 @@ interface ClassPlanManagerProps {
   onDeleteClass: (classId: string) => void;
   onLoadClass: (classPlan: ClassPlan) => void;
   onUpdateClass: (updatedClass: ClassPlan) => Promise<boolean>;
+  onSaveClass: () => void;
 }
 
 export const ClassPlanManager = ({
@@ -27,41 +28,66 @@ export const ClassPlanManager = ({
   onUpdateClassNotes,
   onDeleteClass,
   onLoadClass,
-  onUpdateClass
+  onUpdateClass,
+  onSaveClass
 }: ClassPlanManagerProps) => {
-  const [showSavedClasses, setShowSavedClasses] = useState(false);
-  const [editingClass, setEditingClass] = useState<ClassPlan | null>(null);
-  const [viewingClass, setViewingClass] = useState<ClassPlan | null>(null);
+  const [expandedClasses, setExpandedClasses] = useState<Set<string>>(new Set());
+  const [editingClass, setEditingClass] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editNotes, setEditNotes] = useState('');
 
-  const handleEditClass = (classPlan: ClassPlan) => {
-    setEditingClass(classPlan);
+  const toggleExpanded = (classId: string) => {
+    const newExpanded = new Set(expandedClasses);
+    if (newExpanded.has(classId)) {
+      newExpanded.delete(classId);
+    } else {
+      newExpanded.add(classId);
+    }
+    setExpandedClasses(newExpanded);
+  };
+
+  const startEditing = (classPlan: ClassPlan) => {
+    setEditingClass(classPlan.id);
     setEditName(classPlan.name);
     setEditNotes(classPlan.notes || '');
   };
 
-  const handleViewClass = (classPlan: ClassPlan) => {
-    setViewingClass(classPlan);
-  };
-
-  const handleSaveEdit = async () => {
+  const saveEdit = async () => {
     if (editingClass) {
-      const updatedClass = {
-        ...editingClass,
-        name: editName,
-        notes: editNotes
-      };
-      
-      const success = await onUpdateClass(updatedClass);
-      if (success) {
-        setEditingClass(null);
+      const classToUpdate = savedClasses.find(c => c.id === editingClass);
+      if (classToUpdate) {
+        const updatedClass = {
+          ...classToUpdate,
+          name: editName,
+          notes: editNotes
+        };
+        
+        const success = await onUpdateClass(updatedClass);
+        if (success) {
+          setEditingClass(null);
+        }
       }
     }
   };
 
-  const handleDeleteClass = (classId: string, className: string) => {
-    if (window.confirm(`Are you sure you want to delete "${className}"? This action cannot be undone.`)) {
+  const cancelEdit = () => {
+    setEditingClass(null);
+    setEditName('');
+    setEditNotes('');
+  };
+
+  const duplicateClass = (classPlan: ClassPlan) => {
+    const duplicatedClass = {
+      ...classPlan,
+      id: '',
+      name: `${classPlan.name} (Copy)`,
+      createdAt: new Date()
+    };
+    onLoadClass(duplicatedClass);
+  };
+
+  const deleteClass = (classId: string, className: string) => {
+    if (window.confirm(`Delete "${className}"? This cannot be undone.`)) {
       onDeleteClass(classId);
     }
   };
@@ -74,292 +100,229 @@ export const ClassPlanManager = ({
     });
   };
 
-  const getMuscleGroupCoverage = (classPlan: ClassPlan) => {
-    const allGroups = classPlan.exercises.flatMap(ex => ex.muscleGroups);
-    return Array.from(new Set(allGroups));
-  };
-
   return (
-    <>
-      <div className="space-y-6">
-        {/* Current Class Management */}
-        <Card className="border-sage-200 shadow-sm">
-          <CardHeader className="pb-4 bg-gradient-to-r from-sage-50 to-white">
-            <CardTitle className="text-xl text-sage-800 font-semibold">Current Class</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 p-6">
-            <div>
-              <Label htmlFor="className" className="text-sm font-medium text-sage-700 mb-2 block">
-                Class Name
-              </Label>
-              <Input
-                id="className"
-                value={currentClass.name}
-                onChange={(e) => onUpdateClassName(e.target.value)}
-                placeholder="Enter class name..."
-                className="border-sage-300 focus:border-sage-500 focus:ring-sage-200"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="classNotes" className="text-sm font-medium text-sage-700 mb-2 block">
-                Class Notes
-              </Label>
-              <Textarea
-                id="classNotes"
-                value={currentClass.notes || ''}
-                onChange={(e) => onUpdateClassNotes(e.target.value)}
-                placeholder="Add class notes, modifications, or reminders..."
-                className="border-sage-300 focus:border-sage-500 focus:ring-sage-200"
-                rows={4}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4 pt-2">
-              <div className="text-center p-3 bg-sage-50 rounded-lg">
-                <div className="text-2xl font-bold text-sage-800">{currentClass.exercises.length}</div>
-                <div className="text-xs text-sage-600 font-medium">Exercises</div>
-              </div>
-              <div className="text-center p-3 bg-sage-50 rounded-lg">
-                <div className="text-2xl font-bold text-sage-800">{currentClass.totalDuration}</div>
-                <div className="text-xs text-sage-600 font-medium">Minutes</div>
-              </div>
-              <div className="text-center p-3 bg-sage-50 rounded-lg">
-                <div className="text-2xl font-bold text-sage-800">{Array.from(new Set(currentClass.exercises.flatMap(ex => ex.muscleGroups))).length}</div>
-                <div className="text-xs text-sage-600 font-medium">Muscle Groups</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Saved Classes */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-sage-800">Saved Classes</h3>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowSavedClasses(!showSavedClasses)}
-              className="border-sage-300 hover:bg-sage-50"
-            >
-              {showSavedClasses ? 'Hide' : 'Show'} ({savedClasses.length})
-            </Button>
+    <div className="space-y-6">
+      {/* Current Class Section */}
+      <Card className="border-sage-200 shadow-sm">
+        <CardHeader className="pb-4 bg-gradient-to-r from-sage-50 to-white">
+          <CardTitle className="text-xl text-sage-800 font-semibold">Current Class</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 p-6">
+          <div>
+            <Label htmlFor="className" className="text-sm font-medium text-sage-700 mb-2 block">
+              Class Name
+            </Label>
+            <Input
+              id="className"
+              value={currentClass.name}
+              onChange={(e) => onUpdateClassName(e.target.value)}
+              placeholder="Enter class name..."
+              className="border-sage-300 focus:border-sage-500 focus:ring-sage-200"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="classNotes" className="text-sm font-medium text-sage-700 mb-2 block">
+              Class Notes
+            </Label>
+            <Textarea
+              id="classNotes"
+              value={currentClass.notes || ''}
+              onChange={(e) => onUpdateClassNotes(e.target.value)}
+              placeholder="Add notes, modifications, or reminders..."
+              className="border-sage-300 focus:border-sage-500 focus:ring-sage-200"
+              rows={3}
+            />
           </div>
 
-          {showSavedClasses && (
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {savedClasses.map((classPlan) => (
-                <Card key={classPlan.id} className="border-sage-200 hover:border-sage-300 hover:shadow-md transition-all duration-200">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sage-800 text-lg mb-2">
-                          {classPlan.name}
-                        </h4>
-                        <div className="grid grid-cols-3 gap-3 text-sm text-sage-600 mb-3">
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4" />
-                            <span>{formatDate(classPlan.createdAt)}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <FileText className="h-4 w-4" />
+          <div className="grid grid-cols-3 gap-4 pt-2">
+            <div className="text-center p-3 bg-sage-50 rounded-lg">
+              <div className="text-2xl font-bold text-sage-800">{currentClass.exercises.length}</div>
+              <div className="text-xs text-sage-600 font-medium">Exercises</div>
+            </div>
+            <div className="text-center p-3 bg-sage-50 rounded-lg">
+              <div className="text-2xl font-bold text-sage-800">{currentClass.totalDuration}</div>
+              <div className="text-xs text-sage-600 font-medium">Minutes</div>
+            </div>
+            <div className="text-center p-3 bg-sage-50 rounded-lg">
+              <div className="text-2xl font-bold text-sage-800">
+                {Array.from(new Set(currentClass.exercises.flatMap(ex => ex.muscleGroups))).length}
+              </div>
+              <div className="text-xs text-sage-600 font-medium">Muscle Groups</div>
+            </div>
+          </div>
+
+          {currentClass.exercises.length > 0 && (
+            <Button
+              onClick={onSaveClass}
+              className="w-full bg-sage-600 hover:bg-sage-700 text-white"
+            >
+              Save Class Plan
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Saved Classes Section */}
+      <div>
+        <h3 className="text-xl font-semibold text-sage-800 mb-4">
+          My Classes ({savedClasses.length})
+        </h3>
+
+        <div className="space-y-3">
+          {savedClasses.map((classPlan) => (
+            <Card key={classPlan.id} className="border-sage-200 hover:border-sage-300 transition-all">
+              <CardContent className="p-0">
+                <Collapsible open={expandedClasses.has(classPlan.id)}>
+                  <CollapsibleTrigger
+                    onClick={() => toggleExpanded(classPlan.id)}
+                    className="w-full p-4 text-left hover:bg-sage-50 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {expandedClasses.has(classPlan.id) ? (
+                          <ChevronDown className="h-4 w-4 text-sage-600" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-sage-600" />
+                        )}
+                        <div>
+                          <h4 className="font-semibold text-sage-800">{classPlan.name}</h4>
+                          <div className="flex items-center gap-4 text-sm text-sage-600 mt-1">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {formatDate(classPlan.createdAt)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {classPlan.totalDuration}min
+                            </span>
                             <span>{classPlan.exercises.length} exercises</span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
-                            <span>{classPlan.totalDuration} min</span>
-                          </div>
                         </div>
-                        
-                        <div className="flex flex-wrap gap-1">
-                          {getMuscleGroupCoverage(classPlan).slice(0, 4).map(group => (
-                            <Badge key={group} variant="secondary" className="text-xs bg-sage-100 text-sage-700">
-                              {group}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-1 ml-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleViewClass(classPlan)}
-                          className="h-8 w-8 p-0 text-sage-600 hover:text-sage-800 hover:bg-sage-100"
-                          title="View class details"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onLoadClass(classPlan)}
-                          className="h-8 w-8 p-0 text-sage-600 hover:text-sage-800 hover:bg-sage-100"
-                          title="Load class"
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditClass(classPlan)}
-                          className="h-8 w-8 p-0 text-sage-600 hover:text-sage-800 hover:bg-sage-100"
-                          title="Edit class"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteClass(classPlan.id, classPlan.name)}
-                          className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-50"
-                          title="Delete class"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-              
-              {savedClasses.length === 0 && (
-                <div className="text-center py-8">
-                  <div className="bg-sage-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                    <FileText className="h-8 w-8 text-sage-400" />
-                  </div>
-                  <h3 className="text-lg font-medium text-sage-600 mb-2">No Saved Classes</h3>
-                  <p className="text-sage-500 text-sm">
-                    Classes you save will appear here for future use
-                  </p>
-                </div>
-              )}
+                  </CollapsibleTrigger>
+
+                  <CollapsibleContent>
+                    <div className="px-4 pb-4 border-t border-sage-100">
+                      {/* Action Buttons */}
+                      <div className="flex gap-2 py-3">
+                        <Button
+                          onClick={() => onLoadClass(classPlan)}
+                          size="sm"
+                          className="bg-sage-600 hover:bg-sage-700 text-white"
+                        >
+                          Load Class
+                        </Button>
+                        <Button
+                          onClick={() => duplicateClass(classPlan)}
+                          size="sm"
+                          variant="outline"
+                          className="border-sage-300"
+                        >
+                          <Copy className="h-4 w-4 mr-1" />
+                          Duplicate
+                        </Button>
+                        <Button
+                          onClick={() => startEditing(classPlan)}
+                          size="sm"
+                          variant="outline"
+                          className="border-sage-300"
+                        >
+                          <Edit2 className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={() => deleteClass(classPlan.id, classPlan.name)}
+                          size="sm"
+                          variant="outline"
+                          className="border-red-300 text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+
+                      {/* Edit Form */}
+                      {editingClass === classPlan.id && (
+                        <div className="space-y-3 p-3 bg-sage-50 rounded-lg mb-3">
+                          <Input
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            placeholder="Class name"
+                            className="border-sage-300"
+                          />
+                          <Textarea
+                            value={editNotes}
+                            onChange={(e) => setEditNotes(e.target.value)}
+                            placeholder="Class notes"
+                            rows={2}
+                            className="border-sage-300"
+                          />
+                          <div className="flex gap-2">
+                            <Button onClick={saveEdit} size="sm" className="bg-sage-600 hover:bg-sage-700">
+                              <Save className="h-4 w-4 mr-1" />
+                              Save
+                            </Button>
+                            <Button onClick={cancelEdit} size="sm" variant="outline">
+                              <X className="h-4 w-4 mr-1" />
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Class Notes */}
+                      {classPlan.notes && (
+                        <div className="mb-3 p-3 bg-amber-50 rounded-lg">
+                          <p className="text-sm text-amber-800">{classPlan.notes}</p>
+                        </div>
+                      )}
+
+                      {/* Exercises List */}
+                      <div className="space-y-2">
+                        <h5 className="font-medium text-sage-700 text-sm">Exercises ({classPlan.exercises.length})</h5>
+                        {classPlan.exercises.map((exercise, index) => (
+                          <div key={exercise.id} className="flex items-center gap-3 p-2 bg-white rounded border border-sage-200">
+                            <div className="w-6 h-6 bg-sage-200 rounded-full flex items-center justify-center text-xs font-medium text-sage-700">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sage-800 text-sm">{exercise.name}</div>
+                              <div className="text-xs text-sage-600">
+                                {exercise.duration}min • {exercise.category} • {exercise.springs} springs
+                              </div>
+                              <div className="flex gap-1 mt-1">
+                                {exercise.muscleGroups.slice(0, 3).map(group => (
+                                  <Badge key={group} variant="secondary" className="text-xs h-4 bg-sage-100 text-sage-600">
+                                    {group}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </CardContent>
+            </Card>
+          ))}
+
+          {savedClasses.length === 0 && (
+            <div className="text-center py-8">
+              <div className="bg-sage-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Calendar className="h-8 w-8 text-sage-400" />
+              </div>
+              <h3 className="text-lg font-medium text-sage-600 mb-2">No Saved Classes</h3>
+              <p className="text-sage-500 text-sm">
+                Build a class and save it to see it here
+              </p>
             </div>
           )}
         </div>
       </div>
-
-      {/* View Class Dialog */}
-      <Dialog open={!!viewingClass} onOpenChange={() => setViewingClass(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl text-sage-800">{viewingClass?.name}</DialogTitle>
-          </DialogHeader>
-          
-          {viewingClass && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-sage-50 rounded-lg">
-                  <div className="text-2xl font-bold text-sage-800">{viewingClass.exercises.length}</div>
-                  <div className="text-sm text-sage-600">Exercises</div>
-                </div>
-                <div className="text-center p-4 bg-sage-50 rounded-lg">
-                  <div className="text-2xl font-bold text-sage-800">{viewingClass.totalDuration}</div>
-                  <div className="text-sm text-sage-600">Minutes</div>
-                </div>
-                <div className="text-center p-4 bg-sage-50 rounded-lg">
-                  <div className="text-2xl font-bold text-sage-800">{getMuscleGroupCoverage(viewingClass).length}</div>
-                  <div className="text-sm text-sage-600">Muscle Groups</div>
-                </div>
-              </div>
-
-              {viewingClass.notes && (
-                <div>
-                  <h4 className="font-medium text-sage-700 mb-2">Notes</h4>
-                  <p className="text-sage-600 bg-sage-50 p-3 rounded-lg text-sm">{viewingClass.notes}</p>
-                </div>
-              )}
-
-              <div>
-                <h4 className="font-medium text-sage-700 mb-3">Exercises ({viewingClass.exercises.length})</h4>
-                <div className="space-y-2">
-                  {viewingClass.exercises.map((exercise, index) => (
-                    <div key={exercise.id} className="flex items-center gap-3 p-3 bg-sage-50 rounded-lg">
-                      <div className="w-8 h-8 bg-sage-200 rounded-full flex items-center justify-center text-sm font-medium text-sage-700">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-sage-800">{exercise.name}</div>
-                        <div className="text-sm text-sage-600">{exercise.duration}min • {exercise.category} • {exercise.springs} springs</div>
-                        <div className="flex gap-1 mt-1">
-                          {exercise.muscleGroups.slice(0, 3).map(group => (
-                            <Badge key={group} variant="secondary" className="text-xs bg-sage-100 text-sage-600">
-                              {group}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <Button onClick={() => {
-                  onLoadClass(viewingClass);
-                  setViewingClass(null);
-                }} className="flex-1 bg-sage-600 hover:bg-sage-700">
-                  Load This Class
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setViewingClass(null)}
-                  className="border-sage-300"
-                >
-                  Close
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Class Dialog */}
-      <Dialog open={!!editingClass} onOpenChange={() => setEditingClass(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-xl text-sage-800">Edit Class Plan</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="editClassName" className="text-sm font-medium text-sage-700 mb-2 block">Class Name</Label>
-              <Input
-                id="editClassName"
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                placeholder="Enter class name..."
-                className="border-sage-300 focus:border-sage-500"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="editClassNotes" className="text-sm font-medium text-sage-700 mb-2 block">Notes</Label>
-              <Textarea
-                id="editClassNotes"
-                value={editNotes}
-                onChange={(e) => setEditNotes(e.target.value)}
-                placeholder="Class notes..."
-                rows={4}
-                className="border-sage-300 focus:border-sage-500"
-              />
-            </div>
-            
-            <div className="flex gap-2 pt-2">
-              <Button onClick={handleSaveEdit} className="flex-1 bg-sage-600 hover:bg-sage-700">
-                Save Changes
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setEditingClass(null)}
-                className="border-sage-300"
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    </div>
   );
 };

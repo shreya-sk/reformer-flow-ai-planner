@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
@@ -45,13 +44,6 @@ const Index = () => {
       exercises: [...prev.exercises, { ...exercise, id: `${exercise.id}-${Date.now()}` }],
       totalDuration: prev.totalDuration + exercise.duration,
     }));
-
-    // Show quick success feedback
-    toast({
-      title: "Exercise added!",
-      description: `${exercise.name} added to your class`,
-      duration: 2000,
-    });
   };
 
   const removeExerciseFromClass = (exerciseId: string) => {
@@ -129,6 +121,7 @@ const Index = () => {
                 onDeleteClass={deleteClassPlan}
                 onLoadClass={loadClass}
                 onUpdateClass={updateClassPlan}
+                onSaveClass={handleSaveClass}
               />
             </div>
           </div>
