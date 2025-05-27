@@ -9,24 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      classes: {
+      class_plans: {
         Row: {
+          class_name: string | null
           created_at: string | null
+          exercises: Json | null
           id: string
-          timeline: Json
-          title: string
+          user_id: string | null
         }
         Insert: {
+          class_name?: string | null
           created_at?: string | null
+          exercises?: Json | null
           id?: string
-          timeline: Json
-          title: string
+          user_id?: string | null
         }
         Update: {
+          class_name?: string | null
           created_at?: string | null
+          exercises?: Json | null
           id?: string
-          timeline?: Json
-          title?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -39,8 +42,9 @@ export type Database = {
           id: string
           muscles: string[] | null
           name: string
-          prerequisites: string | null
-          springs: string | null
+          pregnancy_safe: boolean | null
+          props: string[] | null
+          springs: string[] | null
         }
         Insert: {
           category?: string | null
@@ -50,8 +54,9 @@ export type Database = {
           id?: string
           muscles?: string[] | null
           name: string
-          prerequisites?: string | null
-          springs?: string | null
+          pregnancy_safe?: boolean | null
+          props?: string[] | null
+          springs?: string[] | null
         }
         Update: {
           category?: string | null
@@ -61,8 +66,33 @@ export type Database = {
           id?: string
           muscles?: string[] | null
           name?: string
-          prerequisites?: string | null
-          springs?: string | null
+          pregnancy_safe?: boolean | null
+          props?: string[] | null
+          springs?: string[] | null
+        }
+        Relationships: []
+      }
+      flows: {
+        Row: {
+          content: Json | null
+          created_at: string | null
+          id: string
+          title: string | null
+          user_id: string | null
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          title?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string | null
+          id?: string
+          title?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

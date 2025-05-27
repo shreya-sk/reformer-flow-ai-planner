@@ -1,4 +1,8 @@
+
 import { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useClassPlans } from '@/hooks/useClassPlans';
+import { AuthPage } from '@/components/AuthPage';
 import { ExerciseLibrary } from '@/components/ExerciseLibrary';
 import { ClassBuilder } from '@/components/ClassBuilder';
 import { Header } from '@/components/Header';
@@ -6,6 +10,9 @@ import { ClassPlanManager } from '@/components/ClassPlanManager';
 import { Exercise, ClassPlan } from '@/types/reformer';
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const { savedClasses, saveClassPlan, deleteClassPlan, updateClassPlan } = useClassPlans();
+  
   const [currentClass, setCurrentClass] = useState<ClassPlan>({
     id: '',
     name: 'New Class',
@@ -15,8 +22,21 @@ const Index = () => {
     notes: '',
   });
 
-  const [savedClasses, setSavedClasses] = useState<ClassPlan[]>([]);
   const [showClassManager, setShowClassManager] = useState(false);
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 flex items-center justify-center">
+        <div className="text-sage-600">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show auth page if user is not logged in
+  if (!user) {
+    return <AuthPage />;
+  }
 
   const addExerciseToClass = (exercise: Exercise) => {
     setCurrentClass(prev => ({
@@ -53,16 +73,17 @@ const Index = () => {
     }));
   };
 
-  const saveClass = () => {
+  const handleSaveClass = async () => {
     if (currentClass.exercises.length === 0) return;
     
-    const savedClass = {
+    const classToSave = {
       ...currentClass,
-      id: `class-${Date.now()}`,
       name: currentClass.name || `Class ${savedClasses.length + 1}`,
     };
     
-    setSavedClasses(prev => [...prev, savedClass]);
+    await saveClassPlan(classToSave);
+    
+    // Reset current class after saving
     setCurrentClass({
       id: '',
       name: 'New Class',
@@ -71,10 +92,6 @@ const Index = () => {
       createdAt: new Date(),
       notes: '',
     });
-  };
-
-  const deleteClass = (classId: string) => {
-    setSavedClasses(prev => prev.filter(c => c.id !== classId));
   };
 
   const loadClass = (classPlan: ClassPlan) => {
@@ -86,7 +103,7 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
       <Header 
         currentClass={currentClass}
-        onSaveClass={saveClass}
+        onSaveClass={handleSaveClass}
         onUpdateClassName={(name) => setCurrentClass(prev => ({ ...prev, name }))}
         onToggleClassManager={() => setShowClassManager(!showClassManager)}
         showClassManager={showClassManager}
@@ -101,7 +118,7 @@ const Index = () => {
                 savedClasses={savedClasses}
                 onUpdateClassName={(name) => setCurrentClass(prev => ({ ...prev, name }))}
                 onUpdateClassNotes={(notes) => setCurrentClass(prev => ({ ...prev, notes }))}
-                onDeleteClass={deleteClass}
+                onDeleteClass={deleteClassPlan}
                 onLoadClass={loadClass}
               />
             </div>
