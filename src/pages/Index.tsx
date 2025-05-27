@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ExerciseLibrary } from '@/components/ExerciseLibrary';
 import { ClassBuilder } from '@/components/ClassBuilder';
@@ -84,7 +83,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-50 to-sage-100">
+    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
       <Header 
         currentClass={currentClass}
         onSaveClass={saveClass}
@@ -93,17 +92,19 @@ const Index = () => {
         showClassManager={showClassManager}
       />
       
-      <div className="flex h-[calc(100vh-80px)]">
+      <div className="flex h-[calc(100vh-85px)]">
         {showClassManager ? (
-          <div className="w-96 bg-white border-r border-sage-200 p-4 overflow-y-auto">
-            <ClassPlanManager
-              currentClass={currentClass}
-              savedClasses={savedClasses}
-              onUpdateClassName={(name) => setCurrentClass(prev => ({ ...prev, name }))}
-              onUpdateClassNotes={(notes) => setCurrentClass(prev => ({ ...prev, notes }))}
-              onDeleteClass={deleteClass}
-              onLoadClass={loadClass}
-            />
+          <div className="w-96 bg-white border-r border-sage-200 overflow-y-auto">
+            <div className="p-6">
+              <ClassPlanManager
+                currentClass={currentClass}
+                savedClasses={savedClasses}
+                onUpdateClassName={(name) => setCurrentClass(prev => ({ ...prev, name }))}
+                onUpdateClassNotes={(notes) => setCurrentClass(prev => ({ ...prev, notes }))}
+                onDeleteClass={deleteClass}
+                onLoadClass={loadClass}
+              />
+            </div>
           </div>
         ) : (
           <ExerciseLibrary onAddExercise={addExerciseToClass} />

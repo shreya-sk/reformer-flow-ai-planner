@@ -3,9 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Search, Plus, Clock, Edit, Copy } from 'lucide-react';
+import { Search, Plus, Clock, Edit, Copy, Filter } from 'lucide-react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { exerciseDatabase } from '@/data/exercises';
 import { ExerciseForm } from './ExerciseForm';
@@ -24,6 +23,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const [exercises, setExercises] = useState(exerciseDatabase);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const muscleGroups: { value: MuscleGroup | 'all'; label: string }[] = [
     { value: 'all', label: 'All' },
@@ -36,7 +36,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   ];
 
   const positions: { value: ExerciseCategory | 'all'; label: string }[] = [
-    { value: 'all', label: 'All' },
+    { value: 'all', label: 'All Positions' },
     { value: 'supine', label: 'Supine' },
     { value: 'prone', label: 'Prone' },
     { value: 'sitting', label: 'Sitting' },
@@ -85,9 +85,9 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'intermediate': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'advanced': return 'bg-red-100 text-red-800 border-red-200';
+      case 'beginner': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'intermediate': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'advanced': return 'bg-rose-100 text-rose-800 border-rose-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -134,97 +134,137 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     setSelectedExercise(updatedExercise);
   };
 
+  const clearFilters = () => {
+    setSelectedMuscleGroup('all');
+    setSelectedPosition('all');
+    setSearchTerm('');
+  };
+
+  const activeFiltersCount = (selectedMuscleGroup !== 'all' ? 1 : 0) + (selectedPosition !== 'all' ? 1 : 0);
+
   return (
     <>
-      <div className="w-96 bg-white border-r border-sage-200 flex flex-col h-full shadow-sm">
-        <div className="p-4 border-b border-sage-200 bg-gradient-to-r from-sage-50 to-white">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-sage-800">Exercise Library</h3>
+      <div className="w-96 bg-gradient-to-br from-white to-sage-25 border-r border-sage-200 flex flex-col h-full shadow-lg">
+        {/* Header */}
+        <div className="p-6 border-b border-sage-200 bg-white">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold text-sage-800">Exercise Library</h3>
             <Button 
               size="sm" 
               onClick={() => setShowForm(true)}
-              className="bg-sage-600 hover:bg-sage-700"
+              className="bg-sage-600 hover:bg-sage-700 shadow-sm"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 mr-1" />
+              Add
             </Button>
           </div>
           
+          {/* Search */}
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 h-4 w-4" />
             <Input
               placeholder="Search exercises..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 border-sage-300 focus:border-sage-500"
+              className="pl-10 border-sage-300 focus:border-sage-500 bg-white"
             />
           </div>
 
-          <Tabs value={selectedMuscleGroup} onValueChange={(value) => setSelectedMuscleGroup(value as MuscleGroup | 'all')}>
-            <TabsList className="grid grid-cols-3 gap-1 h-auto p-1 bg-sage-100 mb-3">
-              {muscleGroups.slice(0, 3).map(group => (
-                <TabsTrigger 
-                  key={group.value} 
-                  value={group.value}
-                  className="text-xs py-1.5 data-[state=active]:bg-white data-[state=active]:text-sage-800"
-                >
-                  {group.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {muscleGroups.slice(3).map(group => (
-                <Button
-                  key={group.value}
-                  variant={selectedMuscleGroup === group.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedMuscleGroup(group.value)}
-                  className="text-xs h-7 border-sage-300 hover:border-sage-400"
-                >
-                  {group.label}
-                </Button>
-              ))}
-            </div>
-          </Tabs>
-
-          <div className="space-y-2">
-            <span className="text-xs font-medium text-sage-600">Position:</span>
-            <div className="flex flex-wrap gap-1.5">
-              {positions.map(position => (
-                <Button
-                  key={position.value}
-                  variant={selectedPosition === position.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedPosition(position.value)}
-                  className="text-xs h-6 border-sage-300 hover:border-sage-400"
-                >
-                  {position.label}
-                </Button>
-              ))}
-            </div>
+          {/* Filter Toggle */}
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="text-sage-600 hover:text-sage-800 hover:bg-sage-100"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}
+            </Button>
+            {activeFiltersCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="text-sage-500 hover:text-sage-700 text-xs"
+              >
+                Clear all
+              </Button>
+            )}
           </div>
+
+          {/* Collapsible Filters */}
+          {showFilters && (
+            <div className="mt-4 space-y-4 p-4 bg-sage-50 rounded-lg border border-sage-200">
+              <div>
+                <label className="text-sm font-medium text-sage-700 mb-2 block">Muscle Groups</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {muscleGroups.map(group => (
+                    <Button
+                      key={group.value}
+                      variant={selectedMuscleGroup === group.value ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedMuscleGroup(group.value)}
+                      className="text-xs h-7 border-sage-300 hover:border-sage-400"
+                    >
+                      {group.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-sage-700 mb-2 block">Position</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {positions.map(position => (
+                    <Button
+                      key={position.value}
+                      variant={selectedPosition === position.value ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedPosition(position.value)}
+                      className="text-xs h-7 border-sage-300 hover:border-sage-400"
+                    >
+                      {position.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
+        {/* Exercise List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {filteredExercises.map((exercise) => (
             <Card 
               key={exercise.id} 
-              className="group hover:shadow-md transition-all duration-200 border-sage-200 hover:border-sage-300 cursor-pointer"
+              className="group hover:shadow-xl transition-all duration-300 border-sage-200 hover:border-sage-300 cursor-pointer transform hover:-translate-y-1"
               onClick={() => handleCardClick(exercise)}
             >
               <CardContent className="p-4">
-                <div className="flex gap-3">
+                <div className="flex gap-4">
+                  {/* Exercise Thumbnail */}
                   <div className="flex-shrink-0">
-                    <div className="w-12 h-12 bg-gradient-to-br from-sage-100 to-sage-200 rounded-lg flex items-center justify-center">
-                      <span className="text-xs font-semibold text-sage-600">
-                        {exercise.name.charAt(0)}
-                      </span>
+                    <div className="w-20 h-20 bg-gradient-to-br from-sage-100 to-sage-200 rounded-xl overflow-hidden border border-sage-200">
+                      {exercise.image ? (
+                        <img 
+                          src={exercise.image} 
+                          alt={exercise.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <img 
+                          src="/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png" 
+                          alt="Default exercise"
+                          className="w-full h-full object-cover"
+                        />
+                      )}
                     </div>
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-semibold text-sage-800 text-sm leading-tight">
+                      <h4 className="font-semibold text-sage-800 text-base leading-tight">
                         {exercise.name}
                       </h4>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -232,7 +272,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                           size="sm"
                           variant="ghost"
                           onClick={(e) => handleEditExercise(exercise, e)}
-                          className="h-6 w-6 p-0 text-sage-600 hover:text-sage-800"
+                          className="h-7 w-7 p-0 text-sage-600 hover:text-sage-800 hover:bg-sage-100"
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
@@ -240,38 +280,38 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                           size="sm"
                           variant="ghost"
                           onClick={(e) => handleDuplicateExercise(exercise, e)}
-                          className="h-6 w-6 p-0 text-sage-600 hover:text-sage-800"
+                          className="h-7 w-7 p-0 text-sage-600 hover:text-sage-800 hover:bg-sage-100"
                         >
                           <Copy className="h-3 w-3" />
                         </Button>
                         <Button
                           size="sm"
                           onClick={(e) => handleAddExercise(exercise, e)}
-                          className="bg-sage-600 hover:bg-sage-700 text-white h-6 w-6 p-0"
+                          className="bg-sage-600 hover:bg-sage-700 text-white h-7 w-7 p-0"
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="flex items-center gap-1.5">
                         <Clock className="h-3 w-3 text-sage-500" />
-                        <span className="text-xs text-sage-600 font-medium">{exercise.duration}min</span>
+                        <span className="text-sm text-sage-600 font-medium">{exercise.duration}min</span>
                       </div>
                       
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <span className="text-xs text-sage-500">Springs:</span>
                         {getSpringVisual(exercise.springs)}
                       </div>
                     </div>
                     
                     <div className="flex flex-wrap gap-1.5">
-                      <Badge className={`text-xs ${getDifficultyColor(exercise.difficulty)}`}>
+                      <Badge className={`text-xs font-medium ${getDifficultyColor(exercise.difficulty)}`}>
                         {exercise.difficulty}
                       </Badge>
                       {exercise.muscleGroups.slice(0, 2).map(group => (
-                        <Badge key={group} variant="secondary" className="text-xs bg-sage-100 text-sage-700">
+                        <Badge key={group} variant="secondary" className="text-xs bg-sage-100 text-sage-700 border-sage-200">
                           {group}
                         </Badge>
                       ))}
@@ -283,9 +323,12 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
           ))}
           
           {filteredExercises.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-sage-500 text-sm">No exercises found</p>
-              <p className="text-sage-400 text-xs mt-1">Try adjusting your search or filters</p>
+            <div className="text-center py-12">
+              <div className="bg-sage-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Search className="h-8 w-8 text-sage-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-sage-600 mb-2">No exercises found</h3>
+              <p className="text-sage-500 text-sm">Try adjusting your search or filters</p>
             </div>
           )}
         </div>
