@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { ClassPlan } from '@/types/reformer';
+import { ClassPlan, Exercise } from '@/types/reformer';
 import { toast } from '@/hooks/use-toast';
 
 export const useClassPlans = () => {
@@ -30,14 +30,19 @@ export const useClassPlans = () => {
         });
       } else {
         // Transform Supabase data to match our ClassPlan interface
-        const transformedData: ClassPlan[] = data.map(item => ({
-          id: item.id,
-          name: item.class_name,
-          exercises: item.exercises || [],
-          totalDuration: (item.exercises || []).reduce((sum: number, ex: any) => sum + (ex.duration || 0), 0),
-          createdAt: new Date(item.created_at),
-          notes: '',
-        }));
+        const transformedData: ClassPlan[] = data.map(item => {
+          // Ensure exercises is an array and properly typed
+          const exercises = Array.isArray(item.exercises) ? item.exercises as Exercise[] : [];
+          
+          return {
+            id: item.id,
+            name: item.class_name,
+            exercises,
+            totalDuration: exercises.reduce((sum: number, ex: Exercise) => sum + (ex.duration || 0), 0),
+            createdAt: new Date(item.created_at),
+            notes: '',
+          };
+        });
         
         setSavedClasses(transformedData);
       }
@@ -59,13 +64,16 @@ export const useClassPlans = () => {
     }
 
     try {
+      // Convert exercises to JSON-compatible format
+      const exercisesJson = JSON.parse(JSON.stringify(classPlan.exercises));
+      
       const { data, error } = await supabase
         .from('class_plans')
-        .insert([{
+        .insert({
           class_name: classPlan.name,
-          exercises: classPlan.exercises,
+          exercises: exercisesJson,
           user_id: user.id
-        }])
+        })
         .select()
         .single();
 
@@ -86,7 +94,7 @@ export const useClassPlans = () => {
         const newClass: ClassPlan = {
           id: data.id,
           name: data.class_name,
-          exercises: data.exercises || [],
+          exercises: Array.isArray(data.exercises) ? data.exercises as Exercise[] : [],
           totalDuration: classPlan.totalDuration,
           createdAt: new Date(data.created_at),
           notes: '',
@@ -132,11 +140,14 @@ export const useClassPlans = () => {
     if (!user) return;
 
     try {
+      // Convert exercises to JSON-compatible format
+      const exercisesJson = JSON.parse(JSON.stringify(updatedClass.exercises));
+      
       const { error } = await supabase
         .from('class_plans')
         .update({
           class_name: updatedClass.name,
-          exercises: updatedClass.exercises
+          exercises: exercisesJson
         })
         .eq('id', updatedClass.id)
         .eq('user_id', user.id);
