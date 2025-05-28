@@ -62,8 +62,8 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
-      {/* Header with Profile Picture - Reduced height from h-40 to h-32 */}
-      <header className="relative overflow-hidden h-32">
+      {/* Organic Flowing Header */}
+      <header className="relative overflow-hidden h-28">
         <div className="absolute inset-0 bg-gradient-to-br from-sage-500 via-sage-600 to-sage-700"></div>
         
         <div className="absolute inset-0">
@@ -78,137 +78,33 @@ const Index = () => {
           </svg>
         </div>
 
-        {/* Welcome text moved to top left with sparkles icon */}
-        <div className="relative px-6 py-4">
-          <div className="text-left">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-6 w-6 text-sage-100" />
-              <h1 className="text-2xl font-bold text-sage-50 tracking-wide">Welcome back,</h1>
+        <div className="relative px-6 py-3 flex items-center h-full">
+          <div className="flex items-center space-x-4 ml-4">
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-xl transform hover:scale-105 transition-all duration-300">
+              <Sparkles className="h-6 w-6 text-white" />
             </div>
-            <p className="text-lg font-medium text-sage-100 ml-8">{getFirstName()}</p>
+            <div className="flex flex-col">
+              <h1 className="text-3xl font-bold text-sage-50 tracking-wide">Welcome back,</h1>
+              <p className="text-lg font-medium text-sage-100">{getFirstName()}</p>
+            </div>
           </div>
-        </div>
-
-        {/* Profile picture centered and hovering over banner border - Increased size */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-10">
-          <Avatar className="w-20 h-20 ring-4 ring-white/20 shadow-xl">
-            <AvatarImage src={user?.user_metadata?.avatar_url} />
-            <AvatarFallback className="bg-white/20 text-white text-xl font-bold">
-              {getUserInitials()}
-            </AvatarFallback>
-          </Avatar>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="px-6 py-16 pb-24">
-        <div className="max-w-6xl mx-auto">
-          {/* Smaller Quick Stats - further reduced size */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 mb-8">
-            <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} rounded-lg p-1.5 border shadow-sm`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`text-xs font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                    {savedClasses.length}
-                  </p>
-                  <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-                    Saved Classes
-                  </p>
-                </div>
-                <BookOpen className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
-              </div>
-            </div>
-
-            <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} rounded-lg p-1.5 border shadow-sm`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`text-xs font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                    {savedClasses.reduce((total, plan) => total + plan.exercises.filter(ex => ex.category !== 'callout').length, 0)}
-                  </p>
-                  <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-                    Total Exercises
-                  </p>
-                </div>
-                <Target className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
-              </div>
-            </div>
-
-            <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} rounded-lg p-1.5 border shadow-sm`}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className={`text-xs font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                    {Math.round(savedClasses.reduce((total, plan) => total + plan.totalDuration, 0) / savedClasses.length) || 0}
-                  </p>
-                  <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-                    Avg. Duration
-                  </p>
-                </div>
-                <Clock className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
-              </div>
-            </div>
-
-            <Button
-              onClick={() => navigate('/plan')}
-              className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-lg h-full flex flex-col items-center justify-center gap-0.5 transform hover:scale-105 transition-all duration-300 shadow-lg"
-            >
-              <Plus className="h-3 w-3" />
-              <span className="text-xs font-medium">New Class</span>
-            </Button>
-          </div>
-
-          {/* Class Plans Section */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                Your Class Plans
-              </h2>
-              {savedClasses.length > 0 && (
-                <Button
-                  onClick={() => navigate('/plan')}
-                  className="bg-sage-600 hover:bg-sage-700 text-white"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create New
-                </Button>
-              )}
-            </div>
-
-            {savedClasses.length === 0 ? (
-              <div className="text-center py-12">
-                <div className={`rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6 ${
-                  preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'
-                }`}>
-                  <BookOpen className={`h-12 w-12 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
-                </div>
-                
-                <h3 className={`text-2xl font-semibold mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                  No class plans yet
-                </h3>
-                
-                <p className={`text-center mb-6 max-w-md mx-auto ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
-                  Create your first class plan to get started with organizing your Pilates sessions.
-                </p>
-                
-                <Button 
-                  onClick={() => navigate('/plan')}
-                  className="bg-sage-600 hover:bg-sage-700 text-white px-8 py-3 text-lg transform hover:scale-105 transition-all duration-300"
-                >
-                  <Plus className="h-5 w-5 mr-2" />
-                  Create Your First Class
-                </Button>
-              </div>
-            ) : (
-              <ClassPlanList
-                classes={savedClasses}
-                onEditClass={handleEditClass}
-                onDeleteClass={handleDeleteClass}
-              />
-            )}
-          </div>
+      {/* Floating Profile Picture - Overlapping */}
+      <div className="relative -mt-12 flex justify-center mb-4 z-10">
+        <div className="relative group">
+          <Avatar className="h-24 w-24 cursor-pointer transition-all duration-500 hover:scale-110 hover:rotate-2 border-4 border-white shadow-2xl relative z-10 bg-white" onClick={() => navigate('/profile')}>
+            <AvatarImage src={preferences.profileImage} alt="Profile" className="rounded-full" />
+            <AvatarFallback className="font-bold bg-gradient-to-br from-sage-400 to-sage-600 rounded-full text-2xl text-sage-200">
+              {getUserInitials()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="absolute inset-0 bg-gradient-to-br from-sage-300/20 to-sage-500/20 rounded-full blur-xl scale-125 group-hover:scale-150 transition-all duration-500 -z-10"></div>
         </div>
-      </main>
+      </div>
 
-      {/* Bottom Navigation */}
+      {/* Enhanced Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <div className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-sage-600 via-sage-500 to-sage-600"></div>
@@ -243,6 +139,81 @@ const Index = () => {
               <span className="text-xs font-medium">Profile</span>
             </Button>
           </div>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-4 pb-24">
+        {/* Compact Stats Cards */}
+        <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto">
+          <div className={`p-2 rounded-xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
+            <div className="flex items-center gap-1 justify-center">
+              <Target className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                {savedClasses.length}
+              </span>
+            </div>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-0.5`}>
+              Classes
+            </p>
+          </div>
+          
+          <div className={`p-2 rounded-xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
+            <div className="flex items-center gap-1 justify-center">
+              <Clock className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                {savedClasses.reduce((total, plan) => total + plan.totalDuration, 0)}
+              </span>
+            </div>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-0.5`}>
+              Minutes
+            </p>
+          </div>
+          
+          <div className={`p-2 rounded-xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
+            <div className="flex items-center gap-1 justify-center">
+              <BookOpen className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                {savedClasses.reduce((total, plan) => total + plan.exercises.filter(ex => ex.category !== 'callout').length, 0)}
+              </span>
+            </div>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-0.5`}>
+              Exercises
+            </p>
+          </div>
+        </div>
+
+        {/* My Classes Section */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between px-2">
+            <h2 className={`text-lg font-light ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+              My Classes
+            </h2>
+            {savedClasses.length > 0 && (
+              <p className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} bg-sage-100 dark:bg-gray-700 px-3 py-1 rounded-full`}>
+                {savedClasses.length} class{savedClasses.length === 1 ? '' : 'es'}
+              </p>
+            )}
+          </div>
+
+          {savedClasses.length === 0 ? (
+            <div className={`text-center py-6 px-4 ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg`}>
+              <div className={`w-10 h-10 ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'} rounded-full flex items-center justify-center mx-auto mb-3`}>
+                <Plus className={`h-5 w-5 ${preferences.darkMode ? 'text-gray-500' : 'text-sage-500'}`} />
+              </div>
+              <h3 className={`text-base font-light mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                No classes yet
+              </h3>
+              <p className={`text-sm mb-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                Create your first class plan to get started
+              </p>
+              <Button onClick={() => navigate('/plan')} className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-full px-5 py-2 transform hover:scale-105 transition-all duration-300 shadow-lg">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Class
+              </Button>
+            </div>
+          ) : (
+            <ClassPlanList classes={savedClasses} onEditClass={handleEditClass} onDeleteClass={handleDeleteClass} />
+          )}
         </div>
       </div>
     </div>

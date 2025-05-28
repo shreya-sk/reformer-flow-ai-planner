@@ -11,7 +11,6 @@ import PlanClass from "./pages/PlanClass";
 import Library from "./pages/Library";
 import Timer from "./pages/Timer";
 import Profile from "./pages/Profile";
-import Teaching from "./pages/Teaching";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
@@ -37,7 +36,6 @@ const App = () => {
               <Route path="/library" element={<Library />} />
               <Route path="/timer" element={<Timer />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/teaching" element={<Teaching />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

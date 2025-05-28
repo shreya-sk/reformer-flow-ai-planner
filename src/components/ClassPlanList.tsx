@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +17,7 @@ import {
   Dumbbell
 } from 'lucide-react';
 import { ClassPlan } from '@/types/reformer';
+import { ClassTeachingMode } from './ClassTeachingMode';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
 interface ClassPlanListProps {
@@ -41,7 +41,7 @@ const defaultImages = [
 ];
 
 export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlanListProps) => {
-  const navigate = useNavigate();
+  const [teachingClass, setTeachingClass] = useState<ClassPlan | null>(null);
   const [expandedClass, setExpandedClass] = useState<string | null>(null);
   const { preferences } = useUserPreferences();
 
@@ -65,12 +65,22 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
 
   const handlePlayClass = (classPlan: ClassPlan) => {
     console.log('Starting teaching mode for class:', classPlan.name);
-    navigate('/teaching', { state: { classPlan } });
+    setTeachingClass(classPlan);
   };
 
   const toggleExpanded = (classId: string) => {
     setExpandedClass(expandedClass === classId ? null : classId);
   };
+
+  // If teaching mode is active, show the teaching component
+  if (teachingClass) {
+    return (
+      <ClassTeachingMode
+        classPlan={teachingClass}
+        onClose={() => setTeachingClass(null)}
+      />
+    );
+  }
 
   return (
     <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">

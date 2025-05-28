@@ -105,80 +105,40 @@ export const ClassTeachingMode = ({
 
   return (
     <div className="min-h-screen bg-sage-700 text-white">
-      {/* Fixed Header with Timer and Progress */}
+      {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 z-30 bg-sage-800/95 backdrop-blur-sm border-b border-sage-600">
-        <div className="p-3">
-          {/* Top Row - Timer and Exit */}
-          <div className="flex items-center justify-between mb-2">
-            {/* Timer on Left */}
-            <div className="flex items-center gap-4 bg-sage-600/50 rounded-xl px-4 py-2">
-              {currentExercise.duration && currentExercise.duration > 0 ? (
-                <div className={`text-2xl font-bold ${exerciseTimeLeft < 30 ? 'text-red-300' : 'text-white'}`}>
-                  {formatTime(exerciseTimeLeft)}
-                </div>
-              ) : (
-                <div className="text-lg font-bold text-white">
-                  {currentExercise.repsOrDuration || 'Hold position'}
-                </div>
-              )}
-              
-              <div className="flex items-center gap-2">
-                <Button 
-                  onClick={previousExercise} 
-                  disabled={currentExerciseIndex === 0} 
-                  variant="ghost" 
-                  size="sm"
-                  className="text-white hover:bg-sage-600 rounded-xl disabled:opacity-30 h-8 w-8 p-0"
-                >
-                  <SkipBack className="h-4 w-4" />
-                </Button>
-                
-                <Button 
-                  onClick={handlePlayPause} 
-                  size="sm"
-                  className="bg-white/20 hover:bg-white/30 text-white rounded-xl px-3 h-8"
-                >
-                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </Button>
-                
-                <Button 
-                  onClick={nextExercise} 
-                  disabled={currentExerciseIndex === exercises.length - 1} 
-                  variant="ghost" 
-                  size="sm"
-                  className="text-white hover:bg-sage-600 rounded-xl disabled:opacity-30 h-8 w-8 p-0"
-                >
-                  <SkipForward className="h-4 w-4" />
-                </Button>
-              </div>
+        <div className="flex items-center justify-between p-4">
+          <Button 
+            onClick={onClose} 
+            variant="ghost" 
+            size="sm" 
+            className="text-white hover:bg-sage-600 rounded-xl"
+          >
+            <X className="h-5 w-5 mr-2" />
+            Exit Teaching
+          </Button>
+          
+          <div className="flex-1 max-w-md mx-4">
+            <div className="mb-2">
+              <Progress value={progressPercentage} className="h-2 bg-sage-600" />
             </div>
-
-            <Button 
-              onClick={onClose} 
-              variant="ghost" 
-              size="sm" 
-              className="text-white hover:bg-sage-600 rounded-xl"
-            >
-              <X className="h-5 w-5 mr-2" />
-              Exit Teaching
-            </Button>
+            <div className="text-center text-sm text-sage-200">
+              {Math.round(progressPercentage)}% Complete • {currentExerciseIndex + 1} of {exercises.length}
+            </div>
           </div>
-
-          {/* Progress Bar */}
-          <div className="mb-2">
-            <Progress value={progressPercentage} className="h-2 bg-sage-600" />
-          </div>
-          <div className="text-center text-sm text-sage-200">
-            {Math.round(progressPercentage)}% Complete | Exercise {currentExerciseIndex + 1} of {exercises.length}
+          
+          <div className="flex items-center gap-2 bg-sage-600/50 rounded-xl px-3 py-1">
+            <Timer className="h-4 w-4" />
+            <span className="text-sm font-medium">{classPlan.classDuration}min class</span>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="pt-24 px-4 pb-6 max-w-6xl mx-auto">
+      <div className="pt-24 px-6 pb-6 max-w-7xl mx-auto">
         {/* Exercise Name */}
-        <div className="text-center mb-4">
-          <h1 className="text-2xl font-bold text-white mb-1">{currentExercise.name}</h1>
+        <div className="text-center mb-6">
+          <h1 className="text-4xl font-bold text-white mb-2">{currentExercise.name}</h1>
           <div className="flex items-center justify-center gap-4">
             <Badge variant="outline" className="border-sage-400 text-sage-200 bg-sage-600/30">
               {currentExercise.category}
@@ -190,74 +150,41 @@ export const ClassTeachingMode = ({
           </div>
         </div>
 
-        {/* Two Column Layout for main content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Left Column (Image & Setup) */}
-          <div className="space-y-3">
-            {/* Exercise Image */}
-            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-xl shadow-lg overflow-hidden">
-              {currentExercise.image ? (
-                <div className="relative h-64 md:h-72">
-                  <img 
-                    src={currentExercise.image} 
-                    alt={currentExercise.name} 
-                    className="w-full h-full object-cover" 
-                  />
-                  <div className="absolute top-3 left-3">
-                    <Badge className="bg-black/60 text-white text-xs">
-                      Reference Image
-                    </Badge>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-64 md:h-72 bg-sage-600/30 flex flex-col items-center justify-center border-2 border-dashed border-sage-400/50 rounded-xl m-3">
-                  <ImageIcon className="h-12 w-12 mb-3 text-sage-400" />
-                  <span className="text-lg font-medium text-sage-200">
-                    No reference image
-                  </span>
-                  <span className="text-xs text-sage-400 mt-1">
-                    {currentExercise.name}
-                  </span>
-                </div>
-              )}
-            </Card>
-
-            {/* Setup & Equipment */}
-            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-xl shadow-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-white">
-                  <Settings className="h-4 w-4 text-sage-300" />
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Left Column - Setup & Cues */}
+          <div className="space-y-4">
+            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-2xl shadow-lg">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2 text-white">
+                  <Settings className="h-5 w-5 text-sage-300" />
                   Setup & Equipment
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-sage-100 leading-relaxed text-sm">{getSetupInstructions(currentExercise)}</p>
-                <div className="flex flex-wrap gap-1">
+              <CardContent className="space-y-3">
+                <p className="text-sage-100 leading-relaxed">{getSetupInstructions(currentExercise)}</p>
+                <div className="flex flex-wrap gap-2">
                   {currentExercise.equipment.map((item, index) => (
-                    <Badge key={index} className="bg-sage-600/50 text-sage-100 border-sage-400/30 text-xs">
+                    <Badge key={index} className="bg-sage-600/50 text-sage-100 border-sage-400/30">
                       {item}
                     </Badge>
                   ))}
                 </div>
               </CardContent>
             </Card>
-          </div>
 
-          {/* Right Column (Cues, Modifications, Safety) */}
-          <div className="space-y-3">
-            {/* Teaching Cues */}
-            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-xl shadow-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-white">
-                  <Lightbulb className="h-4 w-4 text-amber-400" />
+            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-2xl shadow-lg">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2 text-white">
+                  <Lightbulb className="h-5 w-5 text-amber-400" />
                   Teaching Cues
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-1">
+                <ul className="space-y-2">
                   {getEnhancedCues(currentExercise).map((cue, index) => (
-                    <li key={index} className="text-sage-100 leading-relaxed flex items-start gap-2 text-sm">
-                      <span className="text-sage-400 font-bold mt-0.5">•</span>
+                    <li key={index} className="text-sage-100 leading-relaxed flex items-start gap-3">
+                      <span className="text-sage-400 font-bold text-lg mt-0.5">•</span>
                       <span>{cue}</span>
                     </li>
                   ))}
@@ -266,26 +193,24 @@ export const ClassTeachingMode = ({
             </Card>
 
             {/* Modifications */}
-            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-xl shadow-lg">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-white">
-                  <span className="flex">
-                    <TrendingUp className="h-4 w-4 text-green-400" />
-                    <TrendingDown className="h-4 w-4 text-blue-400 -ml-1" />
-                  </span>
+            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-2xl shadow-lg">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2 text-white">
+                  <TrendingUp className="h-5 w-5 text-green-400" />
+                  <TrendingDown className="h-5 w-5 text-blue-400" />
                   Modifications
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 {currentExercise.progressions && currentExercise.progressions.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-green-300 mb-1 flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3" />
+                    <h4 className="text-sm font-semibold text-green-300 mb-2 flex items-center gap-1">
+                      <TrendingUp className="h-4 w-4" />
                       Progressions
                     </h4>
                     <ul className="space-y-1">
-                      {currentExercise.progressions.slice(0, 2).map((progression, index) => (
-                        <li key={index} className="text-sage-100 text-xs flex items-start gap-2">
+                      {currentExercise.progressions.slice(0, 3).map((progression, index) => (
+                        <li key={index} className="text-sage-100 text-sm flex items-start gap-2">
                           <span className="text-green-400">▲</span>
                           <span>{progression}</span>
                         </li>
@@ -295,13 +220,13 @@ export const ClassTeachingMode = ({
                 )}
                 {currentExercise.regressions && currentExercise.regressions.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-blue-300 mb-1 flex items-center gap-1">
-                      <TrendingDown className="h-3 w-3" />
+                    <h4 className="text-sm font-semibold text-blue-300 mb-2 flex items-center gap-1">
+                      <TrendingDown className="h-4 w-4" />
                       Regressions
                     </h4>
                     <ul className="space-y-1">
-                      {currentExercise.regressions.slice(0, 2).map((regression, index) => (
-                        <li key={index} className="text-sage-100 text-xs flex items-start gap-2">
+                      {currentExercise.regressions.slice(0, 3).map((regression, index) => (
+                        <li key={index} className="text-sage-100 text-sm flex items-start gap-2">
                           <span className="text-blue-400">▼</span>
                           <span>{regression}</span>
                         </li>
@@ -314,17 +239,17 @@ export const ClassTeachingMode = ({
 
             {/* Safety */}
             {currentExercise.contraindications && currentExercise.contraindications.length > 0 && (
-              <Card className="bg-amber-900/20 backdrop-blur-sm border-amber-500/30 rounded-xl shadow-lg">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-amber-200">
-                    <Shield className="h-4 w-4" />
+              <Card className="bg-amber-900/20 backdrop-blur-sm border-amber-500/30 rounded-2xl shadow-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2 text-amber-200">
+                    <Shield className="h-5 w-5" />
                     Safety Notes
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-1">
-                    {currentExercise.contraindications.slice(0, 3).map((item, index) => (
-                      <li key={index} className="text-amber-100 text-xs flex items-start gap-2">
+                    {currentExercise.contraindications.slice(0, 4).map((item, index) => (
+                      <li key={index} className="text-amber-100 text-sm flex items-start gap-2">
                         <span className="text-amber-400">⚠️</span>
                         <span>{item}</span>
                       </li>
@@ -333,6 +258,82 @@ export const ClassTeachingMode = ({
                 </CardContent>
               </Card>
             )}
+          </div>
+
+          {/* Right Column - Timer & Image */}
+          <div className="space-y-4">
+            {/* Timer */}
+            <Card className="bg-white/15 backdrop-blur-sm border-sage-500/30 rounded-2xl shadow-lg">
+              <CardContent className="p-6 text-center">
+                {currentExercise.duration && currentExercise.duration > 0 ? (
+                  <div className={`text-6xl font-bold mb-4 ${exerciseTimeLeft < 30 ? 'text-red-300' : 'text-white'}`}>
+                    {formatTime(exerciseTimeLeft)}
+                  </div>
+                ) : (
+                  <div className="text-3xl font-bold text-white mb-4">
+                    {currentExercise.repsOrDuration || 'Hold position'}
+                  </div>
+                )}
+                
+                <div className="flex items-center justify-center gap-4">
+                  <Button 
+                    onClick={previousExercise} 
+                    disabled={currentExerciseIndex === 0} 
+                    variant="ghost" 
+                    size="lg"
+                    className="text-white hover:bg-sage-600 rounded-xl disabled:opacity-30"
+                  >
+                    <SkipBack className="h-6 w-6" />
+                  </Button>
+                  
+                  <Button 
+                    onClick={handlePlayPause} 
+                    size="lg"
+                    className="bg-white/20 hover:bg-white/30 text-white rounded-xl px-8"
+                  >
+                    {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
+                  </Button>
+                  
+                  <Button 
+                    onClick={nextExercise} 
+                    disabled={currentExerciseIndex === exercises.length - 1} 
+                    variant="ghost" 
+                    size="lg"
+                    className="text-white hover:bg-sage-600 rounded-xl disabled:opacity-30"
+                  >
+                    <SkipForward className="h-6 w-6" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Exercise Image */}
+            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-2xl shadow-lg overflow-hidden">
+              {currentExercise.image ? (
+                <div className="relative h-80">
+                  <img 
+                    src={currentExercise.image} 
+                    alt={currentExercise.name} 
+                    className="w-full h-full object-cover" 
+                  />
+                  <div className="absolute top-4 left-4">
+                    <Badge className="bg-black/60 text-white">
+                      Reference Image
+                    </Badge>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-80 bg-sage-600/30 flex flex-col items-center justify-center border-2 border-dashed border-sage-400/50 rounded-2xl m-4">
+                  <ImageIcon className="h-16 w-16 mb-4 text-sage-400" />
+                  <span className="text-xl font-medium text-sage-200">
+                    No reference image
+                  </span>
+                  <span className="text-sm text-sage-400 mt-2">
+                    {currentExercise.name}
+                  </span>
+                </div>
+              )}
+            </Card>
           </div>
         </div>
       </div>
