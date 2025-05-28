@@ -87,7 +87,7 @@ export const useClassPlans = () => {
       } else {
         toast({
           title: "Class saved successfully!",
-          description: `"${classPlan.name}" has been added to your library.",
+          description: `"${classPlan.name}" has been added to your library.`,
         });
         
         // Add the new class to our local state
