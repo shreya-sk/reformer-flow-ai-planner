@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +18,7 @@ interface ExerciseLibraryProps {
 }
 
 export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
-  const { preferences } = useUserPreferences();
+  const { preferences, togglePregnancySafeOnly } = useUserPreferences();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<ExerciseCategory | 'all'>('all');
@@ -147,6 +148,13 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
 
   const activeFiltersCount = (selectedMuscleGroup !== 'all' ? 1 : 0) + (selectedPosition !== 'all' ? 1 : 0);
 
+  // Pregnancy silhouette icon component
+  const PregnancyIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm7 14c0 2.21-1.79 4-4 4s-4-1.79-4-4c0-1.5.83-2.8 2.05-3.47C12.2 11.8 11.6 11 11.6 11s-.4-.8-.4-2.8c0-2 1.6-3.6 3.6-3.6s3.6 1.6 3.6 3.6c0 2-.4 2.8-.4 2.8s-.6.8-.55 1.53C18.17 13.2 19 14.5 19 16z"/>
+    </svg>
+  );
+
   return (
     <>
       <div className={`w-full ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-white to-sage-25'} flex flex-col h-full`}>
@@ -191,16 +199,14 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
 
               <div className="flex items-center gap-4">
                 {/* Pregnancy Safe Toggle */}
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
                   <input
                     type="checkbox"
                     checked={preferences.showPregnancySafeOnly}
-                    onChange={(e) => {
-                      // This will be handled by user preferences hook
-                    }}
+                    onChange={togglePregnancySafeOnly}
                     className="rounded"
                   />
-                  <Heart className="h-4 w-4 text-rose-400 fill-rose-400" />
+                  <PregnancyIcon className={`h-4 w-4 ${preferences.darkMode ? 'text-pink-400' : 'text-pink-600'}`} />
                   <span className={preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}>
                     Pregnancy-safe only
                   </span>
@@ -276,8 +282,8 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                 >
                   {/* Pregnancy Safe Indicator */}
                   {exercise.isPregnancySafe && (
-                    <div className="absolute top-2 right-2 bg-rose-400 rounded-full p-1 z-10">
-                      <Heart className="h-3 w-3 text-white fill-white" />
+                    <div className="absolute top-2 left-2 bg-pink-100 rounded-full p-1 z-10">
+                      <PregnancyIcon className="h-3 w-3 text-pink-600" />
                     </div>
                   )}
 
@@ -377,6 +383,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                           onAddExercise={onAddExercise}
                           className="w-full"
                           size="sm"
+                          showFavoriteButton={true}
                         />
                       </div>
                     </div>

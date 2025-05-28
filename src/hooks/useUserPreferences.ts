@@ -49,7 +49,7 @@ export const useUserPreferences = () => {
           id: data.id,
           showPregnancySafeOnly: data.show_pregnancy_safe_only || false,
           darkMode: data.dark_mode || false,
-          favoriteExercises: data.favorite_exercises ? JSON.parse(JSON.stringify(data.favorite_exercises)) : [],
+          favoriteExercises: data.favorite_exercises ? Array.from(data.favorite_exercises as string[]) : [],
         });
       }
     } catch (error) {
@@ -76,9 +76,6 @@ export const useUserPreferences = () => {
 
     const updatedPreferences = { ...preferences, ...newPreferences };
     
-    // Optimistically update the UI
-    setPreferences(updatedPreferences);
-
     try {
       const { error } = await supabase
         .from('user_preferences')
@@ -91,8 +88,6 @@ export const useUserPreferences = () => {
 
       if (error) {
         console.error('Error updating preferences:', error);
-        // Revert the optimistic update
-        setPreferences(preferences);
         toast({
           title: "Failed to save preferences",
           description: "Please try again.",
@@ -101,11 +96,11 @@ export const useUserPreferences = () => {
         return false;
       }
 
+      // Update local state only after successful database update
+      setPreferences(updatedPreferences);
       return true;
     } catch (error) {
       console.error('Error:', error);
-      // Revert the optimistic update
-      setPreferences(preferences);
       toast({
         title: "Failed to save preferences",
         description: "Please check your connection and try again.",
@@ -116,17 +111,19 @@ export const useUserPreferences = () => {
   };
 
   const toggleDarkMode = async () => {
-    const success = await updatePreferences({ darkMode: !preferences.darkMode });
+    const newDarkMode = !preferences.darkMode;
+    const success = await updatePreferences({ darkMode: newDarkMode });
     if (success) {
       toast({
         title: "Theme updated",
-        description: `Switched to ${!preferences.darkMode ? 'dark' : 'light'} mode.`,
+        description: `Switched to ${newDarkMode ? 'dark' : 'light'} mode.`,
       });
     }
   };
 
   const togglePregnancySafeOnly = async () => {
-    await updatePreferences({ showPregnancySafeOnly: !preferences.showPregnancySafeOnly });
+    const newValue = !preferences.showPregnancySafeOnly;
+    await updatePreferences({ showPregnancySafeOnly: newValue });
   };
 
   const toggleFavoriteExercise = async (exerciseId: string) => {
