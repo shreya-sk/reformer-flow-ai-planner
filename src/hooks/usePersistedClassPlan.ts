@@ -40,11 +40,31 @@ export const usePersistedClassPlan = () => {
   }, [currentClass]);
 
   const addExercise = (exercise: Exercise) => {
+    console.log('Adding exercise to class plan:', exercise.name);
+    
     setCurrentClass(prev => {
-      const newExercises = [...prev.exercises, exercise];
+      // Create a complete copy of the exercise with all attributes
+      const exerciseCopy: Exercise = {
+        ...exercise,
+        id: `${exercise.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        // Ensure all arrays are properly copied
+        muscleGroups: [...exercise.muscleGroups],
+        equipment: [...exercise.equipment],
+        cues: exercise.cues ? [...exercise.cues] : [],
+        progressions: exercise.progressions ? [...exercise.progressions] : [],
+        regressions: exercise.regressions ? [...exercise.regressions] : [],
+        contraindications: exercise.contraindications ? [...exercise.contraindications] : [],
+        transitions: exercise.transitions ? [...exercise.transitions] : [],
+        targetAreas: exercise.targetAreas ? [...exercise.targetAreas] : [],
+        teachingFocus: exercise.teachingFocus ? [...exercise.teachingFocus] : [],
+      };
+      
+      const newExercises = [...prev.exercises, exerciseCopy];
       const totalDuration = newExercises
         .filter(ex => ex.category !== 'callout')
         .reduce((sum, ex) => sum + (ex.duration || 0), 0);
+      
+      console.log('Updated class plan with exercises:', newExercises.length);
       
       return {
         ...prev,
@@ -102,6 +122,38 @@ export const usePersistedClassPlan = () => {
     });
   };
 
+  const addCallout = (name: string, insertIndex?: number) => {
+    const calloutExercise: Exercise = {
+      id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name,
+      category: 'callout',
+      difficulty: 'beginner',
+      intensityLevel: 'low',
+      duration: 0,
+      muscleGroups: [],
+      equipment: [],
+      springs: 'none',
+      isPregnancySafe: true,
+      description: `${name} section divider`,
+      cues: [],
+      notes: ''
+    };
+
+    setCurrentClass(prev => {
+      const newExercises = [...prev.exercises];
+      if (insertIndex !== undefined) {
+        newExercises.splice(insertIndex, 0, calloutExercise);
+      } else {
+        newExercises.push(calloutExercise);
+      }
+      
+      return {
+        ...prev,
+        exercises: newExercises,
+      };
+    });
+  };
+
   const clearClassPlan = () => {
     setCurrentClass(createEmptyClassPlan());
     localStorage.removeItem(STORAGE_KEY);
@@ -118,6 +170,7 @@ export const usePersistedClassPlan = () => {
     updateClassName,
     reorderExercises,
     updateExercise,
+    addCallout,
     clearClassPlan,
     loadClassPlan,
   };

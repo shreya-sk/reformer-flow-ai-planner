@@ -1,202 +1,84 @@
-
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
 
-interface UserPreferences {
-  id?: string;
-  showPregnancySafeOnly: boolean;
+export interface UserPreferences {
   darkMode: boolean;
   favoriteExercises: string[];
+  customCallouts: string[];
 }
 
+const defaultPreferences: UserPreferences = {
+  darkMode: false,
+  favoriteExercises: [],
+  customCallouts: ['Warm-up', 'Standing', 'Supine', 'Prone', 'Cool-down'],
+};
+
 export const useUserPreferences = () => {
-  const [preferences, setPreferences] = useState<UserPreferences>({
-    showPregnancySafeOnly: false,
-    darkMode: false,
-    favoriteExercises: [],
+  const [preferences, setPreferences] = useState<UserPreferences>(() => {
+    try {
+      const storedPreferences = localStorage.getItem('user-preferences');
+      if (storedPreferences) {
+        return JSON.parse(storedPreferences) as UserPreferences;
+      }
+    } catch (error) {
+      console.error('Failed to load user preferences from localStorage:', error);
+    }
+    return defaultPreferences;
   });
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-
-  const fetchPreferences = async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    
-    try {
-      const { data, error } = await supabase
-        .from('user_preferences')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching preferences:', error);
-        toast({
-          title: "Error loading preferences",
-          description: "Using default settings.",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
-      if (data) {
-        setPreferences({
-          id: data.id,
-          showPregnancySafeOnly: data.show_pregnancy_safe_only || false,
-          darkMode: data.dark_mode || false,
-          favoriteExercises: data.favorite_exercises ? Array.from(data.favorite_exercises as string[]) : [],
-        });
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "Error loading preferences",
-        description: "Using default settings.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updatePreferences = async (newPreferences: Partial<UserPreferences>) => {
-    if (!user) {
-      toast({
-        title: "Please sign in",
-        description: "You need to be signed in to save preferences.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    const updatedPreferences = { ...preferences, ...newPreferences };
-    
-    try {
-      // First, try to update existing record
-      const { data: existingData } = await supabase
-        .from('user_preferences')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      let result;
-      if (existingData) {
-        // Update existing record
-        result = await supabase
-          .from('user_preferences')
-          .update({
-            show_pregnancy_safe_only: updatedPreferences.showPregnancySafeOnly,
-            dark_mode: updatedPreferences.darkMode,
-            favorite_exercises: updatedPreferences.favoriteExercises,
-          })
-          .eq('user_id', user.id);
-      } else {
-        // Insert new record
-        result = await supabase
-          .from('user_preferences')
-          .insert({
-            user_id: user.id,
-            show_pregnancy_safe_only: updatedPreferences.showPregnancySafeOnly,
-            dark_mode: updatedPreferences.darkMode,
-            favorite_exercises: updatedPreferences.favoriteExercises,
-          });
-      }
-
-      if (result.error) {
-        console.error('Error updating preferences:', result.error);
-        toast({
-          title: "Failed to save preferences",
-          description: "Please try again.",
-          variant: "destructive",
-        });
-        return false;
-      }
-
-      // Update local state only after successful database update
-      setPreferences(updatedPreferences);
-      return true;
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "Failed to save preferences",
-        description: "Please check your connection and try again.",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const toggleDarkMode = async () => {
-    const newDarkMode = !preferences.darkMode;
-    const success = await updatePreferences({ darkMode: newDarkMode });
-    if (success) {
-      toast({
-        title: "Theme updated",
-        description: `Switched to ${newDarkMode ? 'dark' : 'light'} mode.`,
-      });
-    }
-  };
-
-  const togglePregnancySafeOnly = async () => {
-    const newValue = !preferences.showPregnancySafeOnly;
-    const success = await updatePreferences({ showPregnancySafeOnly: newValue });
-    if (success) {
-      toast({
-        title: "Filter updated",
-        description: `Pregnancy-safe filter ${newValue ? 'enabled' : 'disabled'}.`,
-      });
-    }
-  };
-
-  const toggleFavoriteExercise = async (exerciseId: string) => {
-    const currentFavorites = preferences.favoriteExercises || [];
-    const newFavorites = currentFavorites.includes(exerciseId)
-      ? currentFavorites.filter(id => id !== exerciseId)
-      : [...currentFavorites, exerciseId];
-    
-    const success = await updatePreferences({ favoriteExercises: newFavorites });
-    if (success) {
-      const action = newFavorites.includes(exerciseId) ? 'added to' : 'removed from';
-      toast({
-        title: "Favorites updated",
-        description: `Exercise ${action} favorites.`,
-      });
-    }
-  };
 
   useEffect(() => {
-    if (user) {
-      fetchPreferences();
-    } else {
-      setPreferences({
-        showPregnancySafeOnly: false,
-        darkMode: false,
-        favoriteExercises: [],
-      });
-      setLoading(false);
+    try {
+      localStorage.setItem('user-preferences', JSON.stringify(preferences));
+    } catch (error) {
+      console.error('Failed to save user preferences to localStorage:', error);
     }
-  }, [user]);
+  }, [preferences]);
 
-  // Apply dark mode to document
-  useEffect(() => {
-    if (preferences.darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [preferences.darkMode]);
+  const toggleDarkMode = () => {
+    setPreferences(prev => ({ ...prev, darkMode: !prev.darkMode }));
+  };
+
+  const toggleFavoriteExercise = (exerciseId: string) => {
+    setPreferences(prev => {
+      const isFavorite = prev.favoriteExercises.includes(exerciseId);
+      const updatedFavorites = isFavorite
+        ? prev.favoriteExercises.filter(id => id !== exerciseId)
+        : [...prev.favoriteExercises, exerciseId];
+      return { ...prev, favoriteExercises: updatedFavorites };
+    });
+  };
+
+  const clearFavorites = () => {
+    setPreferences(prev => ({ ...prev, favoriteExercises: [] }));
+  };
+
+  const addCustomCallout = (calloutName: string) => {
+    setPreferences(prev => ({
+      ...prev,
+      customCallouts: [...prev.customCallouts, calloutName]
+    }));
+  };
+
+  const removeCustomCallout = (calloutName: string) => {
+    setPreferences(prev => ({
+      ...prev,
+      customCallouts: prev.customCallouts.filter(c => c !== calloutName)
+    }));
+  };
+
+  const updateCustomCallouts = (callouts: string[]) => {
+    setPreferences(prev => ({
+      ...prev,
+      customCallouts: callouts
+    }));
+  };
 
   return {
     preferences,
-    loading,
-    updatePreferences,
     toggleDarkMode,
-    togglePregnancySafeOnly,
     toggleFavoriteExercise,
+    clearFavorites,
+    addCustomCallout,
+    removeCustomCallout,
+    updateCustomCallouts,
   };
 };

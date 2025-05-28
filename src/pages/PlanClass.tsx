@@ -6,6 +6,7 @@ import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ClassHeader } from '@/components/plan-class/ClassHeader';
 import { TabbedPlanView } from '@/components/plan-class/TabbedPlanView';
+import { BottomNavigation } from '@/components/BottomNavigation';
 import { toast } from '@/hooks/use-toast';
 import { AuthPage } from '@/components/AuthPage';
 
@@ -76,6 +77,8 @@ const PlanClass = () => {
         onUpdateClassName={updateClassName}
         onAddExercise={handleAddExercise}
       />
+
+      <BottomNavigation onPlanClass={() => navigate('/plan')} />
     </div>
   );
 };

@@ -17,6 +17,7 @@ export interface Exercise {
   animationPreview?: string; // GIF or static image
   notes?: string;
   cues?: string[]; // AI generated, anatomical but client friendly
+  setup?: string; // AI generated setup instructions
   tempo?: string; // optional tempo instructions
   transitions?: string[];
   contraindications?: string[];

@@ -14,7 +14,10 @@ import {
   Target,
   AlertTriangle,
   Lightbulb,
-  X
+  X,
+  Settings,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
@@ -47,18 +50,49 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
     }
   };
 
+  // Enhanced AI-generated cues with anatomical focus
+  const getEnhancedCues = (exercise: Exercise): string[] => {
+    const baseCues = exercise.cues || [];
+    const anatomicalCues = [
+      "Engage deep abdominal muscles by drawing navel to spine",
+      "Maintain neutral spine alignment with natural cervical curve",
+      "Activate pelvic floor muscles throughout movement",
+      "Keep shoulders away from ears, engaging latissimus dorsi",
+      "Breathe laterally into ribcage on preparation, exhale on exertion"
+    ];
+    
+    return baseCues.length > 0 ? baseCues : anatomicalCues.slice(0, 3);
+  };
+
+  // Enhanced setup instructions
+  const getSetupInstructions = (exercise: Exercise): string => {
+    if (exercise.setup) return exercise.setup;
+    
+    const defaultSetups = {
+      'supine': "Position client supine on carriage, head on headrest. Check spine alignment and adjust springs accordingly.",
+      'prone': "Guide client to prone position, ensuring proper shoulder placement and abdominal engagement.",
+      'standing': "Position client standing on platform or carriage, establish proper posture and spring tension.",
+      'sitting': "Seat client with feet flat, spine elongated, shoulders over hips in neutral alignment.",
+      'side-lying': "Position client on side with body aligned, supporting head and maintaining hip stability.",
+      'kneeling': "Guide client to kneeling position, ensuring knee alignment and core engagement."
+    };
+    
+    return defaultSetups[exercise.category as keyof typeof defaultSetups] || 
+           "Position client according to exercise requirements, ensuring proper alignment and spring setup.";
+  };
+
   if (!currentExercise) return null;
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 to-sage-50'} p-4`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+          <h1 className={`text-xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
             {classPlan.name}
           </h1>
-          <p className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-            Teaching Mode • Exercise {currentExerciseIndex + 1} of {classPlan.exercises.length}
+          <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+            Exercise {currentExerciseIndex + 1} of {classPlan.exercises.length}
           </p>
         </div>
         <Button 
@@ -67,48 +101,43 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
           size="sm"
           className={preferences.darkMode ? 'text-gray-400 hover:text-white' : 'text-sage-600 hover:text-sage-800'}
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Progress Bar */}
-      <div className="mb-6">
-        <Progress value={progress} className="h-2" />
-        <div className="flex justify-between mt-1 text-xs text-sage-500">
-          <span>Start</span>
-          <span>{Math.round(progress)}% Complete</span>
-          <span>End</span>
-        </div>
+      {/* Compact Progress */}
+      <div className="mb-4">
+        <Progress value={progress} className="h-1" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Exercise Card */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        {/* Main Exercise Card - Compact */}
         <div className="lg:col-span-2">
-          <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-lg`}>
-            <CardHeader className="pb-4">
+          <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
+            <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className={`text-xl mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                <div className="flex-1">
+                  <CardTitle className={`text-lg mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                     {currentExercise.name}
                   </CardTitle>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge className={`${preferences.darkMode ? 'bg-gray-700 text-gray-300' : 'bg-sage-100 text-sage-700'}`}>
-                      {currentExercise.category}
-                    </Badge>
+                  <div className="flex flex-wrap gap-1">
                     <Badge variant="outline" className="text-xs">
                       {currentExercise.repsOrDuration || `${currentExercise.duration}min`}
                     </Badge>
                     <Badge variant="outline" className="text-xs">
                       {currentExercise.difficulty}
                     </Badge>
+                    <Badge className={`text-xs ${preferences.darkMode ? 'bg-gray-700 text-gray-300' : 'bg-sage-100 text-sage-700'}`}>
+                      {currentExercise.category}
+                    </Badge>
                   </div>
                 </div>
               </div>
             </CardHeader>
             
-            <CardContent className="space-y-4">
-              {/* Exercise Image */}
-              <div className={`w-full h-48 rounded-lg overflow-hidden ${
+            <CardContent className="space-y-3">
+              {/* Exercise Image - Smaller */}
+              <div className={`w-full h-32 rounded-lg overflow-hidden ${
                 preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'
               }`}>
                 {currentExercise.image ? (
@@ -119,125 +148,140 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <span className={`text-4xl font-bold ${preferences.darkMode ? 'text-gray-500' : 'text-sage-400'}`}>
+                    <span className={`text-2xl font-bold ${preferences.darkMode ? 'text-gray-500' : 'text-sage-400'}`}>
                       {currentExerciseIndex + 1}
                     </span>
                   </div>
                 )}
               </div>
 
-              {/* Description */}
-              {currentExercise.description && (
-                <div>
-                  <h4 className={`font-semibold mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                    Description
-                  </h4>
-                  <p className={`text-sm ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
-                    {currentExercise.description}
-                  </p>
-                </div>
-              )}
-
-              {/* Control Buttons */}
-              <div className="flex items-center justify-center gap-4 pt-4">
+              {/* Control Buttons - Compact */}
+              <div className="flex items-center justify-center gap-2">
                 <Button
                   onClick={previousExercise}
                   disabled={currentExerciseIndex === 0}
                   variant="outline"
-                  size="lg"
+                  size="sm"
                 >
-                  <SkipBack className="h-5 w-5" />
+                  <SkipBack className="h-4 w-4" />
                 </Button>
                 
                 <Button
                   onClick={() => setIsPlaying(!isPlaying)}
-                  size="lg"
-                  className="bg-sage-600 hover:bg-sage-700 text-white px-8"
+                  size="sm"
+                  className="bg-sage-600 hover:bg-sage-700 text-white px-6"
                 >
-                  {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                 </Button>
                 
                 <Button
                   onClick={nextExercise}
                   disabled={currentExerciseIndex === classPlan.exercises.length - 1}
                   variant="outline"
-                  size="lg"
+                  size="sm"
                 >
-                  <SkipForward className="h-5 w-5" />
+                  <SkipForward className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Side Panel */}
-        <div className="space-y-4">
-          {/* Exercise Details */}
-          <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'}`}>
-            <CardHeader className="pb-3">
-              <CardTitle className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                Exercise Details
+        {/* Setup Instructions */}
+        <div className="lg:col-span-2 space-y-3">
+          <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
+            <CardHeader className="pb-2">
+              <CardTitle className={`text-sm flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                <Settings className="h-4 w-4" />
+                Setup Instructions
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex items-center gap-2">
-                <Clock className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
-                <span className={preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}>
-                  {currentExercise.repsOrDuration || `${currentExercise.duration} minutes`}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Target className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
-                <span className={preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}>
-                  {currentExercise.muscleGroups.join(', ')}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
-                <span className={preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}>
-                  {currentExercise.difficulty} level
-                </span>
-              </div>
+            <CardContent>
+              <p className={`text-sm ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                {getSetupInstructions(currentExercise)}
+              </p>
             </CardContent>
           </Card>
 
-          {/* Teaching Cues */}
-          {currentExercise.cues && currentExercise.cues.length > 0 && (
-            <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'}`}>
-              <CardHeader className="pb-3">
-                <CardTitle className={`text-sm flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                  <Lightbulb className="h-4 w-4" />
-                  Teaching Cues
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm">
-                  {currentExercise.cues.map((cue, index) => (
-                    <li key={index} className={`flex items-start gap-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
-                      <span className="text-sage-500 font-bold">•</span>
-                      {cue}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
+          {/* Teaching Cues - Enhanced */}
+          <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
+            <CardHeader className="pb-2">
+              <CardTitle className={`text-sm flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                <Lightbulb className="h-4 w-4" />
+                Professional Cues
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-1 text-sm">
+                {getEnhancedCues(currentExercise).map((cue, index) => (
+                  <li key={index} className={`flex items-start gap-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                    <span className="text-sage-500 font-bold text-xs mt-1">•</span>
+                    <span className="text-xs leading-relaxed">{cue}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
 
-          {/* Contraindications */}
+          {/* Progressions & Regressions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Progressions */}
+            {currentExercise.progressions && currentExercise.progressions.length > 0 && (
+              <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className={`text-xs flex items-center gap-1 text-green-600`}>
+                    <TrendingUp className="h-3 w-3" />
+                    Progressions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-1">
+                    {currentExercise.progressions.slice(0, 2).map((progression, index) => (
+                      <li key={index} className={`text-xs ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                        • {progression}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Regressions */}
+            {currentExercise.regressions && currentExercise.regressions.length > 0 && (
+              <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
+                <CardHeader className="pb-2">
+                  <CardTitle className={`text-xs flex items-center gap-1 text-blue-600`}>
+                    <TrendingDown className="h-3 w-3" />
+                    Modifications
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-1">
+                    {currentExercise.regressions.slice(0, 2).map((regression, index) => (
+                      <li key={index} className={`text-xs ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                        • {regression}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Safety Notes - Compact */}
           {currentExercise.contraindications && currentExercise.contraindications.length > 0 && (
-            <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'}`}>
-              <CardHeader className="pb-3">
-                <CardTitle className={`text-sm flex items-center gap-2 text-amber-600`}>
-                  <AlertTriangle className="h-4 w-4" />
+            <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
+              <CardHeader className="pb-2">
+                <CardTitle className={`text-xs flex items-center gap-1 text-amber-600`}>
+                  <AlertTriangle className="h-3 w-3" />
                   Safety Notes
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-2 text-sm">
-                  {currentExercise.contraindications.map((item, index) => (
-                    <li key={index} className={`flex items-start gap-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
-                      <span className="text-amber-500 font-bold">•</span>
-                      {item}
+                <ul className="space-y-1">
+                  {currentExercise.contraindications.slice(0, 2).map((item, index) => (
+                    <li key={index} className={`text-xs ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                      • {item}
                     </li>
                   ))}
                 </ul>
