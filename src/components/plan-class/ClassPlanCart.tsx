@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { SpringVisual } from '@/components/SpringVisual';
 
 interface ClassPlanCartProps {
   currentClass: ClassPlan;
@@ -41,35 +41,6 @@ export const ClassPlanCart = ({
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
   const [editingExercise, setEditingExercise] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Exercise>>({});
-
-  const getSpringVisual = (springs: string) => {
-    if (springs === 'none') return null;
-    
-    const springConfig = {
-      'light': [{ color: 'bg-green-500', count: 1 }],
-      'medium': [{ color: 'bg-yellow-500', count: 1 }],
-      'heavy': [{ color: 'bg-red-500', count: 2 }],
-      'mixed': [
-        { color: 'bg-red-500', count: 1 },
-        { color: 'bg-yellow-500', count: 1 },
-        { color: 'bg-green-500', count: 1 }
-      ]
-    };
-
-    const config = springConfig[springs as keyof typeof springConfig] || springConfig.light;
-    
-    return (
-      <div className="flex items-center gap-1">
-        {config.map((spring, index) => (
-          <div key={index} className="flex gap-0.5">
-            {Array.from({ length: spring.count }).map((_, i) => (
-              <div key={i} className={`w-3 h-3 rounded-full ${spring.color}`} />
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  };
 
   const addCallout = (index: number, type: 'warm-up' | 'legs' | 'arms' | 'cool-down') => {
     const calloutExercise: Exercise = {
@@ -167,7 +138,7 @@ export const ClassPlanCart = ({
               </div>
               <div className="text-center">
                 <div className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                  {currentClass.exercises.filter(ex => ex.category !== 'callout').reduce((sum, ex) => sum + ex.duration, 0)}
+                  {currentClass.totalDuration}
                 </div>
                 <div className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
                   Minutes
@@ -294,18 +265,16 @@ export const ClassPlanCart = ({
                           <div className="flex items-center gap-1">
                             <Clock className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
                             <span className={preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}>
-                              {exercise.duration}min
+                              {exercise.repsOrDuration || `${exercise.duration}min`}
                             </span>
                           </div>
                           
-                          {getSpringVisual(exercise.springs) && (
-                            <div className="flex items-center gap-2">
-                              <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>
-                                Springs:
-                              </span>
-                              {getSpringVisual(exercise.springs)}
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>
+                              Springs:
+                            </span>
+                            <SpringVisual springs={exercise.springs} />
+                          </div>
 
                           <Badge className={`text-xs ${
                             preferences.darkMode 

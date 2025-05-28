@@ -66,15 +66,9 @@ export type ExerciseCategory =
   | 'sitting'
   | 'side-lying'
   | 'kneeling'
-  | 'cool-down'
-  | 'callout';
+  | 'cool-down';
 
-export type SpringSetting = 
-  | 'light' 
-  | 'medium' 
-  | 'heavy' 
-  | 'mixed'
-  | 'none';
+export type SpringSetting = string; // Now supports multiple springs like "1.5,2" or "red,yellow"
 
 export type DifficultyLevel = 
   | 'beginner' 
@@ -93,7 +87,19 @@ export type MuscleGroup =
   | 'back'
   | 'glutes'
   | 'shoulders'
-  | 'full-body';
+  | 'full-body'
+  | 'quadriceps'
+  | 'hamstrings'
+  | 'calves'
+  | 'lower-abs'
+  | 'obliques'
+  | 'traps'
+  | 'deltoids'
+  | 'biceps'
+  | 'triceps'
+  | 'lats'
+  | 'chest'
+  | 'hip-flexors';
 
 export type Equipment = 
   | 'straps'

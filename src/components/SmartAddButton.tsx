@@ -25,8 +25,14 @@ export const SmartAddButton = ({
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('Adding exercise to persisted class plan:', exercise.name);
-    addExercise(exercise);
+    // Create a unique copy of the exercise with a new ID
+    const exerciseToAdd = {
+      ...exercise,
+      id: `${exercise.id}-${Date.now()}`,
+    };
+    
+    console.log('Adding exercise to persisted class plan:', exerciseToAdd.name);
+    addExercise(exerciseToAdd);
     
     if (showFeedback) {
       setIsAdded(true);
