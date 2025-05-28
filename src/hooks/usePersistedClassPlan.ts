@@ -11,6 +11,7 @@ const createEmptyClassPlan = (): ClassPlan => ({
   classDuration: 45, // Default 45 minutes
   createdAt: new Date(),
   notes: '',
+  image: '', // Add default empty image
 });
 
 export const usePersistedClassPlan = () => {
@@ -24,6 +25,8 @@ export const usePersistedClassPlan = () => {
           createdAt: new Date(parsed.createdAt),
           // Ensure classDuration exists for backwards compatibility
           classDuration: parsed.classDuration || 45,
+          // Ensure image field exists
+          image: parsed.image || '',
         };
       }
     } catch (error) {
@@ -97,6 +100,10 @@ export const usePersistedClassPlan = () => {
 
   const updateClassDuration = (duration: number) => {
     setCurrentClass(prev => ({ ...prev, classDuration: duration }));
+  };
+
+  const updateClassImage = (image: string) => {
+    setCurrentClass(prev => ({ ...prev, image }));
   };
 
   const reorderExercises = (exercises: Exercise[]) => {
@@ -175,6 +182,7 @@ export const usePersistedClassPlan = () => {
     removeExercise,
     updateClassName,
     updateClassDuration,
+    updateClassImage,
     reorderExercises,
     updateExercise,
     addCallout,

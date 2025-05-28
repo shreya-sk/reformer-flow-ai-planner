@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Edit2, Trash2, Copy, Calendar, Clock, ChevronDown, ChevronRight, Save, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Edit2, Trash2, Copy, Calendar, Clock, ChevronDown, ChevronRight, Save, X, Image as ImageIcon } from 'lucide-react';
 import { ClassPlan } from '@/types/reformer';
 
 interface ClassPlanManagerProps {
@@ -15,17 +15,33 @@ interface ClassPlanManagerProps {
   savedClasses: ClassPlan[];
   onUpdateClassName: (name: string) => void;
   onUpdateClassNotes: (notes: string) => void;
+  onUpdateClassImage?: (image: string) => void;
   onDeleteClass: (classId: string) => void;
   onLoadClass: (classPlan: ClassPlan) => void;
   onUpdateClass: (updatedClass: ClassPlan) => Promise<boolean>;
   onSaveClass: () => void;
 }
 
+// Default images for class plans
+const defaultImages = [
+  '/lovable-uploads/156c5622-2826-4e16-8de0-e4c9aaa78cd3.png',
+  '/lovable-uploads/4f3b5d45-3013-4b5a-a650-b00727408e73.png',
+  '/lovable-uploads/f2338ebb-8a0c-4afe-9088-9a7ebb481767.png',
+  '/lovable-uploads/8cb5e632-af4e-471a-a2c4-0371ce90cda2.png',
+  '/lovable-uploads/52923e3d-1669-4ae1-9710-9e1c18d8820d.png',
+  '/lovable-uploads/52c9b506-ac25-4335-8a26-0c2b10d2c954.png',
+  '/lovable-uploads/88ad6c7c-6357-4065-a69f-836c59627047.png',
+  '/lovable-uploads/dcef387f-d6db-46cb-8908-cdee0eb3d361.png',
+  '/lovable-uploads/f986f49e-45f2-4dd4-8758-4be41a199bfd.png',
+  '/lovable-uploads/6df53ad2-d4c7-4ef5-9b70-2a57511c5421.png'
+];
+
 export const ClassPlanManager = ({
   currentClass,
   savedClasses,
   onUpdateClassName,
   onUpdateClassNotes,
+  onUpdateClassImage,
   onDeleteClass,
   onLoadClass,
   onUpdateClass,
@@ -35,6 +51,7 @@ export const ClassPlanManager = ({
   const [editingClass, setEditingClass] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editNotes, setEditNotes] = useState('');
+  const [showImageSelector, setShowImageSelector] = useState(false);
 
   const toggleExpanded = (classId: string) => {
     const newExpanded = new Set(expandedClasses);
@@ -100,6 +117,13 @@ export const ClassPlanManager = ({
     });
   };
 
+  const handleImageSelect = (imageUrl: string) => {
+    if (onUpdateClassImage) {
+      onUpdateClassImage(imageUrl);
+    }
+    setShowImageSelector(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Current Class Section */}
@@ -133,6 +157,50 @@ export const ClassPlanManager = ({
               className="border-sage-300 focus:border-sage-500 focus:ring-sage-200"
               rows={3}
             />
+          </div>
+
+          {/* Class Image Selection */}
+          <div>
+            <Label className="text-sm font-medium text-sage-700 mb-2 block">
+              Class Image
+            </Label>
+            <div className="flex items-center gap-3">
+              {currentClass.image && (
+                <img 
+                  src={currentClass.image} 
+                  alt="Class thumbnail" 
+                  className="w-16 h-16 object-cover rounded-lg border border-sage-200"
+                />
+              )}
+              <Dialog open={showImageSelector} onOpenChange={setShowImageSelector}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="border-sage-300 text-sage-600">
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    {currentClass.image ? 'Change Image' : 'Select Image'}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Select Class Image</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid grid-cols-4 gap-3 max-h-96 overflow-y-auto">
+                    {defaultImages.map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleImageSelect(image)}
+                        className="aspect-square overflow-hidden rounded-lg border-2 border-transparent hover:border-sage-500 transition-colors"
+                      >
+                        <img 
+                          src={image} 
+                          alt={`Class image option ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-4 pt-2">

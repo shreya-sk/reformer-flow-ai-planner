@@ -17,6 +17,7 @@ interface SmartExerciseSuggestionsProps {
 export const SmartExerciseSuggestions = ({ currentClass, onAddExercise }: SmartExerciseSuggestionsProps) => {
   const { preferences } = useUserPreferences();
   const [suggestions, setSuggestions] = useState<Exercise[]>([]);
+  const [addedExercises, setAddedExercises] = useState<Set<string>>(new Set());
 
   const generateSuggestions = () => {
     const exercises = currentClass.exercises.filter(ex => ex.category !== 'callout');
@@ -110,6 +111,31 @@ export const SmartExerciseSuggestions = ({ currentClass, onAddExercise }: SmartE
     return score;
   };
 
+  const handleAddExercise = (exercise: Exercise) => {
+    console.log('Adding suggested exercise:', exercise.name);
+    
+    // Create a unique copy of the exercise
+    const uniqueId = `${exercise.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const exerciseToAdd = {
+      ...exercise,
+      id: uniqueId,
+    };
+    
+    onAddExercise(exerciseToAdd);
+    
+    // Track added exercises for visual feedback
+    setAddedExercises(prev => new Set([...prev, exercise.id]));
+    
+    // Remove feedback after 2 seconds
+    setTimeout(() => {
+      setAddedExercises(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(exercise.id);
+        return newSet;
+      });
+    }, 2000);
+  };
+
   useEffect(() => {
     generateSuggestions();
   }, [currentClass.exercises, preferences.showPregnancySafeOnly]);
@@ -117,7 +143,7 @@ export const SmartExerciseSuggestions = ({ currentClass, onAddExercise }: SmartE
   if (suggestions.length === 0) return null;
 
   return (
-    <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'} shadow-sm`}>
+    <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200'} shadow-sm mb-4`}>
       <CardHeader className="pb-3">
         <CardTitle className={`text-sm flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-blue-800'}`}>
           <Brain className="h-4 w-4" />
@@ -147,10 +173,19 @@ export const SmartExerciseSuggestions = ({ currentClass, onAddExercise }: SmartE
             
             <Button
               size="sm"
-              onClick={() => onAddExercise(exercise)}
-              className={`h-8 w-8 p-0 ${preferences.darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
+              onClick={() => handleAddExercise(exercise)}
+              disabled={addedExercises.has(exercise.id)}
+              className={`h-8 w-8 p-0 transition-all duration-300 ${
+                addedExercises.has(exercise.id)
+                  ? 'bg-green-500 hover:bg-green-500 text-white scale-110'
+                  : preferences.darkMode ? 'bg-gray-600 hover:bg-gray-500' : 'bg-blue-600 hover:bg-blue-700'
+              } text-white`}
             >
-              <Plus className="h-3 w-3" />
+              {addedExercises.has(exercise.id) ? (
+                <Lightbulb className="h-3 w-3" />
+              ) : (
+                <Plus className="h-3 w-3" />
+              )}
             </Button>
           </div>
         ))}

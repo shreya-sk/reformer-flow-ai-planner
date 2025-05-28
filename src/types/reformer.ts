@@ -1,4 +1,3 @@
-
 export interface Exercise {
   id: string;
   name: string;
@@ -51,6 +50,7 @@ export interface ClassPlan {
   classDuration: number; // Total class time in minutes (default 45)
   createdAt: Date;
   notes?: string;
+  image?: string; // Optional class plan thumbnail
 }
 
 export interface ClassSection {
