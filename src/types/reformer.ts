@@ -116,7 +116,18 @@ export type MuscleGroup =
   | 'forearms'
   | 'wrists'
   | 'ankles'
-  | 'feet';
+  | 'feet'
+  | 'hip-abductors'
+  | 'hip-adductors'
+  | 'rotator-cuff'
+  | 'serratus-anterior'
+  | 'psoas'
+  | 'iliotibial-band'
+  | 'thoracic-spine'
+  | 'lumbar-spine'
+  | 'cervical-spine'
+  | 'diaphragm'
+  | 'intercostals';
 
 export type Equipment = 
   | 'straps'
@@ -136,6 +147,22 @@ export type Equipment =
   | 'reformer-box'
   | 'stability-ball'
   | 'yoga-blocks'
+  | 'spine-corrector'
+  | 'push-through-bar'
+  | 'roll-down-bar'
+  | 'sitting-box'
+  | 'moon-box'
+  | 'arc-barrel'
+  | 'ladder-barrel'
+  | 'chair'
+  | 'cadillac'
+  | 'wall-unit'
+  | 'mat'
+  | 'towel'
+  | 'elastic-band'
+  | 'weighted-ball'
+  | 'balance-pad'
+  | 'bosu-ball'
   | 'none';
 
 export type TeachingFocus =

@@ -21,7 +21,8 @@ const PlanClass = () => {
     updateClassName,
     updateClassDuration,
     addCallout,
-    clearClassPlan
+    clearClassPlan,
+    reorderExercises
   } = usePersistedClassPlan();
 
   if (!user) {
@@ -29,7 +30,8 @@ const PlanClass = () => {
   }
 
   const handleSaveClass = async () => {
-    if (currentClass.exercises.filter(ex => ex.category !== 'callout').length === 0) {
+    const realExercises = currentClass.exercises.filter(ex => ex.category !== 'callout');
+    if (realExercises.length === 0) {
       toast({
         title: "Cannot save empty class",
         description: "Add some exercises to your class before saving.",
@@ -61,6 +63,22 @@ const PlanClass = () => {
     navigate('/library');
   };
 
+  const handleUpdateCallout = (calloutId: string, newName: string) => {
+    const updatedExercises = currentClass.exercises.map(exercise => 
+      exercise.id === calloutId && exercise.category === 'callout'
+        ? { ...exercise, name: newName }
+        : exercise
+    );
+    reorderExercises(updatedExercises);
+  };
+
+  const handleDeleteCallout = (calloutId: string) => {
+    const updatedExercises = currentClass.exercises.filter(exercise => 
+      !(exercise.id === calloutId && exercise.category === 'callout')
+    );
+    reorderExercises(updatedExercises);
+  };
+
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20`}>
       <ClassHeader
@@ -80,6 +98,9 @@ const PlanClass = () => {
         onUpdateClassDuration={updateClassDuration}
         onAddExercise={handleAddExercise}
         onAddCallout={addCallout}
+        onUpdateCallout={handleUpdateCallout}
+        onDeleteCallout={handleDeleteCallout}
+        onReorderExercises={reorderExercises}
       />
 
       <BottomNavigation onPlanClass={() => navigate('/plan')} />
