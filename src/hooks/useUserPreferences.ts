@@ -77,17 +77,38 @@ export const useUserPreferences = () => {
     const updatedPreferences = { ...preferences, ...newPreferences };
     
     try {
-      const { error } = await supabase
+      // First, try to update existing record
+      const { data: existingData } = await supabase
         .from('user_preferences')
-        .upsert({
-          user_id: user.id,
-          show_pregnancy_safe_only: updatedPreferences.showPregnancySafeOnly,
-          dark_mode: updatedPreferences.darkMode,
-          favorite_exercises: updatedPreferences.favoriteExercises,
-        });
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (error) {
-        console.error('Error updating preferences:', error);
+      let result;
+      if (existingData) {
+        // Update existing record
+        result = await supabase
+          .from('user_preferences')
+          .update({
+            show_pregnancy_safe_only: updatedPreferences.showPregnancySafeOnly,
+            dark_mode: updatedPreferences.darkMode,
+            favorite_exercises: updatedPreferences.favoriteExercises,
+          })
+          .eq('user_id', user.id);
+      } else {
+        // Insert new record
+        result = await supabase
+          .from('user_preferences')
+          .insert({
+            user_id: user.id,
+            show_pregnancy_safe_only: updatedPreferences.showPregnancySafeOnly,
+            dark_mode: updatedPreferences.darkMode,
+            favorite_exercises: updatedPreferences.favoriteExercises,
+          });
+      }
+
+      if (result.error) {
+        console.error('Error updating preferences:', result.error);
         toast({
           title: "Failed to save preferences",
           description: "Please try again.",
@@ -123,7 +144,13 @@ export const useUserPreferences = () => {
 
   const togglePregnancySafeOnly = async () => {
     const newValue = !preferences.showPregnancySafeOnly;
-    await updatePreferences({ showPregnancySafeOnly: newValue });
+    const success = await updatePreferences({ showPregnancySafeOnly: newValue });
+    if (success) {
+      toast({
+        title: "Filter updated",
+        description: `Pregnancy-safe filter ${newValue ? 'enabled' : 'disabled'}.`,
+      });
+    }
   };
 
   const toggleFavoriteExercise = async (exerciseId: string) => {
@@ -132,7 +159,14 @@ export const useUserPreferences = () => {
       ? currentFavorites.filter(id => id !== exerciseId)
       : [...currentFavorites, exerciseId];
     
-    await updatePreferences({ favoriteExercises: newFavorites });
+    const success = await updatePreferences({ favoriteExercises: newFavorites });
+    if (success) {
+      const action = newFavorites.includes(exerciseId) ? 'added to' : 'removed from';
+      toast({
+        title: "Favorites updated",
+        description: `Exercise ${action} favorites.`,
+      });
+    }
   };
 
   useEffect(() => {

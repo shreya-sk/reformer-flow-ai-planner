@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +17,7 @@ interface ExerciseLibraryProps {
 }
 
 export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
-  const { preferences, togglePregnancySafeOnly } = useUserPreferences();
+  const { preferences, togglePregnancySafeOnly, toggleFavoriteExercise } = useUserPreferences();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<ExerciseCategory | 'all'>('all');
@@ -151,7 +150,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   // Pregnancy silhouette icon component
   const PregnancyIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm7 14c0 2.21-1.79 4-4 4s-4-1.79-4-4c0-1.5.83-2.8 2.05-3.47C12.2 11.8 11.6 11 11.6 11s-.4-.8-.4-2.8c0-2 1.6-3.6 3.6-3.6s3.6 1.6 3.6 3.6c0 2-.4 2.8-.4 2.8s-.6.8-.55 1.53C18.17 13.2 19 14.5 19 16z"/>
+      <path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm4 7v10h-8V10c0-2.2 1.8-4 4-4s4 1.8 4 4z"/>
     </svg>
   );
 
@@ -270,126 +269,146 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredExercises.map((exercise) => (
-                <Card 
-                  key={exercise.id} 
-                  className={`group hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 relative ${
-                    preferences.darkMode 
-                      ? 'border-gray-600 hover:border-gray-500 bg-gray-800' 
-                      : 'border-sage-200 hover:border-sage-300 bg-white'
-                  }`}
-                  onClick={() => handleCardClick(exercise)}
-                >
-                  {/* Pregnancy Safe Indicator */}
-                  {exercise.isPregnancySafe && (
-                    <div className="absolute top-2 left-2 bg-pink-100 rounded-full p-1 z-10">
-                      <PregnancyIcon className="h-3 w-3 text-pink-600" />
-                    </div>
-                  )}
-
-                  <CardContent className="p-4">
-                    {/* Exercise Thumbnail */}
-                    <div className={`w-full h-32 rounded-xl overflow-hidden border mb-3 ${
+              {filteredExercises.map((exercise) => {
+                const isFavorite = preferences.favoriteExercises?.includes(exercise.id) || false;
+                
+                return (
+                  <Card 
+                    key={exercise.id} 
+                    className={`group hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 relative ${
                       preferences.darkMode 
-                        ? 'bg-gradient-to-br from-gray-600 to-gray-700 border-gray-600' 
-                        : 'bg-gradient-to-br from-sage-100 to-sage-200 border-sage-200'
-                    }`}>
-                      {exercise.image ? (
-                        <img 
-                          src={exercise.image} 
-                          alt={exercise.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <img 
-                          src="/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png" 
-                          alt="Default exercise"
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
+                        ? 'border-gray-600 hover:border-gray-500 bg-gray-800' 
+                        : 'border-sage-200 hover:border-sage-300 bg-white'
+                    }`}
+                    onClick={() => handleCardClick(exercise)}
+                  >
+                    {/* Favorite Icon - Top Right */}
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavoriteExercise(exercise.id);
+                      }}
+                      size="sm"
+                      variant="ghost"
+                      className={`absolute top-2 right-2 z-10 h-8 w-8 p-0 rounded-full ${
+                        isFavorite 
+                          ? 'text-red-500 hover:text-red-600 bg-white/90 hover:bg-white' 
+                          : 'text-gray-400 hover:text-red-500 bg-white/60 hover:bg-white/90'
+                      }`}
+                    >
+                      <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
+                    </Button>
 
-                    <div className="space-y-2">
-                      <div className="flex items-start justify-between">
-                        <h4 className={`font-semibold text-sm leading-tight ${
-                          preferences.darkMode ? 'text-white' : 'text-sage-800'
-                        }`}>
-                          {exercise.name}
-                        </h4>
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => handleEditExercise(exercise, e)}
-                            className={`h-6 w-6 p-0 ${
-                              preferences.darkMode 
-                                ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
-                                : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
-                            }`}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={(e) => handleDuplicateExercise(exercise, e)}
-                            className={`h-6 w-6 p-0 ${
-                              preferences.darkMode 
-                                ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
-                                : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
-                            }`}
-                          >
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                        </div>
+                    {/* Pregnancy Safe Indicator - Top Left */}
+                    {exercise.isPregnancySafe && (
+                      <div className="absolute top-2 left-2 bg-pink-100 rounded-full p-1 z-10">
+                        <PregnancyIcon className="h-3 w-3 text-pink-600" />
+                      </div>
+                    )}
+
+                    <CardContent className="p-4">
+                      {/* Exercise Thumbnail */}
+                      <div className={`w-full h-32 rounded-xl overflow-hidden border mb-3 ${
+                        preferences.darkMode 
+                          ? 'bg-gradient-to-br from-gray-600 to-gray-700 border-gray-600' 
+                          : 'bg-gradient-to-br from-sage-100 to-sage-200 border-sage-200'
+                      }`}>
+                        {exercise.image ? (
+                          <img 
+                            src={exercise.image} 
+                            alt={exercise.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <img 
+                            src="/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png" 
+                            alt="Default exercise"
+                            className="w-full h-full object-cover"
+                          />
+                        )}
                       </div>
 
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-1">
-                          <Clock className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
-                          <span className={`font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
-                            {exercise.duration}min
-                          </span>
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between">
+                          <h4 className={`font-semibold text-sm leading-tight ${
+                            preferences.darkMode ? 'text-white' : 'text-sage-800'
+                          }`}>
+                            {exercise.name}
+                          </h4>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => handleEditExercise(exercise, e)}
+                              className={`h-6 w-6 p-0 ${
+                                preferences.darkMode 
+                                  ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
+                                  : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
+                              }`}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => handleDuplicateExercise(exercise, e)}
+                              className={`h-6 w-6 p-0 ${
+                                preferences.darkMode 
+                                  ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
+                                  : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
+                              }`}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-1">
+                            <Clock className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
+                            <span className={`font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
+                              {exercise.duration}min
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-1">
+                            <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>Springs:</span>
+                            {getSpringVisual(exercise.springs)}
+                          </div>
                         </div>
                         
-                        <div className="flex items-center gap-1">
-                          <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>Springs:</span>
-                          {getSpringVisual(exercise.springs)}
+                        <div className="flex flex-wrap gap-1">
+                          <Badge className={`text-xs font-medium ${getDifficultyColor(exercise.difficulty)}`}>
+                            {exercise.difficulty}
+                          </Badge>
+                          {exercise.muscleGroups.slice(0, 2).map(group => (
+                            <Badge 
+                              key={group} 
+                              variant="secondary" 
+                              className={`text-xs ${
+                                preferences.darkMode 
+                                  ? 'bg-gray-700 text-gray-300 border-gray-600' 
+                                  : 'bg-sage-100 text-sage-700 border-sage-200'
+                              }`}
+                            >
+                              {group}
+                            </Badge>
+                          ))}
+                        </div>
+
+                        <div className="pt-2">
+                          <SmartAddButton
+                            exercise={exercise}
+                            onAddExercise={onAddExercise}
+                            className="w-full"
+                            size="sm"
+                          />
                         </div>
                       </div>
-                      
-                      <div className="flex flex-wrap gap-1">
-                        <Badge className={`text-xs font-medium ${getDifficultyColor(exercise.difficulty)}`}>
-                          {exercise.difficulty}
-                        </Badge>
-                        {exercise.muscleGroups.slice(0, 2).map(group => (
-                          <Badge 
-                            key={group} 
-                            variant="secondary" 
-                            className={`text-xs ${
-                              preferences.darkMode 
-                                ? 'bg-gray-700 text-gray-300 border-gray-600' 
-                                : 'bg-sage-100 text-sage-700 border-sage-200'
-                            }`}
-                          >
-                            {group}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <div className="pt-2">
-                        <SmartAddButton
-                          exercise={exercise}
-                          onAddExercise={onAddExercise}
-                          className="w-full"
-                          size="sm"
-                          showFavoriteButton={true}
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
             
             {filteredExercises.length === 0 && (
