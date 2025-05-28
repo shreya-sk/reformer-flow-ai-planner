@@ -6,8 +6,8 @@ import { useClassPlans } from '@/hooks/useClassPlans';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ClassHeader } from './ClassHeader';
+import { ClassPlanCart } from './ClassPlanCart';
 import { ExerciseLibrary } from '@/components/ExerciseLibrary';
-import { ClassBuilder } from '@/components/ClassBuilder';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { toast } from '@/hooks/use-toast';
 
@@ -17,6 +17,7 @@ export const ClassPlanContainer = () => {
   const { user } = useAuth();
   const { saveClassPlan, savedClasses } = useClassPlans();
   const { preferences } = useUserPreferences();
+  const [showLibrary, setShowLibrary] = useState(false);
   
   // Get cart exercises from navigation state
   const cartExercises = location.state?.cartExercises || [];
@@ -71,6 +72,7 @@ export const ClassPlanContainer = () => {
     setCurrentClass(prev => ({
       ...prev,
       exercises,
+      totalDuration: exercises.reduce((sum, ex) => sum + ex.duration, 0),
     }));
   };
 
@@ -116,9 +118,37 @@ export const ClassPlanContainer = () => {
     }, 1500);
   };
 
+  const handleAddExercise = () => {
+    setShowLibrary(true);
+  };
+
+  const handleLibraryAddExercise = (exercise: Exercise) => {
+    addExerciseToClass(exercise);
+    setShowLibrary(false);
+  };
+
   if (!user) {
     navigate('/');
     return null;
+  }
+
+  if (showLibrary) {
+    return (
+      <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20`}>
+        <ClassHeader
+          currentClass={currentClass}
+          onUpdateClassName={updateClassName}
+          onSaveClass={handleSaveClass}
+          onUndo={undo}
+          onRedo={redo}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          showBackButton={true}
+          onBack={() => setShowLibrary(false)}
+        />
+        <ExerciseLibrary onAddExercise={handleLibraryAddExercise} />
+      </div>
+    );
   }
 
   return (
@@ -133,18 +163,15 @@ export const ClassPlanContainer = () => {
         canRedo={canRedo}
       />
 
-      <div className="flex h-[calc(100vh-85px)]">
-        <ExerciseLibrary onAddExercise={addExerciseToClass} />
-        
-        <ClassBuilder 
-          currentClass={currentClass}
-          onRemoveExercise={removeExerciseFromClass}
-          onReorderExercises={reorderExercises}
-          onUpdateExercise={updateExerciseInClass}
-          savedClasses={savedClasses}
-          onAddExercise={addExerciseToClass}
-        />
-      </div>
+      <ClassPlanCart
+        currentClass={currentClass}
+        onUpdateClassName={updateClassName}
+        onRemoveExercise={removeExerciseFromClass}
+        onReorderExercises={reorderExercises}
+        onUpdateExercise={updateExerciseInClass}
+        onSaveClass={handleSaveClass}
+        onAddExercise={handleAddExercise}
+      />
     </div>
   );
 };

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Play, Pause, SkipForward, RotateCcw, Clock, Baby } from 'lucide-react';
+import { ArrowLeft, Play, Pause, SkipForward, RotateCcw, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ClassPlan, Exercise } from '@/types/reformer';
 
 interface ClassTeachingModeProps {
@@ -53,27 +53,30 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
 
   const getSpringVisual = (springs: string) => {
     const springConfig = {
-      'light': [{ color: 'bg-green-500', count: 1 }],
-      'medium': [{ color: 'bg-yellow-500', count: 1 }],
-      'heavy': [{ color: 'bg-red-500', count: 2 }],
+      'light': [{ color: 'bg-green-500', count: 1, name: 'Light' }],
+      'medium': [{ color: 'bg-yellow-500', count: 1, name: 'Medium' }],
+      'heavy': [{ color: 'bg-red-500', count: 2, name: 'Heavy' }],
       'mixed': [
-        { color: 'bg-red-500', count: 1 },
-        { color: 'bg-yellow-500', count: 1 },
-        { color: 'bg-green-500', count: 1 }
+        { color: 'bg-red-500', count: 1, name: 'Heavy' },
+        { color: 'bg-yellow-500', count: 1, name: 'Medium' },
+        { color: 'bg-green-500', count: 1, name: 'Light' }
       ]
     };
 
     const config = springConfig[springs as keyof typeof springConfig] || springConfig.light;
     
     return (
-      <div className="flex items-center gap-2">
-        <span className="text-white text-sm">Springs:</span>
-        <div className="flex items-center gap-1">
+      <div className="flex items-center gap-3">
+        <span className="text-white text-lg font-medium">Springs:</span>
+        <div className="flex items-center gap-2">
           {config.map((spring, index) => (
-            <div key={index} className="flex gap-1">
-              {Array.from({ length: spring.count }).map((_, i) => (
-                <div key={i} className={`w-4 h-4 rounded-full ${spring.color} shadow-lg`} />
-              ))}
+            <div key={index} className="flex items-center gap-1">
+              <div className="flex gap-1">
+                {Array.from({ length: spring.count }).map((_, i) => (
+                  <div key={i} className={`w-5 h-5 rounded-full ${spring.color} shadow-lg border-2 border-white/20`} />
+                ))}
+              </div>
+              <span className="text-white/80 text-sm">{spring.name}</span>
             </div>
           ))}
         </div>
@@ -117,6 +120,14 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
     return 'text-red-400';
   };
 
+  const PregnancyIcon = () => (
+    <div className="bg-pink-100 rounded-full p-2">
+      <svg className="h-6 w-6 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 1.74.5 3.37 1.41 4.84.91 1.47 2.09 2.66 2.09 4.16v1c0 1.1.9 2 2 2h3c1.1 0 2-.9 2-2v-1c0-1.5 1.18-2.69 2.09-4.16.91-1.47 1.41-3.1 1.41-4.84 0-3.87-3.13-7-7-7zm-1 15h2v1h-2v-1zm0-2h2c0-.55-.45-1-1-1s-1 .45-1 1z"/>
+      </svg>
+    </div>
+  );
+
   if (!currentExercise) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
@@ -154,12 +165,12 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
         <div className="w-32" />
       </div>
 
-      <div className="flex flex-1 h-[calc(100vh-80px)]">
-        {/* Main Exercise Area */}
-        <div className="flex-1 p-6">
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)]">
+        {/* Main Content Area */}
+        <div className="flex-1 p-6 space-y-6">
           {/* Timer Display */}
-          <div className="text-center mb-6">
-            <div className={`text-6xl md:text-8xl font-bold mb-4 ${getTimerColor()}`}>
+          <div className="text-center">
+            <div className={`text-4xl md:text-6xl lg:text-8xl font-bold mb-4 ${getTimerColor()}`}>
               {formatTime(timeRemaining)}
             </div>
             
@@ -190,61 +201,102 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
           </div>
 
           {/* Exercise Info */}
-          <Card className="bg-gray-800/50 border-gray-600 mb-6">
+          <Card className="bg-gray-800/50 border-gray-600">
             <CardContent className="p-6">
-              <div className="text-center mb-6">
-                <div className="flex items-center justify-center gap-4 mb-2">
-                  <h2 className="text-3xl font-bold text-white">{currentExercise.name}</h2>
-                  {currentExercise.isPregnancySafe && (
-                    <div className="bg-pink-500 rounded-full p-2">
-                      <Baby className="h-5 w-5 text-white" />
-                    </div>
+              <div className="flex flex-col lg:flex-row gap-6">
+                {/* Exercise Image/Video */}
+                <div className="w-full lg:w-80 flex-shrink-0">
+                  <div className="bg-gray-700 rounded-lg aspect-square flex items-center justify-center mb-4">
+                    {currentExercise.image ? (
+                      <img 
+                        src={currentExercise.image} 
+                        alt={currentExercise.name}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <img 
+                        src="/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png" 
+                        alt="Default exercise"
+                        className="w-full h-full object-cover rounded-lg opacity-50"
+                      />
+                    )}
+                  </div>
+                  
+                  {currentExercise.videoUrl && (
+                    <video 
+                      src={currentExercise.videoUrl} 
+                      controls 
+                      className="w-full rounded-lg"
+                      poster={currentExercise.image}
+                    >
+                      Your browser does not support video playback.
+                    </video>
                   )}
                 </div>
-                
-                <div className="flex justify-center gap-3 mb-4">
-                  <Badge className="bg-blue-600 text-white">{currentExercise.category}</Badge>
-                  <Badge className="bg-purple-600 text-white">{currentExercise.difficulty}</Badge>
-                  <Badge className="bg-green-600 text-white">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {currentExercise.duration}min
-                  </Badge>
-                </div>
 
-                {/* Springs Display */}
-                <div className="flex justify-center mb-4">
-                  {getSpringVisual(currentExercise.springs)}
-                </div>
-              </div>
+                {/* Exercise Details */}
+                <div className="flex-1">
+                  <div className="mb-6">
+                    <div className="flex items-center gap-4 mb-3">
+                      <h2 className="text-2xl md:text-3xl font-bold text-white">{currentExercise.name}</h2>
+                      {currentExercise.isPregnancySafe && <PregnancyIcon />}
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      <Badge className="bg-blue-600 text-white text-sm">{currentExercise.category}</Badge>
+                      <Badge className="bg-purple-600 text-white text-sm">{currentExercise.difficulty}</Badge>
+                      <Badge className="bg-green-600 text-white text-sm">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {currentExercise.duration}min
+                      </Badge>
+                    </div>
 
-              {currentExercise.description && (
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-white mb-2">Description</h3>
-                  <p className="text-gray-300">{currentExercise.description}</p>
-                </div>
-              )}
+                    {/* Springs Display */}
+                    <div className="mb-6">
+                      {getSpringVisual(currentExercise.springs)}
+                    </div>
+                  </div>
 
-              {currentExercise.cues && currentExercise.cues.length > 0 && (
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-white mb-2">Teaching Cues</h3>
-                  <ul className="space-y-2">
-                    {currentExercise.cues.map((cue, index) => (
-                      <li key={index} className="text-gray-300 bg-gray-700/50 p-2 rounded">
-                        • {cue}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                  {currentExercise.description && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-white mb-2">Description</h3>
+                      <p className="text-gray-300 leading-relaxed">{currentExercise.description}</p>
+                    </div>
+                  )}
 
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-400">Muscle Groups:</span>
-                  <span className="text-white ml-2">{currentExercise.muscleGroups.join(', ')}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400">Equipment:</span>
-                  <span className="text-white ml-2">{currentExercise.equipment.join(', ') || 'None'}</span>
+                  {currentExercise.cues && currentExercise.cues.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-white mb-3">Teaching Cues</h3>
+                      <div className="space-y-2">
+                        {currentExercise.cues.map((cue, index) => (
+                          <div key={index} className="flex items-start gap-3">
+                            <div className="w-6 h-6 bg-sage-600 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 mt-0.5">
+                              {index + 1}
+                            </div>
+                            <p className="text-gray-300 bg-gray-700/50 p-3 rounded-lg flex-1">{cue}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-400">Muscle Groups:</span>
+                      <span className="text-white ml-2">{currentExercise.muscleGroups.join(', ')}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400">Equipment:</span>
+                      <span className="text-white ml-2">{currentExercise.equipment.join(', ') || 'None'}</span>
+                    </div>
+                  </div>
+
+                  {currentExercise.notes && (
+                    <div className="bg-gray-700/50 p-4 rounded-lg mt-4">
+                      <h4 className="text-sm font-semibold text-white mb-2">Notes:</h4>
+                      <p className="text-sm text-gray-300">{currentExercise.notes}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -258,6 +310,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
               variant="outline"
               className="border-gray-600 text-white hover:bg-gray-800"
             >
+              <ChevronLeft className="h-4 w-4 mr-2" />
               Previous Exercise
             </Button>
 
@@ -273,52 +326,9 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
               className="bg-sage-600 hover:bg-sage-700"
             >
               Next Exercise
-              <SkipForward className="h-4 w-4 ml-2" />
+              <ChevronRight className="h-4 w-4 ml-2" />
             </Button>
           </div>
-        </div>
-
-        {/* Exercise Visual/GIF Area */}
-        <div className="w-80 bg-gray-800/30 border-l border-gray-700 p-4">
-          <h3 className="text-lg font-semibold text-white mb-4">Exercise Visual</h3>
-          <div className="bg-gray-700 rounded-lg aspect-square flex items-center justify-center mb-4">
-            {currentExercise.image ? (
-              <img 
-                src={currentExercise.image} 
-                alt={currentExercise.name}
-                className="w-full h-full object-cover rounded-lg"
-              />
-            ) : (
-              <div className="text-center text-gray-400">
-                <img 
-                  src="/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png" 
-                  alt="Default exercise"
-                  className="w-full h-full object-cover rounded-lg opacity-50"
-                />
-              </div>
-            )}
-          </div>
-          
-          {currentExercise.videoUrl && (
-            <div className="mb-4">
-              <p className="text-sm text-gray-400 mb-2">Exercise Demo:</p>
-              <video 
-                src={currentExercise.videoUrl} 
-                controls 
-                className="w-full rounded-lg"
-                poster={currentExercise.image}
-              >
-                Your browser does not support video playback.
-              </video>
-            </div>
-          )}
-
-          {currentExercise.notes && (
-            <div className="bg-gray-700/50 p-3 rounded-lg">
-              <h4 className="text-sm font-semibold text-white mb-1">Notes:</h4>
-              <p className="text-xs text-gray-300">{currentExercise.notes}</p>
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -8,18 +8,23 @@ interface UserPreferences {
   id?: string;
   showPregnancySafeOnly: boolean;
   darkMode: boolean;
+  favoriteExercises: string[];
 }
 
 export const useUserPreferences = () => {
   const [preferences, setPreferences] = useState<UserPreferences>({
     showPregnancySafeOnly: false,
     darkMode: false,
+    favoriteExercises: [],
   });
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
   const fetchPreferences = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     
     try {
       const { data, error } = await supabase
@@ -30,6 +35,12 @@ export const useUserPreferences = () => {
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching preferences:', error);
+        toast({
+          title: "Error loading preferences",
+          description: "Using default settings.",
+          variant: "destructive",
+        });
+        setLoading(false);
         return;
       }
 
@@ -38,19 +49,34 @@ export const useUserPreferences = () => {
           id: data.id,
           showPregnancySafeOnly: data.show_pregnancy_safe_only || false,
           darkMode: data.dark_mode || false,
+          favoriteExercises: data.favorite_exercises || [],
         });
       }
     } catch (error) {
       console.error('Error:', error);
+      toast({
+        title: "Error loading preferences",
+        description: "Using default settings.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const updatePreferences = async (newPreferences: Partial<UserPreferences>) => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Please sign in",
+        description: "You need to be signed in to save preferences.",
+        variant: "destructive",
+      });
+      return false;
+    }
 
     const updatedPreferences = { ...preferences, ...newPreferences };
+    
+    // Optimistically update the UI
     setPreferences(updatedPreferences);
 
     try {
@@ -60,34 +86,67 @@ export const useUserPreferences = () => {
           user_id: user.id,
           show_pregnancy_safe_only: updatedPreferences.showPregnancySafeOnly,
           dark_mode: updatedPreferences.darkMode,
+          favorite_exercises: updatedPreferences.favoriteExercises,
         });
 
       if (error) {
         console.error('Error updating preferences:', error);
+        // Revert the optimistic update
+        setPreferences(preferences);
         toast({
-          title: "Error updating preferences",
-          description: "Failed to save your preferences.",
+          title: "Failed to save preferences",
+          description: "Please try again.",
           variant: "destructive",
         });
+        return false;
       }
+
+      return true;
     } catch (error) {
       console.error('Error:', error);
+      // Revert the optimistic update
+      setPreferences(preferences);
+      toast({
+        title: "Failed to save preferences",
+        description: "Please check your connection and try again.",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
-  const toggleDarkMode = () => {
-    const newDarkMode = !preferences.darkMode;
-    updatePreferences({ darkMode: newDarkMode });
+  const toggleDarkMode = async () => {
+    const success = await updatePreferences({ darkMode: !preferences.darkMode });
+    if (success) {
+      toast({
+        title: "Theme updated",
+        description: `Switched to ${!preferences.darkMode ? 'dark' : 'light'} mode.`,
+      });
+    }
   };
 
-  const togglePregnancySafeOnly = () => {
-    updatePreferences({ showPregnancySafeOnly: !preferences.showPregnancySafeOnly });
+  const togglePregnancySafeOnly = async () => {
+    await updatePreferences({ showPregnancySafeOnly: !preferences.showPregnancySafeOnly });
+  };
+
+  const toggleFavoriteExercise = async (exerciseId: string) => {
+    const currentFavorites = preferences.favoriteExercises || [];
+    const newFavorites = currentFavorites.includes(exerciseId)
+      ? currentFavorites.filter(id => id !== exerciseId)
+      : [...currentFavorites, exerciseId];
+    
+    await updatePreferences({ favoriteExercises: newFavorites });
   };
 
   useEffect(() => {
     if (user) {
       fetchPreferences();
     } else {
+      setPreferences({
+        showPregnancySafeOnly: false,
+        darkMode: false,
+        favoriteExercises: [],
+      });
       setLoading(false);
     }
   }, [user]);
@@ -107,5 +166,6 @@ export const useUserPreferences = () => {
     updatePreferences,
     toggleDarkMode,
     togglePregnancySafeOnly,
+    toggleFavoriteExercise,
   };
 };
