@@ -1,9 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
 import { 
   Play, 
   Pause, 
@@ -17,10 +18,14 @@ import {
   X,
   Settings,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Timer,
+  Baby,
+  Edit2
 } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { SpringVisual } from '@/components/SpringVisual';
 
 interface ClassTeachingModeProps {
   classPlan: ClassPlan;
@@ -30,24 +35,77 @@ interface ClassTeachingModeProps {
 export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps) => {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [exerciseTimeLeft, setExerciseTimeLeft] = useState(0);
+  const [globalTimeLeft, setGlobalTimeLeft] = useState(classPlan.classDuration * 60); // in seconds
+  const [isEditingGlobalTime, setIsEditingGlobalTime] = useState(false);
+  const [tempGlobalTime, setTempGlobalTime] = useState(classPlan.classDuration);
   const { preferences } = useUserPreferences();
 
   const currentExercise = classPlan.exercises[currentExerciseIndex];
   const progress = ((currentExerciseIndex + 1) / classPlan.exercises.length) * 100;
 
+  // Initialize exercise timer
+  useEffect(() => {
+    if (currentExercise && currentExercise.duration) {
+      setExerciseTimeLeft(currentExercise.duration * 60); // Convert to seconds
+    }
+  }, [currentExercise]);
+
+  // Exercise timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isPlaying && exerciseTimeLeft > 0) {
+      interval = setInterval(() => {
+        setExerciseTimeLeft(time => Math.max(0, time - 1));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying, exerciseTimeLeft]);
+
+  // Global timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isPlaying && globalTimeLeft > 0) {
+      interval = setInterval(() => {
+        setGlobalTimeLeft(time => Math.max(0, time - 1));
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isPlaying, globalTimeLeft]);
+
+  const formatTime = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const nextExercise = () => {
     if (currentExerciseIndex < classPlan.exercises.length - 1) {
       setCurrentExerciseIndex(prev => prev + 1);
-      setTimeElapsed(0);
+      const nextEx = classPlan.exercises[currentExerciseIndex + 1];
+      if (nextEx && nextEx.duration) {
+        setExerciseTimeLeft(nextEx.duration * 60);
+      }
     }
   };
 
   const previousExercise = () => {
     if (currentExerciseIndex > 0) {
       setCurrentExerciseIndex(prev => prev - 1);
-      setTimeElapsed(0);
+      const prevEx = classPlan.exercises[currentExerciseIndex - 1];
+      if (prevEx && prevEx.duration) {
+        setExerciseTimeLeft(prevEx.duration * 60);
+      }
     }
+  };
+
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleGlobalTimeEdit = () => {
+    setGlobalTimeLeft(tempGlobalTime * 60);
+    setIsEditingGlobalTime(false);
   };
 
   // Enhanced AI-generated cues with anatomical focus
@@ -85,33 +143,72 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 to-sage-50'} p-4`}>
-      {/* Compact Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className={`text-xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-            {classPlan.name}
-          </h1>
-          <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-            Exercise {currentExerciseIndex + 1} of {classPlan.exercises.length}
-          </p>
+      {/* Global Timer Header */}
+      <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} border rounded-lg p-4 mb-4 shadow-sm`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={onClose}
+              variant="ghost"
+              size="sm"
+              className={preferences.darkMode ? 'text-gray-400 hover:text-white' : 'text-sage-600 hover:text-sage-800'}
+            >
+              <X className="h-4 w-4 mr-1" />
+              Exit
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              <Timer className={`h-5 w-5 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-sm font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                Class Time:
+              </span>
+              {isEditingGlobalTime ? (
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    value={tempGlobalTime}
+                    onChange={(e) => setTempGlobalTime(parseInt(e.target.value) || 45)}
+                    className="w-16 h-6 text-xs"
+                    min="1"
+                    max="120"
+                  />
+                  <Button onClick={handleGlobalTimeEdit} size="sm" variant="ghost" className="h-6 px-2 text-xs">
+                    Save
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className={`text-lg font-bold ${
+                    globalTimeLeft < 300 ? 'text-red-500' : preferences.darkMode ? 'text-white' : 'text-sage-800'
+                  }`}>
+                    {formatTime(globalTimeLeft)}
+                  </span>
+                  <Button
+                    onClick={() => setIsEditingGlobalTime(true)}
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                  >
+                    <Edit2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+            {classPlan.name} • Exercise {currentExerciseIndex + 1} of {classPlan.exercises.length}
+          </div>
         </div>
-        <Button 
-          onClick={onClose}
-          variant="ghost"
-          size="sm"
-          className={preferences.darkMode ? 'text-gray-400 hover:text-white' : 'text-sage-600 hover:text-sage-800'}
-        >
-          <X className="h-4 w-4" />
-        </Button>
       </div>
 
-      {/* Compact Progress */}
+      {/* Progress Bar */}
       <div className="mb-4">
-        <Progress value={progress} className="h-1" />
+        <Progress value={progress} className="h-2" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Main Exercise Card - Compact */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Main Exercise Card */}
         <div className="lg:col-span-2">
           <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
             <CardHeader className="pb-3">
@@ -120,7 +217,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
                   <CardTitle className={`text-lg mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                     {currentExercise.name}
                   </CardTitle>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-2 items-center">
                     <Badge variant="outline" className="text-xs">
                       {currentExercise.repsOrDuration || `${currentExercise.duration}min`}
                     </Badge>
@@ -130,13 +227,27 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
                     <Badge className={`text-xs ${preferences.darkMode ? 'bg-gray-700 text-gray-300' : 'bg-sage-100 text-sage-700'}`}>
                       {currentExercise.category}
                     </Badge>
+                    
+                    {/* Springs Visual */}
+                    <div className="flex items-center gap-1">
+                      <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>Springs:</span>
+                      <SpringVisual springs={currentExercise.springs} />
+                    </div>
+                    
+                    {/* Pregnancy Safe Icon */}
+                    {currentExercise.isPregnancySafe && (
+                      <div className="flex items-center gap-1">
+                        <Baby className="h-3 w-3 text-pink-500" />
+                        <span className="text-xs text-pink-500">Pregnancy Safe</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             </CardHeader>
             
             <CardContent className="space-y-3">
-              {/* Exercise Image - Smaller */}
+              {/* Exercise Image */}
               <div className={`w-full h-32 rounded-lg overflow-hidden ${
                 preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'
               }`}>
@@ -155,7 +266,21 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
                 )}
               </div>
 
-              {/* Control Buttons - Compact */}
+              {/* Exercise Timer */}
+              {currentExercise.duration && currentExercise.duration > 0 && (
+                <div className="text-center">
+                  <div className={`text-2xl font-bold ${
+                    exerciseTimeLeft < 30 ? 'text-red-500' : preferences.darkMode ? 'text-white' : 'text-sage-800'
+                  }`}>
+                    {formatTime(exerciseTimeLeft)}
+                  </div>
+                  <div className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                    Exercise Time
+                  </div>
+                </div>
+              )}
+
+              {/* Control Buttons */}
               <div className="flex items-center justify-center gap-2">
                 <Button
                   onClick={previousExercise}
@@ -167,7 +292,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
                 </Button>
                 
                 <Button
-                  onClick={() => setIsPlaying(!isPlaying)}
+                  onClick={handlePlayPause}
                   size="sm"
                   className="bg-sage-600 hover:bg-sage-700 text-white px-6"
                 >
@@ -187,8 +312,9 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
           </Card>
         </div>
 
-        {/* Setup Instructions */}
-        <div className="lg:col-span-2 space-y-3">
+        {/* Instructions Panel */}
+        <div className="space-y-3">
+          {/* Setup Instructions */}
           <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
             <CardHeader className="pb-2">
               <CardTitle className={`text-sm flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
@@ -203,7 +329,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
             </CardContent>
           </Card>
 
-          {/* Teaching Cues - Enhanced */}
+          {/* Teaching Cues */}
           <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
             <CardHeader className="pb-2">
               <CardTitle className={`text-sm flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
@@ -224,8 +350,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
           </Card>
 
           {/* Progressions & Regressions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* Progressions */}
+          <div className="grid grid-cols-1 gap-3">
             {currentExercise.progressions && currentExercise.progressions.length > 0 && (
               <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
                 <CardHeader className="pb-2">
@@ -246,7 +371,6 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
               </Card>
             )}
 
-            {/* Regressions */}
             {currentExercise.regressions && currentExercise.regressions.length > 0 && (
               <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
                 <CardHeader className="pb-2">
@@ -268,7 +392,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
             )}
           </div>
 
-          {/* Safety Notes - Compact */}
+          {/* Safety Notes */}
           {currentExercise.contraindications && currentExercise.contraindications.length > 0 && (
             <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
               <CardHeader className="pb-2">

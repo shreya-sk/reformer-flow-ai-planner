@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { ClassPlan, Exercise } from '@/types/reformer';
 
@@ -9,6 +8,7 @@ const createEmptyClassPlan = (): ClassPlan => ({
   name: 'New Class Plan',
   exercises: [],
   totalDuration: 0,
+  classDuration: 45, // Default 45 minutes
   createdAt: new Date(),
   notes: '',
 });
@@ -22,6 +22,8 @@ export const usePersistedClassPlan = () => {
         return {
           ...parsed,
           createdAt: new Date(parsed.createdAt),
+          // Ensure classDuration exists for backwards compatibility
+          classDuration: parsed.classDuration || 45,
         };
       }
     } catch (error) {
@@ -91,6 +93,10 @@ export const usePersistedClassPlan = () => {
 
   const updateClassName = (name: string) => {
     setCurrentClass(prev => ({ ...prev, name }));
+  };
+
+  const updateClassDuration = (duration: number) => {
+    setCurrentClass(prev => ({ ...prev, classDuration: duration }));
   };
 
   const reorderExercises = (exercises: Exercise[]) => {
@@ -168,6 +174,7 @@ export const usePersistedClassPlan = () => {
     addExercise,
     removeExercise,
     updateClassName,
+    updateClassDuration,
     reorderExercises,
     updateExercise,
     addCallout,

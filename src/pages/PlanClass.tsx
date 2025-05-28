@@ -19,6 +19,8 @@ const PlanClass = () => {
     currentClass,
     removeExercise,
     updateClassName,
+    updateClassDuration,
+    addCallout,
     clearClassPlan
   } = usePersistedClassPlan();
 
@@ -75,7 +77,9 @@ const PlanClass = () => {
         currentClass={currentClass}
         onRemoveExercise={removeExercise}
         onUpdateClassName={updateClassName}
+        onUpdateClassDuration={updateClassDuration}
         onAddExercise={handleAddExercise}
+        onAddCallout={addCallout}
       />
 
       <BottomNavigation onPlanClass={() => navigate('/plan')} />

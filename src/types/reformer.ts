@@ -48,6 +48,7 @@ export interface ClassPlan {
   exercises: Exercise[];
   sections?: ClassSection[];
   totalDuration: number;
+  classDuration: number; // Total class time in minutes (default 45)
   createdAt: Date;
   notes?: string;
 }

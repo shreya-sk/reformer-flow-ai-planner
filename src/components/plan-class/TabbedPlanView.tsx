@@ -4,58 +4,67 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Heart, Clock, Plus, Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Heart, Clock, Plus, Trash2, MessageSquarePlus, Edit2, Check } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { exerciseDatabase } from '@/data/exercises';
 import { SmartAddButton } from '@/components/SmartAddButton';
+import { SpringVisual } from '@/components/SpringVisual';
 
 interface TabbedPlanViewProps {
   currentClass: ClassPlan;
   onRemoveExercise: (exerciseId: string) => void;
   onUpdateClassName: (name: string) => void;
+  onUpdateClassDuration: (duration: number) => void;
   onAddExercise: () => void;
+  onAddCallout: (name: string, insertIndex?: number) => void;
 }
 
 export const TabbedPlanView = ({ 
   currentClass, 
   onRemoveExercise, 
   onUpdateClassName,
-  onAddExercise 
+  onUpdateClassDuration,
+  onAddExercise,
+  onAddCallout
 }: TabbedPlanViewProps) => {
   const { preferences, toggleFavoriteExercise } = useUserPreferences();
   const [activeTab, setActiveTab] = useState('plan');
+  const [showCalloutInput, setShowCalloutInput] = useState(false);
+  const [newCalloutName, setNewCalloutName] = useState('');
+  const [calloutInsertIndex, setCalloutInsertIndex] = useState<number | undefined>();
+  const [isEditingDuration, setIsEditingDuration] = useState(false);
+  const [tempDuration, setTempDuration] = useState(currentClass.classDuration);
 
   // Get favorited exercises from the database
   const favoritedExercises = exerciseDatabase.filter(exercise => 
     preferences.favoriteExercises?.includes(exercise.id)
   );
 
-  const getSpringVisual = (springs: string) => {
-    const springConfig = {
-      'light': [{ color: 'bg-green-500', count: 1 }],
-      'medium': [{ color: 'bg-yellow-500', count: 1 }],
-      'heavy': [{ color: 'bg-red-500', count: 2 }],
-      'mixed': [
-        { color: 'bg-red-500', count: 1 },
-        { color: 'bg-yellow-500', count: 1 },
-        { color: 'bg-green-500', count: 1 }
-      ]
-    };
+  const handleAddCallout = (insertIndex?: number) => {
+    setCalloutInsertIndex(insertIndex);
+    setShowCalloutInput(true);
+  };
 
-    const config = springConfig[springs as keyof typeof springConfig] || springConfig.light;
-    
-    return (
-      <div className="flex items-center gap-1">
-        {config.map((spring, index) => (
-          <div key={index} className="flex gap-0.5">
-            {Array.from({ length: spring.count }).map((_, i) => (
-              <div key={i} className={`w-2 h-2 rounded-full ${spring.color}`} />
-            ))}
-          </div>
-        ))}
-      </div>
-    );
+  const handleSaveCallout = () => {
+    if (newCalloutName.trim()) {
+      onAddCallout(newCalloutName.trim(), calloutInsertIndex);
+      setNewCalloutName('');
+      setShowCalloutInput(false);
+      setCalloutInsertIndex(undefined);
+    }
+  };
+
+  const handleCancelCallout = () => {
+    setNewCalloutName('');
+    setShowCalloutInput(false);
+    setCalloutInsertIndex(undefined);
+  };
+
+  const handleDurationEdit = () => {
+    onUpdateClassDuration(tempDuration);
+    setIsEditingDuration(false);
   };
 
   const ExerciseListItem = ({ exercise, showAddButton = false, showRemoveButton = false }: { 
@@ -101,7 +110,7 @@ export const TabbedPlanView = ({
           </div>
           <div className="flex items-center gap-1">
             <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>Springs:</span>
-            {getSpringVisual(exercise.springs)}
+            <SpringVisual springs={exercise.springs} />
           </div>
         </div>
         <div className="flex flex-wrap gap-1 mt-1">
@@ -238,21 +247,93 @@ export const TabbedPlanView = ({
                     }`}
                     placeholder="Class name..."
                   />
-                  <p className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-                    {currentClass.exercises.length} exercises • {currentClass.totalDuration} minutes
-                  </p>
+                  <div className="flex items-center gap-4 mt-1">
+                    <p className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                      {currentClass.exercises.length} exercises • {currentClass.totalDuration} minutes
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                        Class Duration:
+                      </span>
+                      {isEditingDuration ? (
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            value={tempDuration}
+                            onChange={(e) => setTempDuration(parseInt(e.target.value) || 45)}
+                            className="w-16 h-6 text-xs"
+                            min="15"
+                            max="120"
+                          />
+                          <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>min</span>
+                          <Button onClick={handleDurationEdit} size="sm" variant="ghost" className="h-6 px-2">
+                            <Check className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <span className={`text-sm font-medium ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                            {currentClass.classDuration}min
+                          </span>
+                          <Button
+                            onClick={() => setIsEditingDuration(true)}
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <Button 
-                  onClick={onAddExercise}
-                  size="sm"
-                  className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Exercise
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => handleAddCallout()}
+                    size="sm"
+                    variant="outline"
+                    className={`${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'}`}
+                  >
+                    <MessageSquarePlus className="h-4 w-4 mr-1" />
+                    Add Callout
+                  </Button>
+                  <Button 
+                    onClick={onAddExercise}
+                    size="sm"
+                    className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Exercise
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3 max-h-[calc(100vh-280px)] overflow-y-auto">
+              {/* Callout Input */}
+              {showCalloutInput && (
+                <div className={`p-3 rounded-lg border ${
+                  preferences.darkMode ? 'border-gray-600 bg-gray-700' : 'border-sage-200 bg-sage-50'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="text"
+                      value={newCalloutName}
+                      onChange={(e) => setNewCalloutName(e.target.value)}
+                      placeholder="Enter callout name (e.g., Warm-up, Standing)"
+                      className={`flex-1 ${preferences.darkMode ? 'border-gray-600 bg-gray-800' : 'border-sage-300'}`}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSaveCallout()}
+                    />
+                    <Button onClick={handleSaveCallout} size="sm" disabled={!newCalloutName.trim()}>
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button onClick={handleCancelCallout} size="sm" variant="outline">
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {currentClass.exercises.length === 0 ? (
                 <div className="text-center py-12">
                   <Plus className={`h-12 w-12 mx-auto mb-4 ${
@@ -275,19 +356,35 @@ export const TabbedPlanView = ({
                 </div>
               ) : (
                 currentClass.exercises.map((exercise, index) => (
-                  <div key={exercise.id} className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${
-                      preferences.darkMode 
-                        ? 'bg-gray-700 text-gray-300' 
-                        : 'bg-sage-100 text-sage-700'
-                    }`}>
-                      {index + 1}
+                  <div key={exercise.id} className="space-y-2">
+                    {/* Add Callout Button between exercises */}
+                    <div className="flex justify-center">
+                      <Button
+                        onClick={() => handleAddCallout(index)}
+                        size="sm"
+                        variant="ghost"
+                        className={`text-xs ${preferences.darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-sage-400 hover:text-sage-600'}`}
+                      >
+                        <MessageSquarePlus className="h-3 w-3 mr-1" />
+                        Add Callout Here
+                      </Button>
                     </div>
-                    <div className="flex-1">
-                      <ExerciseListItem 
-                        exercise={exercise} 
-                        showRemoveButton={true}
-                      />
+                    
+                    {/* Exercise Item */}
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold ${
+                        preferences.darkMode 
+                          ? 'bg-gray-700 text-gray-300' 
+                          : 'bg-sage-100 text-sage-700'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <ExerciseListItem 
+                          exercise={exercise} 
+                          showRemoveButton={true}
+                        />
+                      </div>
                     </div>
                   </div>
                 ))
