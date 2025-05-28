@@ -83,67 +83,68 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
   }
 
   return (
-    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {classes.map((classPlan) => (
-        <Card key={classPlan.id} className={`group hover:shadow-lg transition-all duration-200 ${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} overflow-hidden`}>
-          {/* Class Image - Smaller */}
-          <div className="relative h-24 overflow-hidden">
+        <Card key={classPlan.id} className={`group hover:shadow-xl transition-all duration-300 transform hover:scale-105 ${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} overflow-hidden rounded-3xl`}>
+          {/* Class Image - More Compact */}
+          <div className="relative h-32 overflow-hidden">
             <img
               src={classPlan.image || getRandomImage(classPlan.id)}
               alt={classPlan.name}
-              className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             
-            {/* Play Button Overlay */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {/* Organic Play Button Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <Button
                 onClick={() => handlePlayClass(classPlan)}
                 size="sm"
-                className="bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 transition-all duration-200"
+                className="bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 transition-all duration-300 rounded-full px-6 py-2 transform hover:scale-110"
               >
-                <Play className="h-3 w-3 mr-1" />
+                <Play className="h-4 w-4 mr-2" />
                 Teach
               </Button>
             </div>
 
-            {/* Duration Badge */}
-            <div className="absolute top-1 right-1">
-              <Badge className={`text-xs ${preferences.darkMode ? 'bg-gray-900/80 text-white' : 'bg-white/90 text-gray-900'} backdrop-blur-sm`}>
-                <Clock className="h-2 w-2 mr-1" />
+            {/* Duration Badge - More Organic */}
+            <div className="absolute top-3 right-3">
+              <Badge className={`text-xs ${preferences.darkMode ? 'bg-gray-900/80 text-white' : 'bg-white/90 text-gray-900'} backdrop-blur-sm rounded-full px-3 py-1`}>
+                <Clock className="h-3 w-3 mr-1" />
                 {classPlan.totalDuration}min
               </Badge>
             </div>
           </div>
 
-          <CardHeader className="pb-1">
-            <CardTitle className={`text-sm font-semibold ${preferences.darkMode ? 'text-white' : 'text-sage-800'} line-clamp-2`}>
+          <CardHeader className="pb-2">
+            <CardTitle className={`text-base font-medium ${preferences.darkMode ? 'text-white' : 'text-sage-800'} line-clamp-2`}>
               {classPlan.name}
             </CardTitle>
-            <div className={`flex items-center gap-2 text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+            <div className={`flex items-center gap-3 text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
               <span className="flex items-center gap-1">
-                <Calendar className="h-2 w-2" />
+                <Calendar className="h-3 w-3" />
                 {formatDate(classPlan.createdAt)}
               </span>
               <span className="flex items-center gap-1">
-                <Users className="h-2 w-2" />
+                <Users className="h-3 w-3" />
                 {classPlan.exercises.filter(ex => ex.category !== 'callout').length} ex
               </span>
             </div>
           </CardHeader>
 
-          <CardContent className="pt-0 space-y-2">
-            <div className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+          <CardContent className="pt-0 space-y-3">
+            <div className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} flex items-center gap-1`}>
+              <Dumbbell className="h-3 w-3" />
               {getMuscleGroupsCount(classPlan)} muscle groups
             </div>
             
-            {/* Action Buttons */}
-            <div className="flex gap-1">
+            {/* Organic Action Buttons */}
+            <div className="flex gap-2">
               <Button
                 onClick={() => onEditClass(classPlan)}
                 size="sm"
                 variant="outline"
-                className={`flex-1 text-xs ${preferences.darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-sage-300 text-sage-600 hover:bg-sage-50'}`}
+                className={`flex-1 text-xs ${preferences.darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-sage-300 text-sage-600 hover:bg-sage-50'} rounded-full transition-all duration-300 transform hover:scale-105`}
               >
                 <Edit3 className="h-3 w-3 mr-1" />
                 Edit
@@ -152,19 +153,19 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
                 onClick={() => onDeleteClass(classPlan.id)}
                 size="sm"
                 variant="outline"
-                className="border-red-300 text-red-600 hover:bg-red-50"
+                className="border-red-300 text-red-600 hover:bg-red-50 rounded-full transition-all duration-300 transform hover:scale-105"
               >
                 <Trash2 className="h-3 w-3" />
               </Button>
             </div>
 
-            {/* View Exercises Toggle */}
+            {/* View Exercises Toggle - More Organic */}
             <Collapsible open={expandedClass === classPlan.id}>
               <CollapsibleTrigger asChild>
                 <Button
                   onClick={() => toggleExpanded(classPlan.id)}
                   variant="outline"
-                  className={`w-full text-xs ${preferences.darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-sage-300 text-sage-600 hover:bg-sage-50'}`}
+                  className={`w-full text-xs ${preferences.darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-sage-300 text-sage-600 hover:bg-sage-50'} rounded-full transition-all duration-300`}
                 >
                   <Eye className="h-3 w-3 mr-1" />
                   View Exercises
@@ -174,16 +175,16 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
                   }
                 </Button>
               </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-2 mt-2">
+              <CollapsibleContent className="space-y-2 mt-3">
                 <div className="max-h-32 overflow-y-auto space-y-1">
                   {classPlan.exercises.filter(ex => ex.category !== 'callout').map((exercise, index) => (
-                    <div key={index} className={`p-1 rounded text-xs ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-50'}`}>
+                    <div key={index} className={`p-2 rounded-2xl text-xs ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-50'} transition-all duration-300 hover:shadow-md`}>
                       <div className="flex items-center justify-between">
                         <span className={`font-medium ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                           {exercise.name}
                         </span>
                         <div className="flex items-center gap-1">
-                          <Dumbbell className="h-2 w-2" />
+                          <Dumbbell className="h-3 w-3" />
                           <span className={preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}>
                             {exercise.duration}min
                           </span>
@@ -196,7 +197,7 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
                 {/* Start Teaching Button in Expanded View */}
                 <Button
                   onClick={() => handlePlayClass(classPlan)}
-                  className="w-full bg-sage-600 hover:bg-sage-700 text-white text-xs"
+                  className="w-full bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white text-xs rounded-full py-2 transform hover:scale-105 transition-all duration-300 shadow-lg"
                 >
                   <Play className="h-3 w-3 mr-1" />
                   Start Teaching
