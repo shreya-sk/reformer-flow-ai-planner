@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,10 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Edit, Clock, Users, Target, AlertTriangle, Baby, Save, X, Plus, Trash2 } from 'lucide-react';
-import { Exercise } from '@/types/reformer';
+import { Exercise, MuscleGroup } from '@/types/reformer';
 import { SpringVisual } from './SpringVisual';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { ExerciseForm } from './ExerciseForm';
 
 interface ExerciseDetailModalProps {
   exercise: Exercise;
@@ -81,6 +79,21 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
     }));
   };
 
+  // Helper function to validate muscle groups
+  const isValidMuscleGroup = (value: string): value is MuscleGroup => {
+    const validMuscleGroups: MuscleGroup[] = [
+      'core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body',
+      'quadriceps', 'hamstrings', 'calves', 'lower-abs', 'upper-abs', 'obliques',
+      'transverse-abdominis', 'traps', 'deltoids', 'biceps', 'triceps', 'lats',
+      'chest', 'rhomboids', 'erector-spinae', 'hip-flexors', 'adductors', 'abductors',
+      'pelvic-floor', 'deep-stabilizers', 'spinal-extensors', 'neck', 'forearms',
+      'wrists', 'ankles', 'feet', 'hip-abductors', 'hip-adductors', 'rotator-cuff',
+      'serratus-anterior', 'psoas', 'iliotibial-band', 'thoracic-spine', 'lumbar-spine',
+      'cervical-spine', 'diaphragm', 'intercostals'
+    ];
+    return validMuscleGroups.includes(value as MuscleGroup);
+  };
+
   if (isEditing) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -129,10 +142,14 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
               <label className="text-sm font-medium text-sage-700 mb-1 block">Target Muscles (comma separated)</label>
               <Input
                 value={editedExercise.muscleGroups.join(', ')}
-                onChange={(e) => setEditedExercise(prev => ({ 
-                  ...prev, 
-                  muscleGroups: e.target.value.split(',').map(m => m.trim()).filter(m => m) 
-                }))}
+                onChange={(e) => {
+                  const muscleGroupStrings = e.target.value.split(',').map(m => m.trim()).filter(m => m);
+                  const validMuscleGroups = muscleGroupStrings.filter(isValidMuscleGroup);
+                  setEditedExercise(prev => ({ 
+                    ...prev, 
+                    muscleGroups: validMuscleGroups
+                  }));
+                }}
                 className="border-sage-300 focus:border-sage-500"
                 placeholder="core, glutes, legs"
               />
