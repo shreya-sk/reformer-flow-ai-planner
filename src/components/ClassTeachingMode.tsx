@@ -105,7 +105,7 @@ export const ClassTeachingMode = ({
 
   return (
     <div className="min-h-screen bg-sage-700 text-white">
-      {/* Fixed Header */}
+      {/* Fixed Header with Timer */}
       <div className="fixed top-0 left-0 right-0 z-30 bg-sage-800/95 backdrop-blur-sm border-b border-sage-600">
         <div className="flex items-center justify-between p-4">
           <Button 
@@ -118,24 +118,62 @@ export const ClassTeachingMode = ({
             Exit Teaching
           </Button>
           
-          <div className="flex-1 max-w-md mx-4">
-            <div className="mb-2">
-              <Progress value={progressPercentage} className="h-2 bg-sage-600" />
-            </div>
-            <div className="text-center text-sm text-sage-200">
-              {Math.round(progressPercentage)}% Complete • {currentExerciseIndex + 1} of {exercises.length}
+          {/* Timer in Header */}
+          <div className="flex items-center gap-4 bg-sage-600/50 rounded-xl px-4 py-2">
+            {currentExercise.duration && currentExercise.duration > 0 ? (
+              <div className={`text-2xl font-bold ${exerciseTimeLeft < 30 ? 'text-red-300' : 'text-white'}`}>
+                {formatTime(exerciseTimeLeft)}
+              </div>
+            ) : (
+              <div className="text-lg font-bold text-white">
+                {currentExercise.repsOrDuration || 'Hold position'}
+              </div>
+            )}
+            
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={previousExercise} 
+                disabled={currentExerciseIndex === 0} 
+                variant="ghost" 
+                size="sm"
+                className="text-white hover:bg-sage-600 rounded-xl disabled:opacity-30 h-8 w-8 p-0"
+              >
+                <SkipBack className="h-4 w-4" />
+              </Button>
+              
+              <Button 
+                onClick={handlePlayPause} 
+                size="sm"
+                className="bg-white/20 hover:bg-white/30 text-white rounded-xl px-3 h-8"
+              >
+                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              </Button>
+              
+              <Button 
+                onClick={nextExercise} 
+                disabled={currentExerciseIndex === exercises.length - 1} 
+                variant="ghost" 
+                size="sm"
+                className="text-white hover:bg-sage-600 rounded-xl disabled:opacity-30 h-8 w-8 p-0"
+              >
+                <SkipForward className="h-4 w-4" />
+              </Button>
             </div>
           </div>
           
-          <div className="flex items-center gap-2 bg-sage-600/50 rounded-xl px-3 py-1">
-            <Timer className="h-4 w-4" />
-            <span className="text-sm font-medium">{classPlan.classDuration}min class</span>
+          <div className="flex-1 max-w-md mx-4">
+            <div className="mb-1">
+              <Progress value={progressPercentage} className="h-2 bg-sage-600" />
+            </div>
+            <div className="text-center text-sm text-sage-200">
+              {Math.round(progressPercentage)}% Complete
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="pt-24 px-6 pb-6 max-w-7xl mx-auto">
+      <div className="pt-20 px-6 pb-6 max-w-7xl mx-auto">
         {/* Exercise Name */}
         <div className="text-center mb-6">
           <h1 className="text-4xl font-bold text-white mb-2">{currentExercise.name}</h1>
@@ -260,57 +298,12 @@ export const ClassTeachingMode = ({
             )}
           </div>
 
-          {/* Right Column - Timer & Image */}
+          {/* Right Column - Image */}
           <div className="space-y-4">
-            {/* Timer */}
-            <Card className="bg-white/15 backdrop-blur-sm border-sage-500/30 rounded-2xl shadow-lg">
-              <CardContent className="p-6 text-center">
-                {currentExercise.duration && currentExercise.duration > 0 ? (
-                  <div className={`text-6xl font-bold mb-4 ${exerciseTimeLeft < 30 ? 'text-red-300' : 'text-white'}`}>
-                    {formatTime(exerciseTimeLeft)}
-                  </div>
-                ) : (
-                  <div className="text-3xl font-bold text-white mb-4">
-                    {currentExercise.repsOrDuration || 'Hold position'}
-                  </div>
-                )}
-                
-                <div className="flex items-center justify-center gap-4">
-                  <Button 
-                    onClick={previousExercise} 
-                    disabled={currentExerciseIndex === 0} 
-                    variant="ghost" 
-                    size="lg"
-                    className="text-white hover:bg-sage-600 rounded-xl disabled:opacity-30"
-                  >
-                    <SkipBack className="h-6 w-6" />
-                  </Button>
-                  
-                  <Button 
-                    onClick={handlePlayPause} 
-                    size="lg"
-                    className="bg-white/20 hover:bg-white/30 text-white rounded-xl px-8"
-                  >
-                    {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
-                  </Button>
-                  
-                  <Button 
-                    onClick={nextExercise} 
-                    disabled={currentExerciseIndex === exercises.length - 1} 
-                    variant="ghost" 
-                    size="lg"
-                    className="text-white hover:bg-sage-600 rounded-xl disabled:opacity-30"
-                  >
-                    <SkipForward className="h-6 w-6" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Exercise Image */}
             <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-2xl shadow-lg overflow-hidden">
               {currentExercise.image ? (
-                <div className="relative h-80">
+                <div className="relative h-96">
                   <img 
                     src={currentExercise.image} 
                     alt={currentExercise.name} 
@@ -323,7 +316,7 @@ export const ClassTeachingMode = ({
                   </div>
                 </div>
               ) : (
-                <div className="h-80 bg-sage-600/30 flex flex-col items-center justify-center border-2 border-dashed border-sage-400/50 rounded-2xl m-4">
+                <div className="h-96 bg-sage-600/30 flex flex-col items-center justify-center border-2 border-dashed border-sage-400/50 rounded-2xl m-4">
                   <ImageIcon className="h-16 w-16 mb-4 text-sage-400" />
                   <span className="text-xl font-medium text-sage-200">
                     No reference image
