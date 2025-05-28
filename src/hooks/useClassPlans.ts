@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,6 +38,7 @@ export const useClassPlans = () => {
             name: item.class_name,
             exercises,
             totalDuration: exercises.reduce((sum: number, ex: Exercise) => sum + (ex.duration || 0), 0),
+            classDuration: 45, // Default class duration for existing saved classes
             createdAt: new Date(item.created_at),
             notes: '',
           };
@@ -87,7 +87,7 @@ export const useClassPlans = () => {
       } else {
         toast({
           title: "Class saved successfully!",
-          description: `"${classPlan.name}" has been added to your library.`,
+          description: `"${classPlan.name}" has been added to your library.",
         });
         
         // Add the new class to our local state
@@ -96,6 +96,7 @@ export const useClassPlans = () => {
           name: data.class_name,
           exercises: Array.isArray(data.exercises) ? (data.exercises as unknown) as Exercise[] : [],
           totalDuration: classPlan.totalDuration,
+          classDuration: classPlan.classDuration, // Include the classDuration from the saved plan
           createdAt: new Date(data.created_at),
           notes: '',
         };
