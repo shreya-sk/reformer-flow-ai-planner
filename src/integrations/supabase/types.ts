@@ -15,6 +15,7 @@ export type Database = {
           created_at: string | null
           exercises: Json | null
           id: string
+          sections: Json | null
           user_id: string | null
         }
         Insert: {
@@ -22,6 +23,7 @@ export type Database = {
           created_at?: string | null
           exercises?: Json | null
           id?: string
+          sections?: Json | null
           user_id?: string | null
         }
         Update: {
@@ -29,7 +31,107 @@ export type Database = {
           created_at?: string | null
           exercises?: Json | null
           id?: string
+          sections?: Json | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      custom_exercises: {
+        Row: {
+          category: string
+          contraindications: string[] | null
+          created_at: string
+          cues: string[] | null
+          description: string | null
+          difficulty: string
+          duration: number
+          equipment: string[]
+          id: string
+          image_url: string | null
+          is_pregnancy_safe: boolean
+          muscle_groups: string[]
+          name: string
+          notes: string | null
+          springs: string
+          transitions: string[] | null
+          updated_at: string
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          category: string
+          contraindications?: string[] | null
+          created_at?: string
+          cues?: string[] | null
+          description?: string | null
+          difficulty?: string
+          duration?: number
+          equipment?: string[]
+          id?: string
+          image_url?: string | null
+          is_pregnancy_safe?: boolean
+          muscle_groups?: string[]
+          name: string
+          notes?: string | null
+          springs?: string
+          transitions?: string[] | null
+          updated_at?: string
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          category?: string
+          contraindications?: string[] | null
+          created_at?: string
+          cues?: string[] | null
+          description?: string | null
+          difficulty?: string
+          duration?: number
+          equipment?: string[]
+          id?: string
+          image_url?: string | null
+          is_pregnancy_safe?: boolean
+          muscle_groups?: string[]
+          name?: string
+          notes?: string | null
+          springs?: string
+          transitions?: string[] | null
+          updated_at?: string
+          user_id?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      exercise_sets: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          exercises: Json
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          exercises?: Json
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          exercises?: Json
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -93,6 +195,33 @@ export type Database = {
           id?: string
           title?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          dark_mode: boolean | null
+          id: string
+          show_pregnancy_safe_only: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dark_mode?: boolean | null
+          id?: string
+          show_pregnancy_safe_only?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dark_mode?: boolean | null
+          id?: string
+          show_pregnancy_safe_only?: boolean | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

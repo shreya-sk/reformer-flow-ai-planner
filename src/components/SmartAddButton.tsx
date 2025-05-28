@@ -23,10 +23,10 @@ export const SmartAddButton = ({
     onAddExercise(exercise);
     setIsAdded(true);
     
-    // Reset back to plus icon after 2.5 seconds
+    // Reset back to plus icon after 2 seconds with smooth animation
     setTimeout(() => {
       setIsAdded(false);
-    }, 2500);
+    }, 2000);
   };
 
   return (
@@ -34,14 +34,14 @@ export const SmartAddButton = ({
       onClick={handleAdd}
       disabled={isAdded}
       size={size}
-      className={`transition-all duration-300 ${
+      className={`transition-all duration-500 shadow-sm ${
         isAdded 
-          ? 'bg-green-600 hover:bg-green-600 text-white shadow-lg scale-105' 
-          : 'bg-sage-600 hover:bg-sage-700'
+          ? 'bg-green-500 hover:bg-green-500 text-white shadow-green-200 shadow-lg scale-110 animate-pulse' 
+          : 'bg-sage-600 hover:bg-sage-700 shadow-sage-200'
       } ${className}`}
     >
       {isAdded ? (
-        <Check className={`${size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'} animate-scale-in`} />
+        <Check className={`${size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'} animate-bounce`} />
       ) : (
         <Plus className={size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'} />
       )}

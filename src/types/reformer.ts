@@ -15,15 +15,24 @@ export interface Exercise {
   cues?: string[];
   transitions?: string[];
   contraindications?: string[];
+  isPregnancySafe?: boolean;
 }
 
 export interface ClassPlan {
   id: string;
   name: string;
   exercises: Exercise[];
+  sections?: ClassSection[];
   totalDuration: number;
   createdAt: Date;
   notes?: string;
+}
+
+export interface ClassSection {
+  id: string;
+  name: string;
+  exercises: Exercise[];
+  isCollapsed?: boolean;
 }
 
 export type ExerciseCategory = 

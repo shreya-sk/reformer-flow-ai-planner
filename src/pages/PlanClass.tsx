@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
+import { useUndoRedo } from '@/hooks/useUndoRedo';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ExerciseLibrary } from '@/components/ExerciseLibrary';
 import { ClassBuilder } from '@/components/ClassBuilder';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Undo, Redo } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { toast } from '@/hooks/use-toast';
 
@@ -16,28 +18,30 @@ const PlanClass = () => {
   const location = useLocation();
   const { user } = useAuth();
   const { saveClassPlan, savedClasses } = useClassPlans();
+  const { preferences } = useUserPreferences();
   
   // Get cart exercises from navigation state
   const cartExercises = location.state?.cartExercises || [];
   const loadedClass = location.state?.loadedClass;
 
-  const [currentClass, setCurrentClass] = useState<ClassPlan>(() => {
-    if (loadedClass) {
-      return loadedClass;
-    }
-    
-    const initialExercises = cartExercises.length > 0 ? cartExercises : [];
-    const totalDuration = initialExercises.reduce((sum: number, ex: Exercise) => sum + ex.duration, 0);
-    
-    return {
-      id: '',
-      name: 'New Class',
-      exercises: initialExercises,
-      totalDuration,
-      createdAt: new Date(),
-      notes: '',
-    };
-  });
+  const initialClass: ClassPlan = loadedClass || {
+    id: '',
+    name: 'New Class',
+    exercises: cartExercises,
+    totalDuration: cartExercises.reduce((sum: number, ex: Exercise) => sum + ex.duration, 0),
+    createdAt: new Date(),
+    notes: '',
+  };
+
+  const {
+    state: currentClass,
+    set: setCurrentClass,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    reset: resetUndoHistory
+  } = useUndoRedo<ClassPlan>(initialClass);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -84,6 +88,10 @@ const PlanClass = () => {
     }));
   };
 
+  const updateClassName = (name: string) => {
+    setCurrentClass(prev => ({ ...prev, name }));
+  };
+
   const handleSaveClass = async () => {
     if (currentClass.exercises.length === 0) {
       toast({
@@ -106,6 +114,9 @@ const PlanClass = () => {
       description: "Redirecting to My Classes...",
     });
     
+    // Reset undo history after saving
+    resetUndoHistory(classToSave);
+    
     // Navigate back to home after a short delay
     setTimeout(() => {
       navigate('/');
@@ -127,35 +138,35 @@ const PlanClass = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 pb-20">
+    <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20`}>
       {/* Header */}
-      <header className="bg-white border-b border-sage-200 px-4 py-4 sticky top-0 z-40">
+      <header className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} border-b px-4 py-4 sticky top-0 z-40`}>
         <div className="flex items-center justify-between max-w-6xl mx-auto">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/')}
-              className="text-sage-600 hover:text-sage-800"
+              className={`${preferences.darkMode ? 'text-gray-300 hover:text-white' : 'text-sage-600 hover:text-sage-800'}`}
             >
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
             
-            <div className="h-6 w-px bg-sage-300" />
+            <div className={`h-6 w-px ${preferences.darkMode ? 'bg-gray-600' : 'bg-sage-300'}`} />
             
             {isEditing ? (
               <Input
                 value={currentClass.name}
-                onChange={(e) => setCurrentClass(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => updateClassName(e.target.value)}
                 onBlur={() => setIsEditing(false)}
                 onKeyDown={(e) => e.key === 'Enter' && setIsEditing(false)}
-                className="text-lg font-semibold w-48 border-sage-300 focus:border-sage-500"
+                className={`text-lg font-semibold w-48 ${preferences.darkMode ? 'border-gray-600 focus:border-gray-500 bg-gray-700 text-white' : 'border-sage-300 focus:border-sage-500'}`}
                 autoFocus
               />
             ) : (
               <h1 
-                className="text-lg font-semibold text-sage-800 cursor-pointer hover:text-sage-900 transition-colors px-2 py-1 rounded hover:bg-sage-50"
+                className={`text-lg font-semibold ${preferences.darkMode ? 'text-white hover:text-gray-200' : 'text-sage-800'} cursor-pointer hover:text-sage-900 transition-colors px-2 py-1 rounded ${preferences.darkMode ? 'hover:bg-gray-700' : 'hover:bg-sage-50'}`}
                 onClick={() => setIsEditing(true)}
               >
                 {currentClass.name}
@@ -164,13 +175,35 @@ const PlanClass = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Undo/Redo buttons */}
+            <div className="flex gap-1">
+              <Button
+                onClick={undo}
+                disabled={!canUndo}
+                size="sm"
+                variant="outline"
+                className={`${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'}`}
+              >
+                <Undo className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={redo}
+                disabled={!canRedo}
+                size="sm"
+                variant="outline"
+                className={`${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'}`}
+              >
+                <Redo className="h-4 w-4" />
+              </Button>
+            </div>
+
             <div className="flex items-center gap-4 text-sm">
-              <div className="bg-sage-50 px-3 py-1 rounded-full">
-                <span className="font-semibold text-sage-800">{formatDuration(currentClass.totalDuration)}</span>
+              <div className={`${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-50'} px-3 py-1 rounded-full`}>
+                <span className={`font-semibold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>{formatDuration(currentClass.totalDuration)}</span>
               </div>
-              <div className="bg-sage-50 px-3 py-1 rounded-full">
-                <span className="font-semibold text-sage-800">{currentClass.exercises.length}</span>
-                <span className="text-sage-600 ml-1">exercises</span>
+              <div className={`${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-50'} px-3 py-1 rounded-full`}>
+                <span className={`font-semibold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>{currentClass.exercises.length}</span>
+                <span className={`${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} ml-1`}>exercises</span>
               </div>
             </div>
 
