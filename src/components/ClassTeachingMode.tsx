@@ -36,7 +36,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [exerciseTimeLeft, setExerciseTimeLeft] = useState(0);
-  const [globalTimeLeft, setGlobalTimeLeft] = useState(classPlan.classDuration * 60); // in seconds
+  const [globalTimeLeft, setGlobalTimeLeft] = useState(classPlan.classDuration * 60);
   const [isEditingGlobalTime, setIsEditingGlobalTime] = useState(false);
   const [tempGlobalTime, setTempGlobalTime] = useState(classPlan.classDuration);
   const { preferences } = useUserPreferences();
@@ -47,7 +47,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
   // Initialize exercise timer
   useEffect(() => {
     if (currentExercise && currentExercise.duration) {
-      setExerciseTimeLeft(currentExercise.duration * 60); // Convert to seconds
+      setExerciseTimeLeft(currentExercise.duration * 60);
     }
   }, [currentExercise]);
 
@@ -108,7 +108,6 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
     setIsEditingGlobalTime(false);
   };
 
-  // Enhanced AI-generated cues with anatomical focus
   const getEnhancedCues = (exercise: Exercise): string[] => {
     const baseCues = exercise.cues || [];
     const anatomicalCues = [
@@ -122,7 +121,6 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
     return baseCues.length > 0 ? baseCues : anatomicalCues.slice(0, 3);
   };
 
-  // Enhanced setup instructions
   const getSetupInstructions = (exercise: Exercise): string => {
     if (exercise.setup) return exercise.setup;
     
@@ -207,213 +205,185 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
         <Progress value={progress} className="h-2" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Main Exercise Card */}
-        <div className="lg:col-span-2">
-          <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className={`text-lg mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                    {currentExercise.name}
-                  </CardTitle>
-                  <div className="flex flex-wrap gap-2 items-center">
-                    <Badge variant="outline" className="text-xs">
-                      {currentExercise.repsOrDuration || `${currentExercise.duration}min`}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      {currentExercise.difficulty}
-                    </Badge>
-                    <Badge className={`text-xs ${preferences.darkMode ? 'bg-gray-700 text-gray-300' : 'bg-sage-100 text-sage-700'}`}>
-                      {currentExercise.category}
-                    </Badge>
-                    
-                    {/* Springs Visual */}
-                    <div className="flex items-center gap-1">
-                      <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>Springs:</span>
-                      <SpringVisual springs={currentExercise.springs} />
-                    </div>
-                    
-                    {/* Pregnancy Safe Icon */}
-                    {currentExercise.isPregnancySafe && (
-                      <div className="flex items-center gap-1">
-                        <Baby className="h-3 w-3 text-pink-500" />
-                        <span className="text-xs text-pink-500">Pregnancy Safe</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            
-            <CardContent className="space-y-3">
-              {/* Exercise Image */}
-              <div className={`w-full h-32 rounded-lg overflow-hidden ${
-                preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'
-              }`}>
-                {currentExercise.image ? (
-                  <img 
-                    src={currentExercise.image} 
-                    alt={currentExercise.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className={`text-2xl font-bold ${preferences.darkMode ? 'text-gray-500' : 'text-sage-400'}`}>
-                      {currentExerciseIndex + 1}
-                    </span>
-                  </div>
-                )}
-              </div>
+      {/* New Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        {/* Setup Instructions */}
+        <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
+          <CardHeader className="pb-2">
+            <CardTitle className={`text-sm flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+              <Settings className="h-4 w-4" />
+              Setup Instructions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className={`text-sm ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+              {getSetupInstructions(currentExercise)}
+            </p>
+          </CardContent>
+        </Card>
 
-              {/* Exercise Timer */}
-              {currentExercise.duration && currentExercise.duration > 0 && (
-                <div className="text-center">
-                  <div className={`text-2xl font-bold ${
-                    exerciseTimeLeft < 30 ? 'text-red-500' : preferences.darkMode ? 'text-white' : 'text-sage-800'
-                  }`}>
-                    {formatTime(exerciseTimeLeft)}
-                  </div>
-                  <div className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-                    Exercise Time
-                  </div>
-                </div>
-              )}
+        {/* Teaching Cues */}
+        <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
+          <CardHeader className="pb-2">
+            <CardTitle className={`text-sm flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+              <Lightbulb className="h-4 w-4" />
+              Professional Cues
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-1 text-sm">
+              {getEnhancedCues(currentExercise).map((cue, index) => (
+                <li key={index} className={`flex items-start gap-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                  <span className="text-sage-500 font-bold text-xs mt-1">•</span>
+                  <span className="text-xs leading-relaxed">{cue}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
 
-              {/* Control Buttons */}
-              <div className="flex items-center justify-center gap-2">
-                <Button
-                  onClick={previousExercise}
-                  disabled={currentExerciseIndex === 0}
-                  variant="outline"
-                  size="sm"
-                >
-                  <SkipBack className="h-4 w-4" />
-                </Button>
-                
-                <Button
-                  onClick={handlePlayPause}
-                  size="sm"
-                  className="bg-sage-600 hover:bg-sage-700 text-white px-6"
-                >
-                  {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                </Button>
-                
-                <Button
-                  onClick={nextExercise}
-                  disabled={currentExerciseIndex === classPlan.exercises.length - 1}
-                  variant="outline"
-                  size="sm"
-                >
-                  <SkipForward className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Instructions Panel */}
-        <div className="space-y-3">
-          {/* Setup Instructions */}
+        {/* Progressions */}
+        {currentExercise.progressions && currentExercise.progressions.length > 0 && (
           <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
             <CardHeader className="pb-2">
-              <CardTitle className={`text-sm flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                <Settings className="h-4 w-4" />
-                Setup Instructions
+              <CardTitle className={`text-xs flex items-center gap-1 text-green-600`}>
+                <TrendingUp className="h-3 w-3" />
+                Progressions
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className={`text-sm ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
-                {getSetupInstructions(currentExercise)}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Teaching Cues */}
-          <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
-            <CardHeader className="pb-2">
-              <CardTitle className={`text-sm flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                <Lightbulb className="h-4 w-4" />
-                Professional Cues
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-1 text-sm">
-                {getEnhancedCues(currentExercise).map((cue, index) => (
-                  <li key={index} className={`flex items-start gap-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
-                    <span className="text-sage-500 font-bold text-xs mt-1">•</span>
-                    <span className="text-xs leading-relaxed">{cue}</span>
+              <ul className="space-y-1">
+                {currentExercise.progressions.slice(0, 2).map((progression, index) => (
+                  <li key={index} className={`text-xs ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                    • {progression}
                   </li>
                 ))}
               </ul>
             </CardContent>
           </Card>
+        )}
 
-          {/* Progressions & Regressions */}
-          <div className="grid grid-cols-1 gap-3">
-            {currentExercise.progressions && currentExercise.progressions.length > 0 && (
-              <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
-                <CardHeader className="pb-2">
-                  <CardTitle className={`text-xs flex items-center gap-1 text-green-600`}>
-                    <TrendingUp className="h-3 w-3" />
-                    Progressions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-1">
-                    {currentExercise.progressions.slice(0, 2).map((progression, index) => (
-                      <li key={index} className={`text-xs ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
-                        • {progression}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
+        {/* Safety Notes */}
+        {currentExercise.contraindications && currentExercise.contraindications.length > 0 && (
+          <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
+            <CardHeader className="pb-2">
+              <CardTitle className={`text-xs flex items-center gap-1 text-amber-600`}>
+                <AlertTriangle className="h-3 w-3" />
+                Safety Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-1">
+                {currentExercise.contraindications.slice(0, 2).map((item, index) => (
+                  <li key={index} className={`text-xs ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                    • {item}
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
-            {currentExercise.regressions && currentExercise.regressions.length > 0 && (
-              <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
-                <CardHeader className="pb-2">
-                  <CardTitle className={`text-xs flex items-center gap-1 text-blue-600`}>
-                    <TrendingDown className="h-3 w-3" />
-                    Modifications
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-1">
-                    {currentExercise.regressions.slice(0, 2).map((regression, index) => (
-                      <li key={index} className={`text-xs ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
-                        • {regression}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+      {/* Exercise Info and Timer Block */}
+      <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <CardTitle className={`text-lg mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                {currentExercise.name}
+              </CardTitle>
+              <div className="flex flex-wrap gap-2 items-center">
+                <Badge variant="outline" className="text-xs">
+                  {currentExercise.repsOrDuration || `${currentExercise.duration}min`}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  {currentExercise.difficulty}
+                </Badge>
+                <Badge className={`text-xs ${preferences.darkMode ? 'bg-gray-700 text-gray-300' : 'bg-sage-100 text-sage-700'}`}>
+                  {currentExercise.category}
+                </Badge>
+                
+                <div className="flex items-center gap-1">
+                  <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>Springs:</span>
+                  <SpringVisual springs={currentExercise.springs} />
+                </div>
+                
+                {currentExercise.isPregnancySafe && (
+                  <div className="flex items-center gap-1">
+                    <Baby className="h-3 w-3 text-pink-500" />
+                    <span className="text-xs text-pink-500">Pregnancy Safe</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          {/* Exercise Timer - Prominent Display */}
+          {currentExercise.duration && currentExercise.duration > 0 && (
+            <div className="text-center bg-gradient-to-r from-sage-50 to-sage-100 dark:from-gray-700 dark:to-gray-600 rounded-lg p-4">
+              <div className={`text-3xl font-bold mb-1 ${
+                exerciseTimeLeft < 30 ? 'text-red-500' : preferences.darkMode ? 'text-white' : 'text-sage-800'
+              }`}>
+                {formatTime(exerciseTimeLeft)}
+              </div>
+              <div className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                Exercise Time Remaining
+              </div>
+            </div>
+          )}
+
+          {/* Exercise Image */}
+          <div className={`w-full h-48 rounded-lg overflow-hidden ${
+            preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'
+          }`}>
+            {currentExercise.image ? (
+              <img 
+                src={currentExercise.image} 
+                alt={currentExercise.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className={`text-4xl font-bold ${preferences.darkMode ? 'text-gray-500' : 'text-sage-400'}`}>
+                  {currentExerciseIndex + 1}
+                </span>
+              </div>
             )}
           </div>
 
-          {/* Safety Notes */}
-          {currentExercise.contraindications && currentExercise.contraindications.length > 0 && (
-            <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-sm`}>
-              <CardHeader className="pb-2">
-                <CardTitle className={`text-xs flex items-center gap-1 text-amber-600`}>
-                  <AlertTriangle className="h-3 w-3" />
-                  Safety Notes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-1">
-                  {currentExercise.contraindications.slice(0, 2).map((item, index) => (
-                    <li key={index} className={`text-xs ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
-                      • {item}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+          {/* Control Buttons */}
+          <div className="flex items-center justify-center gap-3">
+            <Button
+              onClick={previousExercise}
+              disabled={currentExerciseIndex === 0}
+              variant="outline"
+              size="lg"
+            >
+              <SkipBack className="h-5 w-5" />
+            </Button>
+            
+            <Button
+              onClick={handlePlayPause}
+              size="lg"
+              className="bg-sage-600 hover:bg-sage-700 text-white px-8"
+            >
+              {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+            </Button>
+            
+            <Button
+              onClick={nextExercise}
+              disabled={currentExerciseIndex === classPlan.exercises.length - 1}
+              variant="outline"
+              size="lg"
+            >
+              <SkipForward className="h-5 w-5" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

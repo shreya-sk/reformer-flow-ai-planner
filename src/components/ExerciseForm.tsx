@@ -43,8 +43,18 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
   const [newCue, setNewCue] = useState('');
   const [activeTab, setActiveTab] = useState<'basic' | 'details' | 'teaching'>('basic');
 
-  const muscleGroupOptions: MuscleGroup[] = ['core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body'];
-  const equipmentOptions: Equipment[] = ['straps', 'weights', 'magic-circle', 'theraband', 'none'];
+  const muscleGroupOptions: MuscleGroup[] = [
+    'core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body',
+    'quadriceps', 'hamstrings', 'calves', 'lower-abs', 'upper-abs', 'obliques',
+    'traps', 'deltoids', 'biceps', 'triceps', 'lats', 'chest', 'hip-flexors',
+    'adductors', 'abductors', 'pelvic-floor', 'deep-stabilizers', 'spinal-extensors'
+  ];
+  
+  const equipmentOptions: Equipment[] = [
+    'straps', 'weights', 'magic-circle', 'theraband', 'soft-ball', 
+    'short-box', 'long-box', 'jump-board', 'platform-extender', 
+    'tower', 'pole', 'none'
+  ];
 
   const toggleMuscleGroup = (group: MuscleGroup) => {
     setFormData(prev => ({
@@ -240,7 +250,7 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
 
               <div>
                 <Label>Muscle Groups *</Label>
-                <div className="flex flex-wrap gap-1.5 mt-2">
+                <div className="flex flex-wrap gap-1.5 mt-2 max-h-32 overflow-y-auto">
                   {muscleGroupOptions.map(group => (
                     <Button
                       key={group}
@@ -258,7 +268,7 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
 
               <div>
                 <Label>Equipment</Label>
-                <div className="flex flex-wrap gap-1.5 mt-2">
+                <div className="flex flex-wrap gap-1.5 mt-2 max-h-32 overflow-y-auto">
                   {equipmentOptions.map(equip => (
                     <Button
                       key={equip}

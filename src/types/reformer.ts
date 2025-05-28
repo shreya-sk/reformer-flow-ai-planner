@@ -95,6 +95,7 @@ export type MuscleGroup =
   | 'hamstrings'
   | 'calves'
   | 'lower-abs'
+  | 'upper-abs'
   | 'obliques'
   | 'traps'
   | 'deltoids'
@@ -102,13 +103,25 @@ export type MuscleGroup =
   | 'triceps'
   | 'lats'
   | 'chest'
-  | 'hip-flexors';
+  | 'hip-flexors'
+  | 'adductors'
+  | 'abductors'
+  | 'pelvic-floor'
+  | 'deep-stabilizers'
+  | 'spinal-extensors';
 
 export type Equipment = 
   | 'straps'
   | 'weights'
   | 'magic-circle'
   | 'theraband'
+  | 'soft-ball'
+  | 'short-box'
+  | 'long-box'
+  | 'jump-board'
+  | 'platform-extender'
+  | 'tower'
+  | 'pole'
   | 'none';
 
 export type TeachingFocus =
