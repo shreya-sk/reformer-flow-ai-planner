@@ -6,6 +6,7 @@ interface UserPreferences {
   showPregnancySafeOnly?: boolean;
   profileImage?: string;
   customCallouts?: string[];
+  favoriteExercises?: string[];
 }
 
 const PREFERENCES_KEY = 'user-preferences';
@@ -24,7 +25,8 @@ export const useUserPreferences = () => {
       darkMode: false, 
       showPregnancySafeOnly: false,
       profileImage: '',
-      customCallouts: []
+      customCallouts: [],
+      favoriteExercises: []
     };
   });
 
@@ -54,10 +56,41 @@ export const useUserPreferences = () => {
     }));
   };
 
+  const updateCustomCallouts = (callouts: string[]) => {
+    setPreferences(prev => ({
+      ...prev,
+      customCallouts: callouts
+    }));
+  };
+
+  const toggleFavoriteExercise = (exerciseId: string) => {
+    setPreferences(prev => {
+      const favorites = prev.favoriteExercises || [];
+      const isAlreadyFavorite = favorites.includes(exerciseId);
+      
+      return {
+        ...prev,
+        favoriteExercises: isAlreadyFavorite
+          ? favorites.filter(id => id !== exerciseId)
+          : [...favorites, exerciseId]
+      };
+    });
+  };
+
+  const togglePregnancySafeOnly = () => {
+    setPreferences(prev => ({
+      ...prev,
+      showPregnancySafeOnly: !prev.showPregnancySafeOnly
+    }));
+  };
+
   return {
     preferences,
     updatePreferences,
     addCustomCallout,
-    removeCustomCallout
+    removeCustomCallout,
+    updateCustomCallouts,
+    toggleFavoriteExercise,
+    togglePregnancySafeOnly
   };
 };
