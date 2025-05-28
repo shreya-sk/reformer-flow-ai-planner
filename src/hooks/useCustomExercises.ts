@@ -33,6 +33,7 @@ export const useCustomExercises = () => {
         duration: item.duration,
         springs: item.springs as any,
         difficulty: item.difficulty as any,
+        intensityLevel: 'medium', // Default value for missing intensityLevel
         muscleGroups: item.muscle_groups as any[],
         equipment: item.equipment as any[],
         description: item.description || '',

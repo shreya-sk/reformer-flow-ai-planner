@@ -77,6 +77,7 @@ export const ClassPlanCart = ({
       name: type.charAt(0).toUpperCase() + type.slice(1).replace('-', ' '),
       category: 'callout',
       difficulty: 'beginner',
+      intensityLevel: 'low',
       duration: 0,
       muscleGroups: [],
       equipment: [],

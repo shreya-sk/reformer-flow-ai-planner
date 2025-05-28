@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { X, Plus } from 'lucide-react';
-import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment } from '@/types/reformer';
+import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment } from '@/types/reformer';
 
 interface ExerciseFormProps {
   exercise?: Exercise;
@@ -22,6 +22,7 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
     duration: exercise?.duration || 3,
     springs: exercise?.springs || 'medium' as SpringSetting,
     difficulty: exercise?.difficulty || 'beginner' as DifficultyLevel,
+    intensityLevel: exercise?.intensityLevel || 'medium' as IntensityLevel,
     muscleGroups: exercise?.muscleGroups || [] as MuscleGroup[],
     equipment: exercise?.equipment || [] as Equipment[],
     description: exercise?.description || '',
@@ -194,6 +195,20 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="intensityLevel">Intensity Level</Label>
+            <Select value={formData.intensityLevel} onValueChange={(value: IntensityLevel) => setFormData(prev => ({ ...prev, intensityLevel: value }))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
