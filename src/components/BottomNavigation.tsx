@@ -1,65 +1,69 @@
 
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Timer, User, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { Home, BookOpen, Plus, Timer, User } from 'lucide-react';
 
 interface BottomNavigationProps {
-  onPlanClass: () => void;
+  onPlanClass?: () => void;
 }
 
 export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { preferences } = useUserPreferences();
-
+  
+  const isActive = (path: string) => location.pathname === path;
+  
+  // Define navigation items
   const navItems = [
-    { id: 'home', icon: Home, label: 'Classes', path: '/' },
-    { id: 'library', icon: BookOpen, label: 'Library', path: '/library' },
-    { id: 'plan', icon: Plus, label: 'Plan', action: onPlanClass },
-    { id: 'timer', icon: Timer, label: 'Timer', path: '/timer' },
-    { id: 'profile', icon: User, label: 'Profile', path: '/profile' }
+    { path: '/', label: 'Home', icon: Home },
+    { path: '/library', label: 'Library', icon: BookOpen },
+    { path: '/plan', label: 'Plan', icon: Plus, special: true },
+    { path: '/timer', label: 'Timer', icon: Timer },
+    { path: '/profile', label: 'Profile', icon: User },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
-
   return (
-    <div className={`fixed bottom-0 left-0 right-0 ${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} border-t safe-area-pb z-50`}>
-      <div className="flex items-center justify-around px-2 py-3 max-w-lg mx-auto">
-        {navItems.map((item) => {
-          const isActiveItem = item.path ? isActive(item.path) : false;
-          const isPlanButton = item.id === 'plan';
-          
-          if (isPlanButton) {
-            return (
+    <div className="fixed bottom-0 left-0 right-0 z-50">
+      <div className="relative overflow-hidden">
+        {/* Background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-r from-sage-600 via-sage-500 to-sage-600"></div>
+        
+        {/* Flowing top wave */}
+        <svg className="absolute top-0 w-full h-4" viewBox="0 0 1440 60" preserveAspectRatio="none">
+          <path d="M0,60 C360,20 600,50 840,30 C1080,10 1320,40 1440,25 L1440,0 L0,0 Z" fill="rgba(255,255,255,0.1)" />
+        </svg>
+        
+        <div className="relative flex items-center justify-around px-6 py-3 max-w-lg mx-auto">
+          {navItems.map((item) => (
+            item.special ? (
               <Button
-                key={item.id}
-                onClick={item.action}
-                className="w-12 h-12 rounded-full bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                key={item.path}
+                onClick={onPlanClass ? onPlanClass : () => navigate(item.path)}
+                className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 hover:rotate-12"
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-7 w-7" />
               </Button>
-            );
-          }
-
-          return (
-            <Button
-              key={item.id}
-              variant="ghost"
-              onClick={() => item.path && navigate(item.path)}
-              className={`flex flex-col items-center h-auto px-3 py-2 ${
-                isActiveItem
-                  ? preferences.darkMode ? 'text-sage-400' : 'text-sage-600'
-                  : preferences.darkMode ? 'text-gray-500 hover:text-gray-300' : 'text-sage-400 hover:text-sage-600'
-              }`}
-            >
-              <item.icon className="h-5 w-5 mb-1" />
-              <span className="text-xs font-medium">
-                {item.label}
-              </span>
-            </Button>
-          );
-        })}
+            ) : (
+              <Button
+                key={item.path}
+                onClick={() => navigate(item.path)}
+                variant="ghost"
+                className={`flex flex-col items-center text-white hover:text-sage-200 hover:bg-white/20 rounded-2xl transition-all duration-300 transform hover:scale-110 p-2 ${
+                  isActive(item.path) ? 'bg-white/20' : ''
+                }`}
+              >
+                {item.path === '/profile' ? (
+                  <div className="w-5 h-5 rounded-full bg-white/30 mb-1 flex items-center justify-center">
+                    <span className="text-xs font-bold">U</span>
+                  </div>
+                ) : (
+                  <item.icon className="h-5 w-5 mb-1" />
+                )}
+                <span className="text-xs font-medium">{item.label}</span>
+              </Button>
+            )
+          ))}
+        </div>
       </div>
     </div>
   );

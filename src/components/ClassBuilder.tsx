@@ -1,21 +1,26 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Clock, GripVertical, BookOpen } from 'lucide-react';
+import { Trash2, Clock, GripVertical, BookOpen, Plus, Heart, Star } from 'lucide-react';
 import { ClassPlan, Exercise } from '@/types/reformer';
 import { ExerciseSuggestions } from './ExerciseSuggestions';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
+import { SpringVisual } from '@/components/SpringVisual';
 
 interface ClassBuilderProps {
   currentClass: ClassPlan;
   onRemoveExercise: (exerciseId: string) => void;
   onReorderExercises: (exercises: Exercise[]) => void;
   onUpdateExercise: (updatedExercise: Exercise) => void;
-  savedClasses: ClassPlan[];
-  onAddExercise: (exercise: Exercise) => void;
+  onAddExercise: () => void;
+  onAddCallout?: (position: number) => void;
+  onUpdateCallout?: (calloutId: string, newName: string) => void;
+  onDeleteCallout?: (calloutId: string) => void;
+  onAddToShortlist?: (exercise: Exercise) => void;
+  savedClasses?: ClassPlan[];
 }
 
 export const ClassBuilder = ({ 
@@ -23,39 +28,16 @@ export const ClassBuilder = ({
   onRemoveExercise, 
   onReorderExercises, 
   onUpdateExercise,
-  savedClasses, 
-  onAddExercise 
+  onAddExercise,
+  onAddCallout,
+  onUpdateCallout,
+  onDeleteCallout,
+  onAddToShortlist
 }: ClassBuilderProps) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-
-  const getSpringVisual = (springs: string) => {
-    const springConfig = {
-      'light': [{ color: 'bg-green-500', count: 1 }],
-      'medium': [{ color: 'bg-yellow-500', count: 1 }],
-      'heavy': [{ color: 'bg-red-500', count: 2 }],
-      'mixed': [
-        { color: 'bg-red-500', count: 1 },
-        { color: 'bg-yellow-500', count: 1 },
-        { color: 'bg-green-500', count: 1 }
-      ]
-    };
-
-    const config = springConfig[springs as keyof typeof springConfig] || springConfig.light;
-    
-    return (
-      <div className="flex items-center gap-1">
-        {config.map((spring, index) => (
-          <div key={index} className="flex gap-0.5">
-            {Array.from({ length: spring.count }).map((_, i) => (
-              <div key={i} className={`w-2 h-2 rounded-full ${spring.color}`} />
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  };
+  const [hoveredExercise, setHoveredExercise] = useState<string | null>(null);
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
@@ -95,239 +77,297 @@ export const ClassBuilder = ({
     onRemoveExercise(exerciseId);
   };
 
-  const ExerciseCard = ({ exercise, index }: { exercise: Exercise; index: number }) => (
-    <div
-      draggable
-      onDragStart={(e) => handleDragStart(e, index)}
-      onDragOver={handleDragOver}
-      onDrop={(e) => handleDrop(e, index)}
-      className={`group mb-3 transition-all duration-200 cursor-pointer ${
-        draggedIndex === index ? 'opacity-50 scale-95' : 'hover:scale-[1.02]'
-      }`}
-      onClick={() => handleExerciseClick(exercise)}
-    >
-      <Card className="border-sage-200 hover:shadow-lg hover:border-sage-300 transition-all duration-200">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 cursor-grab active:cursor-grabbing opacity-40 group-hover:opacity-100 transition-opacity">
-              <GripVertical className="h-5 w-5 text-sage-500" />
-            </div>
+  const handleAddCallout = (position: number) => {
+    if (onAddCallout) {
+      onAddCallout(position);
+    }
+  };
 
-            <div className="flex-shrink-0">
-              <div className="w-16 h-16 bg-gradient-to-br from-sage-100 to-sage-200 rounded-lg flex items-center justify-center">
-                <span className="text-2xl font-bold text-sage-600">{index + 1}</span>
-              </div>
-            </div>
+  const handleShortlistExercise = (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onAddToShortlist) {
+      onAddToShortlist(exercise);
+    }
+  };
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between mb-2">
-                <h3 className="font-semibold text-sage-800 text-sm leading-tight">
-                  {exercise.name}
-                </h3>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={(e) => handleRemoveExercise(exercise.id, e)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-3 mb-2">
-                <div className="flex items-center gap-1.5">
-                  <Clock className="h-3 w-3 text-sage-500" />
-                  <span className="text-xs text-sage-600 font-medium">{exercise.duration}min</span>
-                </div>
-                
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-sage-500">Springs:</span>
-                  {getSpringVisual(exercise.springs)}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs font-medium border-sage-300 text-sage-700">
-                  {exercise.category}
-                </Badge>
-                <div className="flex gap-1">
-                  {exercise.muscleGroups.slice(0, 2).map(group => (
-                    <Badge key={group} variant="secondary" className="text-xs bg-sage-100 text-sage-700">
-                      {group}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+  const ExerciseCard = ({ exercise, index }: { exercise: Exercise; index: number }) => {
+    const isCallout = exercise.category === 'callout';
+    
+    if (isCallout) {
+      return (
+        <div className="relative mb-2 px-4">
+          <div className="border-l-4 border-sage-300 pl-3 py-2 bg-sage-50 rounded-r-lg">
+            <div className="flex justify-between items-center">
+              <span className="font-medium text-sage-700">{exercise.name || 'Callout'}</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onDeleteCallout) onDeleteCallout(exercise.id);
+                }}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+        </div>
+      );
+    }
+    
+    return (
+      <div
+        draggable
+        onDragStart={(e) => handleDragStart(e, index)}
+        onDragOver={handleDragOver}
+        onDrop={(e) => handleDrop(e, index)}
+        className={`group mb-3 transition-all duration-300 cursor-pointer ${
+          draggedIndex === index ? 'opacity-50 scale-95' : ''
+        } ${hoveredExercise === exercise.id ? 'scale-[1.02]' : ''}`}
+        onClick={() => handleExerciseClick(exercise)}
+        onMouseEnter={() => setHoveredExercise(exercise.id)}
+        onMouseLeave={() => setHoveredExercise(null)}
+      >
+        <Card className="border-sage-200 hover:shadow-lg hover:border-sage-300 transition-all duration-300 overflow-hidden rounded-xl">
+          <CardContent className="p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex-shrink-0 cursor-grab active:cursor-grabbing opacity-40 group-hover:opacity-100 transition-opacity">
+                <GripVertical className="h-5 w-5 text-sage-500" />
+              </div>
+
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 bg-gradient-to-br from-sage-100 to-sage-200 rounded-full flex items-center justify-center shadow-inner">
+                  <span className="text-lg font-bold text-sage-600">{index + 1}</span>
+                </div>
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <h3 className="font-medium text-sage-800 text-sm">
+                    {exercise.name}
+                  </h3>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {onAddToShortlist && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={(e) => handleShortlistExercise(exercise, e)}
+                        className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-6 w-6 p-0"
+                      >
+                        <Heart className="h-3 w-3" />
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => handleRemoveExercise(exercise.id, e)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3 w-3 text-sage-500" />
+                    <span className="text-xs text-sage-600 font-medium">{exercise.duration}min</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-sage-500">Springs:</span>
+                    <SpringVisual springs={exercise.springs} />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs border-sage-300 text-sage-700 rounded-full">
+                    {exercise.category}
+                  </Badge>
+                  <div className="flex gap-1">
+                    {exercise.muscleGroups.slice(0, 2).map(group => (
+                      <Badge key={group} variant="secondary" className="text-xs bg-sage-100 text-sage-700 rounded-full">
+                        {group}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Add callout button */}
+        {onAddCallout && (
+          <div className="relative h-0">
+            <div className="absolute left-1/2 transform -translate-x-1/2 -mt-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAddCallout(index + 1);
+                }}
+                className="h-6 w-6 p-0 rounded-full bg-sage-100 border-sage-300 hover:bg-sage-200"
+              >
+                <Plus className="h-3 w-3 text-sage-600" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
-      <div className="flex-1 bg-gradient-to-br from-sage-25 to-white">
-        <Tabs defaultValue="current" className="h-full flex flex-col">
-          <div className="bg-white border-b border-sage-200 p-4">
-            <TabsList className="w-full bg-sage-50">
-              <TabsTrigger value="current" className="flex-1">Current Class</TabsTrigger>
-              <TabsTrigger value="saved" className="flex-1">My Classes ({savedClasses.length})</TabsTrigger>
-            </TabsList>
+      <div className="flex-1">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-3">
+          {/* Class Timeline */}
+          <div className="md:col-span-3 space-y-3">
+            <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden">
+              <CardHeader className="border-b border-sage-100 bg-gradient-to-r from-sage-50 to-white p-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg text-sage-800">Class Timeline</CardTitle>
+                  <Button 
+                    onClick={onAddExercise}
+                    variant="outline"
+                    size="sm" 
+                    className="border-sage-300 hover:bg-sage-100 text-sage-700 rounded-full"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Exercise
+                  </Button>
+                </div>
+                
+                {currentClass.exercises.length > 0 && (
+                  <p className="text-xs text-sage-600 mt-1">
+                    {currentClass.exercises.length} exercises • {currentClass.totalDuration} minutes • Drag to reorder
+                  </p>
+                )}
+              </CardHeader>
+              
+              <ScrollArea className="h-[calc(100vh-250px)] px-3 py-2">
+                {currentClass.exercises.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="bg-sage-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                      <BookOpen className="h-7 w-7 text-sage-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-sage-700 mb-2">Start Building Your Class</h3>
+                    <p className="text-sage-500 text-sm max-w-sm mx-auto mb-4">
+                      Add exercises from the library to create your perfect Reformer flow. Drag to reorder once added.
+                    </p>
+                    <Button onClick={onAddExercise} className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-full px-6 py-2 transform hover:scale-105 transition-all duration-300 shadow-lg">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add First Exercise
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {/* Add initial callout button */}
+                    {onAddCallout && (
+                      <div className="flex justify-center py-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleAddCallout(0)}
+                          className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Note
+                        </Button>
+                      </div>
+                    )}
+                    
+                    <ExerciseSuggestions 
+                      currentClass={currentClass} 
+                      onAddExercise={onAddExercise}
+                    />
+                    
+                    {currentClass.exercises.map((exercise, index) => (
+                      <ExerciseCard key={exercise.id} exercise={exercise} index={index} />
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </Card>
           </div>
 
-          <TabsContent value="current" className="flex-1 p-6">
-            <div className="grid grid-cols-4 gap-6 h-full">
-              <div className="col-span-3">
-                <Card className="h-full shadow-sm border-sage-200">
-                  <CardHeader className="border-b border-sage-100 bg-white">
-                    <CardTitle className="text-lg text-sage-800 font-semibold">Class Timeline</CardTitle>
-                    {currentClass.exercises.length > 0 && (
-                      <p className="text-sm text-sage-600">
-                        Drag exercises to reorder • {currentClass.exercises.length} exercises • {currentClass.totalDuration} minutes
-                      </p>
-                    )}
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <ScrollArea className="h-[calc(100vh-320px)]">
-                      {currentClass.exercises.length === 0 ? (
-                        <div className="text-center py-16">
-                          <div className="bg-sage-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                            <BookOpen className="h-8 w-8 text-sage-400" />
-                          </div>
-                          <h3 className="text-lg font-semibold text-sage-700 mb-2">Start Building Your Class</h3>
-                          <p className="text-sage-500 text-sm max-w-sm mx-auto">
-                            Add exercises from the library to create your perfect Reformer flow. Drag to reorder once added.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-0">
-                          <ExerciseSuggestions 
-                            currentClass={currentClass} 
-                            onAddExercise={onAddExercise}
-                          />
-                          {currentClass.exercises.map((exercise, index) => (
-                            <ExerciseCard key={exercise.id} exercise={exercise} index={index} />
-                          ))}
-                        </div>
-                      )}
-                    </ScrollArea>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Class Analytics */}
-              <div className="space-y-4">
-                <Card className="shadow-sm border-sage-200">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base text-sage-800 font-semibold">Overview</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-sage-600">Duration</span>
-                      <span className="font-semibold text-sage-800">{currentClass.totalDuration}min</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-sage-600">Exercises</span>
-                      <span className="font-semibold text-sage-800">{currentClass.exercises.length}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-sm border-sage-200">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base text-sage-800 font-semibold">Muscle Groups</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-1.5">
-                      {getMuscleGroupCoverage().length === 0 ? (
-                        <span className="text-sm text-sage-500">No exercises added</span>
-                      ) : (
-                        getMuscleGroupCoverage().map(group => (
-                          <Badge key={group} className="text-xs bg-sage-100 text-sage-700 border-sage-300">
-                            {group}
-                          </Badge>
-                        ))
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {currentClass.exercises.length > 0 && (
-                  <Card className="shadow-sm border-sage-200">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base text-sage-800 font-semibold">Spring Legend</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-sage-600">Light</span>
-                        <div className="bg-green-500 w-2 h-2 rounded-full" />
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-sage-600">Medium</span>
-                        <div className="bg-yellow-500 w-2 h-2 rounded-full" />
-                      </div>
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-sage-600">Heavy</span>
-                        <div className="flex gap-0.5">
-                          <div className="bg-red-500 w-2 h-2 rounded-full" />
-                          <div className="bg-red-500 w-2 h-2 rounded-full" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="saved" className="flex-1 p-6">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="text-lg text-sage-800">Saved Classes</CardTitle>
+          {/* Class Analytics */}
+          <div className="space-y-4">
+            <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden bg-gradient-to-br from-sage-50/70 to-white">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base text-sage-800 font-medium">Class Overview</CardTitle>
               </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[calc(100vh-280px)]">
-                  {savedClasses.length === 0 ? (
-                    <div className="text-center py-12">
-                      <BookOpen className="h-12 w-12 text-sage-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-sage-600 mb-2">No Saved Classes</h3>
-                      <p className="text-sage-500 text-sm">
-                        Classes you save will appear here for future use
-                      </p>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white rounded-lg p-3 shadow-sm border border-sage-100">
+                    <div className="flex flex-col items-center">
+                      <Clock className="h-5 w-5 text-sage-600 mb-1" />
+                      <span className="font-bold text-xl text-sage-800">{currentClass.totalDuration}</span>
+                      <span className="text-xs text-sage-600">Minutes</span>
                     </div>
-                  ) : (
-                    <div className="grid gap-3">
-                      {savedClasses.map((classItem) => (
-                        <Card key={classItem.id} className="hover:shadow-md transition-shadow">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-sm font-medium text-sage-800">
-                              {classItem.name}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="flex items-center space-x-4 text-xs text-sage-600 mb-2">
-                              <span>{classItem.totalDuration}min</span>
-                              <span>{classItem.exercises.length} exercises</span>
-                              <span>{new Date(classItem.createdAt).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex flex-wrap gap-1">
-                              {Array.from(new Set(classItem.exercises.flatMap(ex => ex.muscleGroups))).slice(0, 3).map(group => (
-                                <Badge key={group} variant="secondary" className="text-xs">
-                                  {group}
-                                </Badge>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                  </div>
+                  
+                  <div className="bg-white rounded-lg p-3 shadow-sm border border-sage-100">
+                    <div className="flex flex-col items-center">
+                      <BookOpen className="h-5 w-5 text-sage-600 mb-1" />
+                      <span className="font-bold text-xl text-sage-800">
+                        {currentClass.exercises.filter(ex => ex.category !== 'callout').length}
+                      </span>
+                      <span className="text-xs text-sage-600">Exercises</span>
                     </div>
-                  )}
-                </ScrollArea>
+                  </div>
+                </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+
+            <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base text-sage-800 font-medium">Muscle Groups</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-1.5">
+                  {getMuscleGroupCoverage().length === 0 ? (
+                    <span className="text-sm text-sage-500">No exercises added</span>
+                  ) : (
+                    getMuscleGroupCoverage().map(group => (
+                      <Badge key={group} className="text-xs bg-sage-100 text-sage-700 border-sage-300 rounded-full">
+                        {group}
+                      </Badge>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {currentClass.exercises.length > 0 && (
+              <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base text-sage-800 font-medium">Spring Guide</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center justify-between text-xs bg-white p-2 rounded-lg border border-sage-100">
+                    <span className="text-sage-700">Light</span>
+                    <div className="bg-green-500 w-3 h-3 rounded-full"></div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs bg-white p-2 rounded-lg border border-sage-100">
+                    <span className="text-sage-700">Medium</span>
+                    <div className="bg-yellow-500 w-3 h-3 rounded-full"></div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs bg-white p-2 rounded-lg border border-sage-100">
+                    <span className="text-sage-700">Heavy</span>
+                    <div className="flex gap-0.5">
+                      <div className="bg-red-500 w-3 h-3 rounded-full"></div>
+                      <div className="bg-red-500 w-3 h-3 rounded-full"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       </div>
 
       {selectedExercise && (
