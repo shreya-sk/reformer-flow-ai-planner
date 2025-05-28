@@ -211,7 +211,7 @@ export const TabbedPlanView = ({
                 {exercise.name}
               </h4>
               {exercise.isPregnancySafe && (
-                <Users className="h-4 w-4 text-pink-500" title="Pregnancy Safe" />
+                <Users className="h-4 w-4 text-pink-500" />
               )}
               {isExpanded ? (
                 <ChevronDown className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
