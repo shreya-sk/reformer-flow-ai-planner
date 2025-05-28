@@ -11,7 +11,6 @@ import {
   Calendar,
   Clock,
   Users,
-  Image as ImageIcon,
   ChevronDown,
   ChevronUp,
   Eye,
@@ -47,7 +46,6 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
   const { preferences } = useUserPreferences();
 
   const getRandomImage = (classId: string) => {
-    // Use class ID to consistently select the same image for each class
     const index = classId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % defaultImages.length;
     return defaultImages[index];
   };
@@ -85,11 +83,11 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {classes.map((classPlan) => (
         <Card key={classPlan.id} className={`group hover:shadow-lg transition-all duration-200 ${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} overflow-hidden`}>
           {/* Class Image - Smaller */}
-          <div className="relative h-32 overflow-hidden">
+          <div className="relative h-24 overflow-hidden">
             <img
               src={classPlan.image || getRandomImage(classPlan.id)}
               alt={classPlan.name}
@@ -104,43 +102,43 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
                 size="sm"
                 className="bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 transition-all duration-200"
               >
-                <Play className="h-4 w-4 mr-1" />
+                <Play className="h-3 w-3 mr-1" />
                 Teach
               </Button>
             </div>
 
             {/* Duration Badge */}
-            <div className="absolute top-2 right-2">
+            <div className="absolute top-1 right-1">
               <Badge className={`text-xs ${preferences.darkMode ? 'bg-gray-900/80 text-white' : 'bg-white/90 text-gray-900'} backdrop-blur-sm`}>
-                <Clock className="h-3 w-3 mr-1" />
+                <Clock className="h-2 w-2 mr-1" />
                 {classPlan.totalDuration}min
               </Badge>
             </div>
           </div>
 
-          <CardHeader className="pb-2">
-            <CardTitle className={`text-base font-semibold ${preferences.darkMode ? 'text-white' : 'text-sage-800'} line-clamp-2`}>
+          <CardHeader className="pb-1">
+            <CardTitle className={`text-sm font-semibold ${preferences.darkMode ? 'text-white' : 'text-sage-800'} line-clamp-2`}>
               {classPlan.name}
             </CardTitle>
             <div className={`flex items-center gap-2 text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
               <span className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
+                <Calendar className="h-2 w-2" />
                 {formatDate(classPlan.createdAt)}
               </span>
               <span className="flex items-center gap-1">
-                <Users className="h-3 w-3" />
-                {classPlan.exercises.filter(ex => ex.category !== 'callout').length} exercises
+                <Users className="h-2 w-2" />
+                {classPlan.exercises.filter(ex => ex.category !== 'callout').length} ex
               </span>
             </div>
           </CardHeader>
 
-          <CardContent className="pt-0 space-y-3">
+          <CardContent className="pt-0 space-y-2">
             <div className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
               {getMuscleGroupsCount(classPlan)} muscle groups
             </div>
             
             {/* Action Buttons */}
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               <Button
                 onClick={() => onEditClass(classPlan)}
                 size="sm"
@@ -177,22 +175,19 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-2 mt-2">
-                <div className="max-h-48 overflow-y-auto space-y-1">
+                <div className="max-h-32 overflow-y-auto space-y-1">
                   {classPlan.exercises.filter(ex => ex.category !== 'callout').map((exercise, index) => (
-                    <div key={index} className={`p-2 rounded text-xs ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-50'}`}>
+                    <div key={index} className={`p-1 rounded text-xs ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-50'}`}>
                       <div className="flex items-center justify-between">
                         <span className={`font-medium ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                           {exercise.name}
                         </span>
                         <div className="flex items-center gap-1">
-                          <Dumbbell className="h-3 w-3" />
+                          <Dumbbell className="h-2 w-2" />
                           <span className={preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}>
                             {exercise.duration}min
                           </span>
                         </div>
-                      </div>
-                      <div className={`text-xs mt-1 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-                        {exercise.category} • {exercise.difficulty}
                       </div>
                     </div>
                   ))}

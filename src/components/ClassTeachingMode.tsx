@@ -1,16 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { 
   Play, 
   Pause, 
   SkipBack, 
   SkipForward, 
-  Clock,
   X,
   Timer,
   Edit2,
@@ -41,7 +38,6 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
   // Filter out callouts from exercises
   const exercises = classPlan.exercises.filter(ex => ex.category !== 'callout');
   const currentExercise = exercises[currentExerciseIndex];
-  const progress = ((currentExerciseIndex + 1) / exercises.length) * 100;
 
   // Initialize exercise timer
   useEffect(() => {
@@ -139,51 +135,56 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
   if (!currentExercise) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-100 via-sage-50 to-sage-200">
-      {/* Minimal Header with Timer and Exit */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-sage-200 shadow-sm sticky top-0 z-10">
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-4">
-              <Button
-                onClick={onClose}
-                variant="ghost"
-                size="sm"
-                className="text-sage-600 hover:text-sage-800 hover:bg-sage-100"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Exit Teaching
-              </Button>
-              
-              <h1 className="text-xl font-bold text-sage-800">
-                {classPlan.name}
+    <div className="min-h-screen bg-gradient-to-br from-sage-100 via-sage-200 to-sage-300">
+      {/* Compact Header with Timer and Controls Only */}
+      <div className="bg-sage-600/90 backdrop-blur-sm shadow-lg sticky top-0 z-10">
+        <div className="p-3">
+          <div className="flex items-center justify-between">
+            {/* Left: Exit Button */}
+            <Button
+              onClick={onClose}
+              variant="ghost"
+              size="sm"
+              className="text-white hover:text-sage-100 hover:bg-white/20"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Exit
+            </Button>
+            
+            {/* Center: Exercise Info */}
+            <div className="text-center">
+              <h1 className="text-lg font-bold text-white">
+                {currentExercise.name}
               </h1>
-              <Badge variant="outline" className="border-sage-300 text-sage-700">
-                {currentExerciseIndex + 1} of {exercises.length}
-              </Badge>
+              <div className="flex items-center justify-center gap-2 mt-1">
+                <Badge variant="outline" className="border-white/30 text-white bg-white/10 text-xs">
+                  {currentExerciseIndex + 1} of {exercises.length}
+                </Badge>
+                <SpringVisual springs={currentExercise.springs} />
+              </div>
             </div>
             
-            {/* Global Timer */}
-            <div className="flex items-center gap-3">
-              <Timer className="h-5 w-5 text-sage-600" />
+            {/* Right: Global Timer */}
+            <div className="flex items-center gap-2">
+              <Timer className="h-4 w-4 text-white" />
               {isEditingGlobalTime ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <Input
                     type="number"
                     value={tempGlobalTime}
                     onChange={(e) => setTempGlobalTime(parseInt(e.target.value) || 45)}
-                    className="w-20 h-8 text-sm border-sage-300"
+                    className="w-16 h-7 text-xs border-white/30 bg-white/20 text-white"
                     min="1"
                     max="120"
                   />
-                  <Button onClick={handleGlobalTimeEdit} size="sm" variant="ghost" className="h-8 px-2 text-xs">
-                    Save
+                  <Button onClick={handleGlobalTimeEdit} size="sm" variant="ghost" className="h-7 px-1 text-xs text-white">
+                    ✓
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <span className={`text-2xl font-bold ${
-                    globalTimeLeft < 300 ? 'text-red-500' : 'text-sage-800'
+                <div className="flex items-center gap-1">
+                  <span className={`text-lg font-bold ${
+                    globalTimeLeft < 300 ? 'text-red-200' : 'text-white'
                   }`}>
                     {formatTime(globalTimeLeft)}
                   </span>
@@ -191,7 +192,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
                     onClick={() => setIsEditingGlobalTime(true)}
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-7 w-7 p-0 text-white hover:bg-white/20"
                   >
                     <Edit2 className="h-3 w-3" />
                   </Button>
@@ -199,182 +200,163 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
               )}
             </div>
           </div>
-          
-          <Progress value={progress} className="h-2 bg-sage-200" />
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="p-6 space-y-6">
-        {/* Exercise Title & Timer */}
-        <div className="text-center space-y-4">
-          <div>
-            <h2 className="text-4xl font-bold mb-3 text-sage-800">
-              {currentExercise.name}
-            </h2>
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <Badge variant="outline" className="border-sage-400 text-sage-700 bg-white">
-                {currentExercise.difficulty}
-              </Badge>
-              <Badge className="bg-sage-200 text-sage-800 border border-sage-300">
-                {currentExercise.category}
-              </Badge>
-              <SpringVisual springs={currentExercise.springs} />
-            </div>
-          </div>
-
-          {/* Exercise Timer - Prominent Display */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-sage-200 shadow-lg">
+      {/* Main Content - Compact Layout */}
+      <div className="p-4 space-y-4">
+        {/* Exercise Timer & Controls - Compact */}
+        <div className="text-center space-y-3">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-sage-300 shadow-md">
             {currentExercise.duration && currentExercise.duration > 0 ? (
-              <div className={`text-6xl font-bold ${
+              <div className={`text-4xl font-bold ${
                 exerciseTimeLeft < 30 ? 'text-red-500' : 'text-sage-800'
               }`}>
                 {formatTime(exerciseTimeLeft)}
               </div>
             ) : (
-              <div className="text-4xl font-bold text-sage-800">
+              <div className="text-2xl font-bold text-sage-800">
                 {currentExercise.repsOrDuration || 'Hold position'}
               </div>
             )}
           </div>
           
-          {/* Control Buttons */}
-          <div className="flex items-center justify-center gap-4">
+          {/* Control Buttons - Compact */}
+          <div className="flex items-center justify-center gap-3">
             <Button
               onClick={previousExercise}
               disabled={currentExerciseIndex === 0}
               variant="outline"
-              size="lg"
-              className="border-sage-300 hover:bg-sage-100"
+              className="border-sage-400 hover:bg-sage-100"
             >
-              <SkipBack className="h-6 w-6" />
+              <SkipBack className="h-5 w-5" />
             </Button>
             
             <Button
               onClick={handlePlayPause}
-              size="lg"
-              className="bg-sage-600 hover:bg-sage-700 text-white px-8 py-4 text-lg"
+              className="bg-sage-600 hover:bg-sage-700 text-white px-6 py-3"
             >
-              {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
+              {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
             </Button>
             
             <Button
               onClick={nextExercise}
               disabled={currentExerciseIndex === exercises.length - 1}
               variant="outline"
-              size="lg"
-              className="border-sage-300 hover:bg-sage-100"
+              className="border-sage-400 hover:bg-sage-100"
             >
-              <SkipForward className="h-6 w-6" />
+              <SkipForward className="h-5 w-5" />
             </Button>
           </div>
         </div>
 
-        {/* Exercise Details in 2 Columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        {/* Exercise Details in 2 Compact Columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 max-w-5xl mx-auto">
           {/* Left Column */}
-          <div className="space-y-4">
-            {/* Teaching Cues */}
-            <Card className="bg-white/70 backdrop-blur-sm border-sage-200 shadow-md">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2 text-sage-800">
-                  <Lightbulb className="h-5 w-5 text-amber-500" />
-                  Teaching Cues
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {getEnhancedCues(currentExercise).map((cue, index) => (
-                  <div key={index} className="p-3 rounded-lg bg-sage-50 border-l-4 border-sage-500">
-                    <p className="text-sm leading-relaxed text-sage-700">
-                      💡 {cue}
-                    </p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Setup Instructions */}
-            <Card className="bg-white/70 backdrop-blur-sm border-sage-200 shadow-md">
+          <div className="space-y-3">
+            {/* Setup Instructions - Compact */}
+            <Card className="bg-white/80 backdrop-blur-sm border-sage-300 shadow-sm">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center gap-2 text-sage-800">
-                  <Settings className="h-5 w-5 text-sage-600" />
+                <CardTitle className="text-sm flex items-center gap-2 text-sage-800">
+                  <Settings className="h-4 w-4 text-sage-600" />
                   Setup & Equipment
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm leading-relaxed text-sage-700">
+              <CardContent className="pt-0 space-y-2">
+                <p className="text-xs leading-relaxed text-sage-700">
                   {getSetupInstructions(currentExercise)}
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1">
                   {currentExercise.equipment.map((item, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs bg-sage-100 text-sage-700">
-                      <Dumbbell className="h-3 w-3 mr-1" />
+                    <Badge key={index} variant="secondary" className="text-xs bg-sage-100 text-sage-700 px-2 py-0">
+                      <Dumbbell className="h-2 w-2 mr-1" />
                       {item}
                     </Badge>
                   ))}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Teaching Cues - Compact Bullet Points */}
+            <Card className="bg-white/80 backdrop-blur-sm border-sage-300 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2 text-sage-800">
+                  <Lightbulb className="h-4 w-4 text-amber-500" />
+                  Teaching Cues
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <ul className="space-y-1">
+                  {getEnhancedCues(currentExercise).map((cue, index) => (
+                    <li key={index} className="text-xs leading-relaxed text-sage-700 flex items-start gap-2">
+                      <span className="text-sage-500 font-bold">•</span>
+                      <span>{cue}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Right Column */}
-          <div className="space-y-4">
-            {/* Progressions */}
-            {currentExercise.progressions && currentExercise.progressions.length > 0 && (
-              <Card className="bg-white/70 backdrop-blur-sm border-sage-200 shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2 text-green-600">
-                    <TrendingUp className="h-5 w-5" />
-                    Make it Harder
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {currentExercise.progressions.slice(0, 3).map((progression, index) => (
-                      <li key={index} className="text-sm text-sage-700">
-                        ▲ {progression}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
+          <div className="space-y-3">
+            {/* Combined Progressions & Regressions */}
+            <Card className="bg-white/80 backdrop-blur-sm border-sage-300 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2 text-sage-800">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <TrendingDown className="h-4 w-4 text-blue-600" />
+                  Modifications
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-3">
+                {/* Progressions */}
+                {currentExercise.progressions && currentExercise.progressions.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-green-600 mb-1">Make it Harder:</h4>
+                    <ul className="space-y-0.5">
+                      {currentExercise.progressions.slice(0, 2).map((progression, index) => (
+                        <li key={index} className="text-xs text-sage-700 flex items-start gap-1">
+                          <span className="text-green-600">▲</span>
+                          <span>{progression}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
-            {/* Regressions */}
-            {currentExercise.regressions && currentExercise.regressions.length > 0 && (
-              <Card className="bg-white/70 backdrop-blur-sm border-sage-200 shadow-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2 text-blue-600">
-                    <TrendingDown className="h-5 w-5" />
-                    Make it Easier
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {currentExercise.regressions.slice(0, 3).map((regression, index) => (
-                      <li key={index} className="text-sm text-sage-700">
-                        ▼ {regression}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
+                {/* Regressions */}
+                {currentExercise.regressions && currentExercise.regressions.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-blue-600 mb-1">Make it Easier:</h4>
+                    <ul className="space-y-0.5">
+                      {currentExercise.regressions.slice(0, 2).map((regression, index) => (
+                        <li key={index} className="text-xs text-sage-700 flex items-start gap-1">
+                          <span className="text-blue-600">▼</span>
+                          <span>{regression}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-            {/* Safety Notes */}
+            {/* Safety Notes - Compact */}
             {currentExercise.contraindications && currentExercise.contraindications.length > 0 && (
-              <Card className="bg-white/70 backdrop-blur-sm border-amber-200 shadow-md">
+              <Card className="bg-white/80 backdrop-blur-sm border-amber-300 shadow-sm">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center gap-2 text-amber-600">
-                    <Shield className="h-5 w-5" />
+                  <CardTitle className="text-sm flex items-center gap-2 text-amber-600">
+                    <Shield className="h-4 w-4" />
                     Safety Notes
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {currentExercise.contraindications.map((item, index) => (
-                      <li key={index} className="text-sm text-sage-700">
-                        ⚠️ {item}
+                <CardContent className="pt-0">
+                  <ul className="space-y-0.5">
+                    {currentExercise.contraindications.slice(0, 3).map((item, index) => (
+                      <li key={index} className="text-xs text-sage-700 flex items-start gap-1">
+                        <span className="text-amber-600">⚠️</span>
+                        <span>{item}</span>
                       </li>
                     ))}
                   </ul>
@@ -384,29 +366,29 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
           </div>
         </div>
 
-        {/* Exercise Image/Video at Bottom */}
-        <Card className="bg-white/70 backdrop-blur-sm border-sage-200 shadow-md max-w-4xl mx-auto">
-          <CardContent className="p-6">
+        {/* Exercise Image/Video at Bottom - Compact */}
+        <Card className="bg-white/80 backdrop-blur-sm border-sage-300 shadow-sm max-w-3xl mx-auto">
+          <CardContent className="p-4">
             {currentExercise.image ? (
-              <div className="relative h-80 rounded-lg overflow-hidden">
+              <div className="relative h-48 rounded-lg overflow-hidden">
                 <img 
                   src={currentExercise.image} 
                   alt={currentExercise.name}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute top-4 left-4">
-                  <Badge className="bg-black/60 text-white">
+                <div className="absolute top-2 left-2">
+                  <Badge className="bg-black/60 text-white text-xs">
                     Reference Image
                   </Badge>
                 </div>
               </div>
             ) : (
-              <div className="h-80 rounded-lg bg-sage-100 flex flex-col items-center justify-center border-2 border-dashed border-sage-300">
-                <ImageIcon className="h-20 w-20 mb-4 text-sage-400" />
-                <span className="text-xl font-medium text-sage-600">
+              <div className="h-48 rounded-lg bg-sage-100 flex flex-col items-center justify-center border-2 border-dashed border-sage-300">
+                <ImageIcon className="h-12 w-12 mb-2 text-sage-400" />
+                <span className="text-sm font-medium text-sage-600">
                   No reference image available
                 </span>
-                <span className="text-sm text-sage-500 mt-2">
+                <span className="text-xs text-sage-500 mt-1">
                   {currentExercise.name}
                 </span>
               </div>

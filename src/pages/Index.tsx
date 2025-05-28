@@ -4,8 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ClassPlanList } from '@/components/ClassPlanList';
-import { BottomNavigation } from '@/components/BottomNavigation';
-import { NavigationButtons } from '@/components/NavigationButtons';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { 
@@ -16,7 +14,8 @@ import {
   Calendar,
   Target,
   Clock,
-  Settings
+  Settings,
+  Timer
 } from 'lucide-react';
 import { AuthPage } from '@/components/AuthPage';
 import { toast } from '@/hooks/use-toast';
@@ -72,19 +71,29 @@ const Index = () => {
   };
 
   return (
-    <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20`}>
-      {/* Organic Wave Header */}
+    <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
+      {/* Organic Wave Header with Navigation Background */}
       <header className="relative bg-gradient-to-r from-sage-600 via-sage-500 to-sage-600 overflow-hidden">
-        {/* Wave SVG Background */}
+        {/* Complex Wave SVG Background */}
         <div className="absolute inset-0">
+          <svg 
+            className="absolute bottom-0 w-full h-20" 
+            viewBox="0 0 1200 120" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M0,0 C150,100 350,0 600,50 C850,100 1050,0 1200,50 L1200,120 L0,120 Z" 
+              fill="rgba(255,255,255,0.15)"
+            />
+          </svg>
           <svg 
             className="absolute bottom-0 w-full h-16" 
             viewBox="0 0 1200 120" 
             preserveAspectRatio="none"
           >
             <path 
-              d="M0,0 C150,100 350,0 600,50 C850,100 1050,0 1200,50 L1200,120 L0,120 Z" 
-              fill="rgba(255,255,255,0.1)"
+              d="M0,20 C300,80 600,20 900,60 C1050,80 1150,40 1200,60 L1200,120 L0,120 Z" 
+              fill="rgba(255,255,255,0.08)"
             />
           </svg>
           <svg 
@@ -93,40 +102,40 @@ const Index = () => {
             preserveAspectRatio="none"
           >
             <path 
-              d="M0,20 C300,80 600,20 900,60 C1050,80 1150,40 1200,60 L1200,120 L0,120 Z" 
+              d="M0,40 C200,100 400,40 800,80 C1000,100 1100,60 1200,80 L1200,120 L0,120 Z" 
               fill="rgba(255,255,255,0.05)"
             />
           </svg>
         </div>
 
-        <div className="relative px-6 py-8">
+        <div className="relative px-6 py-10">
           <div className="flex items-center justify-between">
             {/* Welcome Message & Logo */}
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20">
-                <Sparkles className="h-6 w-6 text-white" />
+            <div className="flex items-center space-x-5">
+              <div className="w-16 h-16 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-xl">
+                <Sparkles className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white">
+                <h1 className="text-4xl font-bold text-white">
                   Hi <span className="text-sage-100">{getFirstName()}</span>!
                 </h1>
-                <p className="text-sage-100 text-base opacity-90">Welcome back to ReformerPro</p>
+                <p className="text-sage-100 text-lg opacity-90">Welcome back to ReformerPro</p>
               </div>
             </div>
             
-            {/* Profile Avatar - Larger and More Prominent */}
-            <div className="flex items-center space-x-4">
+            {/* Profile Avatar - Larger */}
+            <div className="flex items-center space-x-5">
               <div className="text-right text-white">
                 <p className="text-sm font-medium opacity-90">
                   {savedClasses.length} saved classes
                 </p>
               </div>
               <Avatar 
-                className="h-16 w-16 cursor-pointer hover:ring-4 hover:ring-white/30 transition-all border-4 border-white/30 shadow-lg"
+                className="h-20 w-20 cursor-pointer hover:ring-4 hover:ring-white/30 transition-all border-4 border-white/30 shadow-xl"
                 onClick={() => navigate('/profile')}
               >
                 <AvatarImage src={preferences.profileImage} alt="Profile" />
-                <AvatarFallback className="text-lg font-bold bg-sage-500 text-white">
+                <AvatarFallback className="text-xl font-bold bg-sage-500 text-white">
                   {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
@@ -135,7 +144,53 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="p-4 space-y-4">
+      {/* Bottom Navigation Bar with Wave Background */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        {/* Wave Background */}
+        <div className="relative bg-gradient-to-r from-sage-600 via-sage-500 to-sage-600 overflow-hidden">
+          <div className="absolute inset-0">
+            <svg 
+              className="absolute top-0 w-full h-8" 
+              viewBox="0 0 1200 120" 
+              preserveAspectRatio="none"
+            >
+              <path 
+                d="M0,120 C150,20 350,120 600,70 C850,20 1050,120 1200,70 L1200,0 L0,0 Z" 
+                fill="rgba(255,255,255,0.1)"
+              />
+            </svg>
+          </div>
+          
+          <div className="relative flex items-center justify-around px-4 py-4 max-w-lg mx-auto">
+            <Button
+              onClick={() => navigate('/library')}
+              variant="ghost"
+              className="flex flex-col items-center text-white hover:text-sage-200 hover:bg-white/20"
+            >
+              <BookOpen className="h-5 w-5 mb-1" />
+              <span className="text-xs">Library</span>
+            </Button>
+            
+            <Button
+              onClick={() => navigate('/plan')}
+              className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 shadow-lg"
+            >
+              <Plus className="h-6 w-6" />
+            </Button>
+            
+            <Button
+              onClick={() => navigate('/timer')}
+              variant="ghost"
+              className="flex flex-col items-center text-white hover:text-sage-200 hover:bg-white/20"
+            >
+              <Timer className="h-5 w-5 mb-1" />
+              <span className="text-xs">Timer</span>
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-4 pb-24">
         {/* Quick Stats - Smaller */}
         <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
           <div className={`p-2 rounded-lg ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
@@ -215,12 +270,7 @@ const Index = () => {
             />
           )}
         </div>
-
-        {/* Navigation */}
-        <NavigationButtons />
       </div>
-
-      <BottomNavigation onPlanClass={() => navigate('/plan')} />
     </div>
   );
 };
