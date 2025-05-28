@@ -72,61 +72,98 @@ const Timer = () => {
     const percentage = (timeLeft / totalTime) * 100;
     
     if (isFinished) return 'text-red-500';
-    if (percentage > 50) return preferences.darkMode ? 'text-green-400' : 'text-green-600';
-    if (percentage > 25) return preferences.darkMode ? 'text-yellow-400' : 'text-yellow-600';
-    return preferences.darkMode ? 'text-red-400' : 'text-red-600';
+    if (percentage > 50) return 'text-sage-600';
+    if (percentage > 25) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  const getProgressPercentage = () => {
+    const totalTime = minutes * 60 + seconds;
+    if (totalTime === 0) return 0;
+    return ((totalTime - timeLeft) / totalTime) * 100;
   };
 
   return (
-    <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} p-6`}>
-      <div className="max-w-2xl mx-auto">
+    <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-50 via-white to-sage-100'} p-4 md:p-6`}>
+      <div className="max-w-md mx-auto">
+        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className={`text-3xl font-bold mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+          <h1 className={`text-2xl md:text-3xl font-bold mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
             Exercise Timer
           </h1>
-          <p className={`${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-            Set your exercise duration and stay focused
+          <p className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+            Focus on your movement
           </p>
         </div>
 
-        <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-xl`}>
-          <CardContent className="p-8">
-            {/* Timer Display */}
-            <div className="text-center mb-8">
-              <div className={`text-8xl font-bold mb-4 ${getTimerColor()} transition-colors duration-300`}>
-                {formatTime(timeLeft)}
-              </div>
-              
-              {isFinished && (
-                <div className="mb-4">
-                  <p className={`text-xl font-semibold ${preferences.darkMode ? 'text-red-400' : 'text-red-600'}`}>
-                    Time's Up! 🎉
-                  </p>
+        {/* Timer Card */}
+        <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} shadow-2xl`}>
+          <CardContent className="p-6 md:p-8">
+            {/* Circular Progress and Timer Display */}
+            <div className="relative mb-8">
+              {/* Circular Progress Ring */}
+              <div className="relative w-48 h-48 md:w-56 md:h-56 mx-auto">
+                <svg className="transform -rotate-90 w-full h-full">
+                  <circle
+                    cx="50%"
+                    cy="50%"
+                    r="40%"
+                    stroke={preferences.darkMode ? '#374151' : '#e5e7eb'}
+                    strokeWidth="8"
+                    fill="transparent"
+                    className="opacity-20"
+                  />
+                  <circle
+                    cx="50%"
+                    cy="50%"
+                    r="40%"
+                    stroke={isFinished ? '#ef4444' : '#4a5c4a'}
+                    strokeWidth="8"
+                    fill="transparent"
+                    strokeDasharray={`${2 * Math.PI * 40} ${2 * Math.PI * 40}`}
+                    strokeDashoffset={`${2 * Math.PI * 40 * (1 - getProgressPercentage() / 100)}`}
+                    className="transition-all duration-1000 ease-linear"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                
+                {/* Timer Text */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className={`text-4xl md:text-5xl font-bold ${getTimerColor()} transition-colors duration-300`}>
+                      {formatTime(timeLeft)}
+                    </div>
+                    {isFinished && (
+                      <div className="text-red-500 text-sm font-medium mt-1 animate-pulse">
+                        Time's Up!
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* Time Setting Controls */}
             {!isRunning && !isFinished && (
-              <div className="flex justify-center gap-8 mb-8">
+              <div className="flex justify-center gap-4 mb-8">
                 <div className="text-center">
-                  <label className={`block text-sm font-medium mb-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                  <label className={`block text-xs font-medium mb-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
                     Minutes
                   </label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <Button
                       onClick={() => adjustMinutes(-1)}
                       size="sm"
                       variant="outline"
-                      className={`${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'}`}
+                      className={`w-8 h-8 p-0 ${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'}`}
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3" />
                     </Button>
                     <Input
                       type="number"
                       value={minutes}
                       onChange={(e) => setMinutes(Math.max(0, Math.min(60, parseInt(e.target.value) || 0)))}
-                      className={`w-20 text-center ${preferences.darkMode ? 'border-gray-600 bg-gray-700 text-white' : 'border-sage-300'}`}
+                      className={`w-12 text-center text-sm ${preferences.darkMode ? 'border-gray-600 bg-gray-700 text-white' : 'border-sage-300'}`}
                       min="0"
                       max="60"
                     />
@@ -134,41 +171,41 @@ const Timer = () => {
                       onClick={() => adjustMinutes(1)}
                       size="sm"
                       variant="outline"
-                      className={`${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'}`}
+                      className={`w-8 h-8 p-0 ${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'}`}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
 
                 <div className="text-center">
-                  <label className={`block text-sm font-medium mb-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                  <label className={`block text-xs font-medium mb-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
                     Seconds
                   </label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <Button
-                      onClick={() => adjustSeconds(-5)}
+                      onClick={() => adjustSeconds(-15)}
                       size="sm"
                       variant="outline"
-                      className={`${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'}`}
+                      className={`w-8 h-8 p-0 ${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'}`}
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3" />
                     </Button>
                     <Input
                       type="number"
                       value={seconds}
                       onChange={(e) => setSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
-                      className={`w-20 text-center ${preferences.darkMode ? 'border-gray-600 bg-gray-700 text-white' : 'border-sage-300'}`}
+                      className={`w-12 text-center text-sm ${preferences.darkMode ? 'border-gray-600 bg-gray-700 text-white' : 'border-sage-300'}`}
                       min="0"
                       max="59"
                     />
                     <Button
-                      onClick={() => adjustSeconds(5)}
+                      onClick={() => adjustSeconds(15)}
                       size="sm"
                       variant="outline"
-                      className={`${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'}`}
+                      className={`w-8 h-8 p-0 ${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'}`}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
@@ -176,28 +213,28 @@ const Timer = () => {
             )}
 
             {/* Control Buttons */}
-            <div className="flex justify-center gap-4">
+            <div className="flex justify-center gap-3 mb-6">
               <Button
                 onClick={handlePlayPause}
                 size="lg"
                 className={`${
                   isFinished 
-                    ? 'bg-green-600 hover:bg-green-700' 
+                    ? 'bg-sage-600 hover:bg-sage-700' 
                     : isRunning 
                       ? 'bg-yellow-600 hover:bg-yellow-700' 
-                      : 'bg-green-600 hover:bg-green-700'
-                } text-white px-8`}
+                      : 'bg-sage-600 hover:bg-sage-700'
+                } text-white px-6 md:px-8 h-12 md:h-14 text-sm md:text-base`}
               >
                 {isFinished ? (
-                  'Start New Timer'
+                  'New Timer'
                 ) : isRunning ? (
                   <>
-                    <Pause className="h-5 w-5 mr-2" />
+                    <Pause className="h-4 w-4 md:h-5 md:w-5 mr-2" />
                     Pause
                   </>
                 ) : (
                   <>
-                    <Play className="h-5 w-5 mr-2" />
+                    <Play className="h-4 w-4 md:h-5 md:w-5 mr-2" />
                     Start
                   </>
                 )}
@@ -207,26 +244,25 @@ const Timer = () => {
                 onClick={handleReset}
                 size="lg"
                 variant="outline"
-                className={`${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'}`}
+                className={`${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300'} h-12 md:h-14 px-4 md:px-6`}
               >
-                <RotateCcw className="h-5 w-5 mr-2" />
-                Reset
+                <RotateCcw className="h-4 w-4 md:h-5 md:w-5" />
               </Button>
             </div>
 
-            {/* Quick Time Presets */}
-            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <p className={`text-center text-sm font-medium mb-4 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
-                Quick Presets
+            {/* Quick Presets */}
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+              <p className={`text-center text-xs font-medium mb-3 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                Quick Times
               </p>
-              <div className="flex justify-center gap-2 flex-wrap">
+              <div className="grid grid-cols-3 gap-2">
                 {[
                   { label: '30s', minutes: 0, seconds: 30 },
-                  { label: '1min', minutes: 1, seconds: 0 },
-                  { label: '2min', minutes: 2, seconds: 0 },
-                  { label: '5min', minutes: 5, seconds: 0 },
-                  { label: '10min', minutes: 10, seconds: 0 },
-                  { label: '15min', minutes: 15, seconds: 0 },
+                  { label: '1m', minutes: 1, seconds: 0 },
+                  { label: '2m', minutes: 2, seconds: 0 },
+                  { label: '3m', minutes: 3, seconds: 0 },
+                  { label: '5m', minutes: 5, seconds: 0 },
+                  { label: '10m', minutes: 10, seconds: 0 },
                 ].map((preset) => (
                   <Button
                     key={preset.label}
@@ -238,7 +274,7 @@ const Timer = () => {
                     }}
                     size="sm"
                     variant="ghost"
-                    className={`${preferences.darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-sage-600 hover:bg-sage-100'}`}
+                    className={`text-xs h-8 ${preferences.darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-sage-600 hover:bg-sage-100'}`}
                     disabled={isRunning}
                   >
                     {preset.label}
