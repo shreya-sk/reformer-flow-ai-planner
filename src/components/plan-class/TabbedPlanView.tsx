@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Clock, 
   Plus, 
@@ -16,13 +15,11 @@ import {
   Baby,
   Settings,
   Lightbulb,
-  Edit2,
   FolderPlus
 } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { SpringVisual } from '@/components/SpringVisual';
-import { ClassTeachingMode } from '@/components/ClassTeachingMode';
 
 interface TabbedPlanViewProps {
   currentClass: ClassPlan;
@@ -49,7 +46,6 @@ export const TabbedPlanView = ({
   onAddCallout
 }: TabbedPlanViewProps) => {
   const { preferences } = useUserPreferences();
-  const [activeTab, setActiveTab] = useState<'plan' | 'teach'>('plan');
   const [expandedExercises, setExpandedExercises] = useState<Set<string>>(new Set());
   const [newCalloutName, setNewCalloutName] = useState('');
   const [showAddCallout, setShowAddCallout] = useState(false);
@@ -61,7 +57,6 @@ export const TabbedPlanView = ({
     
     currentClass.exercises.forEach(exercise => {
       if (exercise.category === 'callout') {
-        // Start a new section
         if (currentSection) {
           sections.push(currentSection);
         }
@@ -72,10 +67,8 @@ export const TabbedPlanView = ({
           isCollapsed: false
         };
       } else if (currentSection) {
-        // Add to current section
         currentSection.exercises.push(exercise);
       } else {
-        // No section yet, create default
         if (sections.length === 0) {
           sections.push({
             id: 'default',
@@ -127,7 +120,6 @@ export const TabbedPlanView = ({
       setNewCalloutName('');
       setShowAddCallout(false);
       
-      // Add new section
       setCalloutSections(prev => [...prev, {
         id: `callout-${Date.now()}`,
         name: newCalloutName.trim(),
@@ -137,65 +129,8 @@ export const TabbedPlanView = ({
     }
   };
 
-  const moveExerciseBetweenSections = (exerciseId: string, fromSectionId: string, toSectionId: string) => {
-    setCalloutSections(prev => {
-      const newSections = [...prev];
-      const fromSection = newSections.find(s => s.id === fromSectionId);
-      const toSection = newSections.find(s => s.id === toSectionId);
-      
-      if (fromSection && toSection && fromSection !== toSection) {
-        const exerciseIndex = fromSection.exercises.findIndex(e => e.id === exerciseId);
-        if (exerciseIndex >= 0) {
-          const [exercise] = fromSection.exercises.splice(exerciseIndex, 1);
-          toSection.exercises.push(exercise);
-        }
-      }
-      
-      return newSections;
-    });
-  };
-
-  if (activeTab === 'teach') {
-    return <ClassTeachingMode classPlan={currentClass} onClose={() => setActiveTab('plan')} />;
-  }
-
   return (
     <div className={`flex-1 ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} overflow-hidden`}>
-      {/* Tab Navigation */}
-      <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} border-b px-6 py-3`}>
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setActiveTab('plan')}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              activeTab === 'plan'
-                ? preferences.darkMode 
-                  ? 'bg-gray-700 text-white' 
-                  : 'bg-sage-100 text-sage-800'
-                : preferences.darkMode
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-700'
-                  : 'text-sage-600 hover:text-sage-800 hover:bg-sage-50'
-            }`}
-          >
-            Plan View
-          </button>
-          <button
-            onClick={() => setActiveTab('teach')}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              activeTab === 'teach'
-                ? preferences.darkMode 
-                  ? 'bg-gray-700 text-white' 
-                  : 'bg-sage-100 text-sage-800'
-                : preferences.darkMode
-                  ? 'text-gray-400 hover:text-white hover:bg-gray-700'
-                  : 'text-sage-600 hover:text-sage-800 hover:bg-sage-50'
-            }`}
-          >
-            Teaching Mode
-          </button>
-        </div>
-      </div>
-
-      {/* Plan Content */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Class Settings */}
@@ -323,7 +258,7 @@ export const TabbedPlanView = ({
                                   {exercise.name}
                                 </h4>
                                 {exercise.isPregnancySafe && (
-                                  <Users className="h-4 w-4 text-pink-500" />
+                                  <Baby className="h-4 w-4 text-pink-500" />
                                 )}
                                 {isExpanded ? (
                                   <ChevronDown className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />

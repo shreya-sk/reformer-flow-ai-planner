@@ -97,18 +97,26 @@ export type MuscleGroup =
   | 'lower-abs'
   | 'upper-abs'
   | 'obliques'
+  | 'transverse-abdominis'
   | 'traps'
   | 'deltoids'
   | 'biceps'
   | 'triceps'
   | 'lats'
   | 'chest'
+  | 'rhomboids'
+  | 'erector-spinae'
   | 'hip-flexors'
   | 'adductors'
   | 'abductors'
   | 'pelvic-floor'
   | 'deep-stabilizers'
-  | 'spinal-extensors';
+  | 'spinal-extensors'
+  | 'neck'
+  | 'forearms'
+  | 'wrists'
+  | 'ankles'
+  | 'feet';
 
 export type Equipment = 
   | 'straps'
@@ -122,6 +130,12 @@ export type Equipment =
   | 'platform-extender'
   | 'tower'
   | 'pole'
+  | 'foam-roller'
+  | 'resistance-bands'
+  | 'pilates-ring'
+  | 'reformer-box'
+  | 'stability-ball'
+  | 'yoga-blocks'
   | 'none';
 
 export type TeachingFocus =
