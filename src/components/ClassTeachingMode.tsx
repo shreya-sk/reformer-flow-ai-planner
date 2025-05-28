@@ -107,9 +107,9 @@ export const ClassTeachingMode = ({
     <div className="min-h-screen bg-sage-700 text-white">
       {/* Fixed Header with Timer and Progress */}
       <div className="fixed top-0 left-0 right-0 z-30 bg-sage-800/95 backdrop-blur-sm border-b border-sage-600">
-        <div className="p-4">
+        <div className="p-3">
           {/* Top Row - Timer and Exit */}
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             {/* Timer on Left */}
             <div className="flex items-center gap-4 bg-sage-600/50 rounded-xl px-4 py-2">
               {currentExercise.duration && currentExercise.duration > 0 ? (
@@ -169,16 +169,16 @@ export const ClassTeachingMode = ({
             <Progress value={progressPercentage} className="h-2 bg-sage-600" />
           </div>
           <div className="text-center text-sm text-sage-200">
-            {Math.round(progressPercentage)}% Complete
+            {Math.round(progressPercentage)}% Complete | Exercise {currentExerciseIndex + 1} of {exercises.length}
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="pt-32 px-6 pb-6 max-w-7xl mx-auto">
+      <div className="pt-24 px-4 pb-6 max-w-6xl mx-auto">
         {/* Exercise Name */}
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-white mb-2">{currentExercise.name}</h1>
+        <div className="text-center mb-4">
+          <h1 className="text-2xl font-bold text-white mb-1">{currentExercise.name}</h1>
           <div className="flex items-center justify-center gap-4">
             <Badge variant="outline" className="border-sage-400 text-sage-200 bg-sage-600/30">
               {currentExercise.category}
@@ -190,10 +190,39 @@ export const ClassTeachingMode = ({
           </div>
         </div>
 
-        {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          {/* Left Column - Setup & Cues */}
+        {/* Two Column Layout for main content */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Left Column (Image & Setup) */}
           <div className="space-y-3">
+            {/* Exercise Image */}
+            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-xl shadow-lg overflow-hidden">
+              {currentExercise.image ? (
+                <div className="relative h-64 md:h-72">
+                  <img 
+                    src={currentExercise.image} 
+                    alt={currentExercise.name} 
+                    className="w-full h-full object-cover" 
+                  />
+                  <div className="absolute top-3 left-3">
+                    <Badge className="bg-black/60 text-white text-xs">
+                      Reference Image
+                    </Badge>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-64 md:h-72 bg-sage-600/30 flex flex-col items-center justify-center border-2 border-dashed border-sage-400/50 rounded-xl m-3">
+                  <ImageIcon className="h-12 w-12 mb-3 text-sage-400" />
+                  <span className="text-lg font-medium text-sage-200">
+                    No reference image
+                  </span>
+                  <span className="text-xs text-sage-400 mt-1">
+                    {currentExercise.name}
+                  </span>
+                </div>
+              )}
+            </Card>
+
+            {/* Setup & Equipment */}
             <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-xl shadow-lg">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2 text-white">
@@ -212,7 +241,11 @@ export const ClassTeachingMode = ({
                 </div>
               </CardContent>
             </Card>
+          </div>
 
+          {/* Right Column (Cues, Modifications, Safety) */}
+          <div className="space-y-3">
+            {/* Teaching Cues */}
             <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-xl shadow-lg">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2 text-white">
@@ -236,8 +269,10 @@ export const ClassTeachingMode = ({
             <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-xl shadow-lg">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2 text-white">
-                  <TrendingUp className="h-4 w-4 text-green-400" />
-                  <TrendingDown className="h-4 w-4 text-blue-400" />
+                  <span className="flex">
+                    <TrendingUp className="h-4 w-4 text-green-400" />
+                    <TrendingDown className="h-4 w-4 text-blue-400 -ml-1" />
+                  </span>
                   Modifications
                 </CardTitle>
               </CardHeader>
@@ -298,37 +333,6 @@ export const ClassTeachingMode = ({
                 </CardContent>
               </Card>
             )}
-          </div>
-
-          {/* Right Column - Image */}
-          <div className="space-y-3">
-            {/* Exercise Image */}
-            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-xl shadow-lg overflow-hidden">
-              {currentExercise.image ? (
-                <div className="relative h-80">
-                  <img 
-                    src={currentExercise.image} 
-                    alt={currentExercise.name} 
-                    className="w-full h-full object-cover" 
-                  />
-                  <div className="absolute top-3 left-3">
-                    <Badge className="bg-black/60 text-white text-xs">
-                      Reference Image
-                    </Badge>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-80 bg-sage-600/30 flex flex-col items-center justify-center border-2 border-dashed border-sage-400/50 rounded-xl m-3">
-                  <ImageIcon className="h-12 w-12 mb-3 text-sage-400" />
-                  <span className="text-lg font-medium text-sage-200">
-                    No reference image
-                  </span>
-                  <span className="text-xs text-sage-400 mt-1">
-                    {currentExercise.name}
-                  </span>
-                </div>
-              )}
-            </Card>
           </div>
         </div>
       </div>

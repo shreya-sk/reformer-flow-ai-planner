@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Edit, Save, X, Plus, Trash2, Clock, Dumbbell, Target, Shield, Image as ImageIcon } from 'lucide-react';
+import { Edit, Save, X, Plus, Trash2, Clock, Dumbbell, Target, Shield, Image as ImageIcon, Heart } from 'lucide-react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { SpringVisual } from './SpringVisual';
@@ -89,17 +88,39 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
     }));
   };
 
+  const getSpringColor = () => {
+    switch (exercise.springs) {
+      case 'light': return 'bg-green-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'heavy': return 'bg-red-500';
+      case 'mixed': return 'bg-gradient-to-r from-red-500 via-yellow-500 to-green-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={`max-w-5xl max-h-[85vh] overflow-y-auto ${
+      <DialogContent className={`max-w-3xl max-h-[85vh] overflow-y-auto p-0 ${
         preferences.darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white'
       }`}>
-        <DialogHeader className="flex flex-row items-center justify-between pb-2">
-          <DialogTitle className={`text-xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-            {isEditing ? 'Edit Exercise' : exercise.name}
-          </DialogTitle>
+        {/* Main header */}
+        <div className="sticky top-0 z-10 p-4 bg-white border-b flex items-center justify-between">
+          <div className="flex flex-col">
+            <h2 className="text-xl font-bold text-sage-800">{exercise.name}</h2>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="outline" className="capitalize text-xs">{exercise.category}</Badge>
+              <Badge variant="outline" className="capitalize text-xs">{exercise.difficulty}</Badge>
+              {exercise.isPregnancySafe && (
+                <Badge className="bg-pink-100 text-pink-800 border border-pink-300 text-xs">
+                  <Heart className="h-3 w-3 mr-1 text-pink-600" />
+                  Pregnancy Safe
+                </Badge>
+              )}
+            </div>
+          </div>
+          
           <div className="flex gap-2">
             {!isEditing ? (
               <Button
@@ -123,304 +144,185 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
               </div>
             )}
           </div>
-        </DialogHeader>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Left Column - Basic Info & Image */}
-          <div className="space-y-3">
-            {/* Exercise Image */}
-            <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
-              {exercise.image ? (
-                <div className="relative h-32 overflow-hidden rounded-t-lg">
-                  <img 
-                    src={exercise.image} 
-                    alt={exercise.name} 
-                    className="w-full h-full object-cover" 
-                  />
-                  <div className="absolute top-2 left-2">
-                    <Badge className="bg-black/60 text-white text-xs">
-                      Reference
-                    </Badge>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-32 bg-sage-600/10 flex flex-col items-center justify-center border-2 border-dashed border-sage-400/30 rounded-lg m-2">
-                  <ImageIcon className="h-8 w-8 mb-1 text-sage-400" />
-                  <span className="text-xs text-sage-400">No image</span>
-                </div>
-              )}
-            </Card>
+        {/* Exercise image */}
+        <div className="relative h-52 overflow-hidden">
+          {exercise.image ? (
+            <img 
+              src={exercise.image} 
+              alt={exercise.name} 
+              className="w-full h-full object-cover" 
+            />
+          ) : (
+            <div className="h-full bg-sage-50 flex flex-col items-center justify-center border-b border-sage-200">
+              <ImageIcon className="h-12 w-12 text-sage-400 mb-2" />
+              <span className="text-sage-500">No image available</span>
+            </div>
+          )}
+        </div>
 
-            {/* Basic Info */}
-            <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Dumbbell className="h-4 w-4" />
-                  Exercise Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {isEditing ? (
-                  <>
-                    <div>
-                      <label className="text-xs font-medium">Exercise Name</label>
-                      <Input
-                        value={editForm.name}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                        className="mt-1 text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium">Description</label>
-                      <Textarea
-                        value={editForm.description || ''}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
-                        className="mt-1 text-sm"
-                        rows={2}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-xs font-medium">Duration</label>
-                        <Input
-                          type="number"
-                          value={editForm.duration}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
-                          className="mt-1 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium">Difficulty</label>
-                        <Select
-                          value={editForm.difficulty}
-                          onValueChange={(value) => setEditForm(prev => ({ ...prev, difficulty: value as any }))}
-                        >
-                          <SelectTrigger className="mt-1 text-sm">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="beginner">Beginner</SelectItem>
-                            <SelectItem value="intermediate">Intermediate</SelectItem>
-                            <SelectItem value="advanced">Advanced</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-3 text-sm">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-sage-600" />
-                        <span>{exercise.duration}min</span>
-                      </div>
-                      <Badge variant="outline" className="text-xs">{exercise.difficulty}</Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs">Springs:</span>
-                      <SpringVisual springs={exercise.springs} />
-                    </div>
-                    {exercise.description && (
-                      <p className={`text-xs ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
-                        {exercise.description}
-                      </p>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Muscle Groups */}
-            <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Target className="h-4 w-4" />
-                  Target Muscles
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isEditing ? (
-                  <div className="grid grid-cols-2 gap-1">
-                    {muscleGroups.map(group => (
-                      <div key={group} className="flex items-center space-x-1">
-                        <Checkbox
-                          id={group}
-                          checked={editForm.muscleGroups.includes(group)}
-                          onCheckedChange={() => toggleMuscleGroup(group)}
-                        />
-                        <label htmlFor={group} className="text-xs font-medium capitalize">
-                          {group}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-1">
-                    {exercise.muscleGroups.map(group => (
-                      <Badge key={group} variant="secondary" className="capitalize text-xs">
-                        {group}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+        {/* Exercise stats row */}
+        <div className="grid grid-cols-4 border-b">
+          <div className="flex flex-col items-center p-3 border-r">
+            <Clock className="h-5 w-5 mb-1 text-sage-500" />
+            <div className="text-center">
+              <div className="font-bold text-sm">{exercise.duration} min</div>
+              <div className="text-xs text-sage-500">Duration</div>
+            </div>
           </div>
-
-          {/* Middle Column - Progressions & Regressions */}
-          <div className="space-y-3">
-            {/* Progressions */}
-            <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center justify-between">
-                  <span className="text-green-600">Progressions</span>
-                  {isEditing && (
-                    <Button onClick={addProgression} size="sm" variant="outline" className="h-6 w-6 p-0">
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isEditing ? (
-                  <div className="space-y-1">
-                    {(editForm.progressions || []).map((progression, index) => (
-                      <div key={index} className="flex gap-1">
-                        <Input
-                          value={progression}
-                          onChange={(e) => updateProgression(index, e.target.value)}
-                          placeholder="Add progression..."
-                          className="text-xs"
-                        />
-                        <Button
-                          onClick={() => removeProgression(index)}
-                          size="sm"
-                          variant="outline"
-                          className="h-8 w-8 p-0"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <ul className="space-y-1">
-                    {(exercise.progressions || []).map((progression, index) => (
-                      <li key={index} className="text-xs flex items-start gap-2">
-                        <span className="text-green-500">▲</span>
-                        <span>{progression}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Regressions */}
-            <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center justify-between">
-                  <span className="text-blue-600">Regressions</span>
-                  {isEditing && (
-                    <Button onClick={addRegression} size="sm" variant="outline" className="h-6 w-6 p-0">
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isEditing ? (
-                  <div className="space-y-1">
-                    {(editForm.regressions || []).map((regression, index) => (
-                      <div key={index} className="flex gap-1">
-                        <Input
-                          value={regression}
-                          onChange={(e) => updateRegression(index, e.target.value)}
-                          placeholder="Add regression..."
-                          className="text-xs"
-                        />
-                        <Button
-                          onClick={() => removeRegression(index)}
-                          size="sm"
-                          variant="outline"
-                          className="h-8 w-8 p-0"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <ul className="space-y-1">
-                    {(exercise.regressions || []).map((regression, index) => (
-                      <li key={index} className="text-xs flex items-start gap-2">
-                        <span className="text-blue-500">▼</span>
-                        <span>{regression}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Safety Notes */}
-            {exercise.contraindications && exercise.contraindications.length > 0 && (
-              <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2 text-amber-600">
-                    <Shield className="h-4 w-4" />
-                    Safety Notes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-1">
-                    {exercise.contraindications.map((item, index) => (
-                      <li key={index} className="text-xs flex items-start gap-2">
-                        <span className="text-amber-500">⚠️</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
+          
+          <div className="flex flex-col items-center p-3 border-r">
+            <div className="mb-1">
+              <div className={`w-5 h-5 rounded-full ${getSpringColor()} mx-auto`}></div>
+            </div>
+            <div className="text-center">
+              <div className="font-bold text-sm capitalize">{exercise.springs}</div>
+              <div className="text-xs text-sage-500">Springs</div>
+            </div>
           </div>
-
-          {/* Right Column - Teaching Cues */}
-          <div className="space-y-3">
-            <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Teaching Cues</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-1">
-                  {(exercise.cues || []).map((cue, index) => (
-                    <li key={index} className="text-xs flex items-start gap-2">
-                      <span className="text-sage-400">•</span>
-                      <span>{cue}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Equipment */}
-            <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Equipment</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-1">
-                  {exercise.equipment.map((item, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {item}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+          
+          <div className="flex flex-col items-center p-3 border-r">
+            <Target className="h-5 w-5 mb-1 text-sage-500" />
+            <div className="text-center">
+              <div className="font-bold text-sm capitalize">
+                {exercise.muscleGroups[0] || 'Various'}
+              </div>
+              <div className="text-xs text-sage-500">Target</div>
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-center p-3">
+            <Dumbbell className="h-5 w-5 mb-1 text-sage-500" />
+            <div className="text-center">
+              <div className="font-bold text-sm capitalize">{exercise.intensityLevel}</div>
+              <div className="text-xs text-sage-500">Intensity</div>
+            </div>
           </div>
         </div>
+
+        <div className="p-4">
+          {/* Description */}
+          {exercise.description && (
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-sage-700 mb-1">Description</h3>
+              <p className="text-sm text-sage-600">{exercise.description}</p>
+            </div>
+          )}
+
+          {/* Target Muscles */}
+          <div className="mb-4">
+            <h3 className="text-sm font-semibold text-sage-700 mb-1">Target Muscles</h3>
+            <div className="flex flex-wrap gap-1">
+              {exercise.muscleGroups.map(group => (
+                <Badge key={group} variant="outline" className="capitalize text-xs">
+                  {group}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* Two Column Layout */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Teaching Cues */}
+            <div>
+              <h3 className="text-sm font-semibold text-sage-700 mb-1">Teaching Cues</h3>
+              <ul className="text-sm space-y-1">
+                {(exercise.cues || []).map((cue, index) => (
+                  <li key={index} className="flex items-start gap-2">
+                    <span className="text-sage-400 mt-1">•</span>
+                    <span className="text-sage-600">{cue}</span>
+                  </li>
+                ))}
+                {(!exercise.cues || exercise.cues.length === 0) && (
+                  <li className="text-sage-400 italic">No teaching cues added</li>
+                )}
+              </ul>
+            </div>
+
+            {/* Modifications */}
+            <div>
+              <h3 className="text-sm font-semibold text-sage-700 mb-1">Modifications</h3>
+              
+              {(exercise.progressions && exercise.progressions.length > 0) ? (
+                <div className="mb-2">
+                  <h4 className="text-xs font-medium text-green-600">Progressions</h4>
+                  <ul className="text-sm">
+                    {exercise.progressions.map((item, index) => (
+                      <li key={index} className="flex items-start gap-1">
+                        <span className="text-green-500 text-xs mt-1">▲</span>
+                        <span className="text-sage-600 text-xs">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              
+              {(exercise.regressions && exercise.regressions.length > 0) ? (
+                <div>
+                  <h4 className="text-xs font-medium text-blue-600">Regressions</h4>
+                  <ul className="text-sm">
+                    {exercise.regressions.map((item, index) => (
+                      <li key={index} className="flex items-start gap-1">
+                        <span className="text-blue-500 text-xs mt-1">▼</span>
+                        <span className="text-sage-600 text-xs">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {(!exercise.progressions?.length && !exercise.regressions?.length) && (
+                <p className="text-sage-400 italic text-sm">No modifications added</p>
+              )}
+            </div>
+          </div>
+
+          {/* Safety Notes */}
+          {exercise.contraindications && exercise.contraindications.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-sm font-semibold text-amber-600 flex items-center gap-1 mb-1">
+                <Shield className="h-4 w-4" />
+                Safety Notes
+              </h3>
+              <ul className="text-sm">
+                {exercise.contraindications.map((item, index) => (
+                  <li key={index} className="flex items-start gap-1">
+                    <span className="text-amber-500 text-xs mt-1">⚠️</span>
+                    <span className="text-sage-600 text-xs">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* Editing form would be here when isEditing is true */}
+        {isEditing && (
+          <div className="p-4 border-t">
+            {/* We're keeping the edit form simple for now since you want to focus on the viewing experience */}
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Exercise Name</label>
+                <Input
+                  value={editForm.name}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Description</label>
+                <Textarea
+                  value={editForm.description || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                  rows={2}
+                />
+              </div>
+
+              {/* Other form fields would be here */}
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

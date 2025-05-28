@@ -63,7 +63,7 @@ const Index = () => {
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
       {/* Header with Profile Picture */}
-      <header className="relative overflow-hidden h-32">
+      <header className="relative overflow-hidden h-40">
         <div className="absolute inset-0 bg-gradient-to-br from-sage-500 via-sage-600 to-sage-700"></div>
         
         <div className="absolute inset-0">
@@ -78,70 +78,77 @@ const Index = () => {
           </svg>
         </div>
 
-        <div className="relative px-6 py-6 flex flex-col items-center justify-center h-full">
-          <Avatar className="w-16 h-16 mb-3 ring-4 ring-white/20 shadow-xl">
+        {/* Welcome text moved to top left */}
+        <div className="relative px-6 py-4">
+          <div className="text-left">
+            <h1 className="text-2xl font-bold text-sage-50 tracking-wide">Welcome back,</h1>
+            <p className="text-lg font-medium text-sage-100">{getFirstName()}</p>
+          </div>
+        </div>
+
+        {/* Profile picture centered and hovering over banner border */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 -bottom-8">
+          <Avatar className="w-16 h-16 ring-4 ring-white/20 shadow-xl">
             <AvatarImage src={user?.user_metadata?.avatar_url} />
             <AvatarFallback className="bg-white/20 text-white text-lg font-bold">
               {getUserInitials()}
             </AvatarFallback>
           </Avatar>
-          <h1 className="text-2xl font-bold text-sage-50 tracking-wide">Welcome back,</h1>
-          <p className="text-lg font-medium text-sage-100">{getFirstName()}</p>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="px-6 py-6 pb-24">
+      <main className="px-6 py-12 pb-24">
         <div className="max-w-6xl mx-auto">
-          {/* Smaller Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-            <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} rounded-xl p-3 border shadow-sm`}>
+          {/* Smaller Quick Stats - reduced size */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-8">
+            <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} rounded-lg p-2 border shadow-sm`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  <p className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                     {savedClasses.length}
                   </p>
                   <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
                     Saved Classes
                   </p>
                 </div>
-                <BookOpen className={`h-6 w-6 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
+                <BookOpen className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
               </div>
             </div>
 
-            <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} rounded-xl p-3 border shadow-sm`}>
+            <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} rounded-lg p-2 border shadow-sm`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  <p className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                     {savedClasses.reduce((total, plan) => total + plan.exercises.filter(ex => ex.category !== 'callout').length, 0)}
                   </p>
                   <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
                     Total Exercises
                   </p>
                 </div>
-                <Target className={`h-6 w-6 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
+                <Target className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
               </div>
             </div>
 
-            <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} rounded-xl p-3 border shadow-sm`}>
+            <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} rounded-lg p-2 border shadow-sm`}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  <p className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                     {Math.round(savedClasses.reduce((total, plan) => total + plan.totalDuration, 0) / savedClasses.length) || 0}
                   </p>
                   <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
                     Avg. Duration
                   </p>
                 </div>
-                <Clock className={`h-6 w-6 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
+                <Clock className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
               </div>
             </div>
 
             <Button
               onClick={() => navigate('/plan')}
-              className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-xl h-full flex flex-col items-center justify-center gap-1 transform hover:scale-105 transition-all duration-300 shadow-lg"
+              className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-lg h-full flex flex-col items-center justify-center gap-1 transform hover:scale-105 transition-all duration-300 shadow-lg"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-4 w-4" />
               <span className="text-xs font-medium">New Class</span>
             </Button>
           </div>
