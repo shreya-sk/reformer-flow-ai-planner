@@ -4,7 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Edit, Clock, Users, Target, AlertTriangle, Baby, Save, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Edit, Clock, Users, Target, AlertTriangle, Baby, Save, X, Plus, Trash2 } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
 import { SpringVisual } from './SpringVisual';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
@@ -20,15 +22,23 @@ interface ExerciseDetailModalProps {
 export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: ExerciseDetailModalProps) => {
   const { preferences } = useUserPreferences();
   const [isEditing, setIsEditing] = useState(false);
+  const [editedExercise, setEditedExercise] = useState<Exercise>(exercise);
+  const [newProgression, setNewProgression] = useState('');
+  const [newRegression, setNewRegression] = useState('');
 
-  const handleSave = (updatedExercise: Exercise) => {
+  useEffect(() => {
+    setEditedExercise(exercise);
+  }, [exercise]);
+
+  const handleSave = () => {
     if (onUpdate) {
-      onUpdate(updatedExercise);
+      onUpdate(editedExercise);
     }
     setIsEditing(false);
   };
 
   const handleCancel = () => {
+    setEditedExercise(exercise);
     setIsEditing(false);
   };
 
@@ -37,15 +47,197 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
     onClose();
   };
 
+  const addProgression = () => {
+    if (newProgression.trim()) {
+      setEditedExercise(prev => ({
+        ...prev,
+        progressions: [...(prev.progressions || []), newProgression.trim()]
+      }));
+      setNewProgression('');
+    }
+  };
+
+  const removeProgression = (index: number) => {
+    setEditedExercise(prev => ({
+      ...prev,
+      progressions: prev.progressions?.filter((_, i) => i !== index) || []
+    }));
+  };
+
+  const addRegression = () => {
+    if (newRegression.trim()) {
+      setEditedExercise(prev => ({
+        ...prev,
+        regressions: [...(prev.regressions || []), newRegression.trim()]
+      }));
+      setNewRegression('');
+    }
+  };
+
+  const removeRegression = (index: number) => {
+    setEditedExercise(prev => ({
+      ...prev,
+      regressions: prev.regressions?.filter((_, i) => i !== index) || []
+    }));
+  };
+
   if (isEditing) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
-          <ExerciseForm
-            exercise={exercise}
-            onSave={handleSave}
-            onCancel={handleCancel}
-          />
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
+          <DialogHeader className="mb-4">
+            <DialogTitle className="text-xl font-semibold text-sage-800">
+              Edit Exercise
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6">
+            {/* Basic Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium text-sage-700 mb-1 block">Exercise Name</label>
+                <Input
+                  value={editedExercise.name}
+                  onChange={(e) => setEditedExercise(prev => ({ ...prev, name: e.target.value }))}
+                  className="border-sage-300 focus:border-sage-500"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-sage-700 mb-1 block">Duration (minutes)</label>
+                <Input
+                  type="number"
+                  value={editedExercise.duration}
+                  onChange={(e) => setEditedExercise(prev => ({ ...prev, duration: parseInt(e.target.value) || 0 }))}
+                  className="border-sage-300 focus:border-sage-500"
+                />
+              </div>
+            </div>
+
+            {/* Description */}
+            <div>
+              <label className="text-sm font-medium text-sage-700 mb-1 block">Description</label>
+              <Textarea
+                value={editedExercise.description || ''}
+                onChange={(e) => setEditedExercise(prev => ({ ...prev, description: e.target.value }))}
+                className="border-sage-300 focus:border-sage-500"
+                rows={3}
+              />
+            </div>
+
+            {/* Muscle Groups */}
+            <div>
+              <label className="text-sm font-medium text-sage-700 mb-1 block">Target Muscles (comma separated)</label>
+              <Input
+                value={editedExercise.muscleGroups.join(', ')}
+                onChange={(e) => setEditedExercise(prev => ({ 
+                  ...prev, 
+                  muscleGroups: e.target.value.split(',').map(m => m.trim()).filter(m => m) 
+                }))}
+                className="border-sage-300 focus:border-sage-500"
+                placeholder="core, glutes, legs"
+              />
+            </div>
+
+            {/* Progressions */}
+            <div>
+              <label className="text-sm font-medium text-sage-700 mb-2 block">Progressions</label>
+              <div className="space-y-2">
+                {editedExercise.progressions?.map((progression, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input
+                      value={progression}
+                      onChange={(e) => {
+                        const newProgressions = [...(editedExercise.progressions || [])];
+                        newProgressions[index] = e.target.value;
+                        setEditedExercise(prev => ({ ...prev, progressions: newProgressions }));
+                      }}
+                      className="flex-1 border-sage-300 focus:border-sage-500"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => removeProgression(index)}
+                      className="text-red-600 border-red-300 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={newProgression}
+                    onChange={(e) => setNewProgression(e.target.value)}
+                    placeholder="Add new progression..."
+                    className="flex-1 border-sage-300 focus:border-sage-500"
+                    onKeyPress={(e) => e.key === 'Enter' && addProgression()}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={addProgression}
+                    className="bg-sage-600 hover:bg-sage-700 text-white"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Regressions */}
+            <div>
+              <label className="text-sm font-medium text-sage-700 mb-2 block">Regressions</label>
+              <div className="space-y-2">
+                {editedExercise.regressions?.map((regression, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <Input
+                      value={regression}
+                      onChange={(e) => {
+                        const newRegressions = [...(editedExercise.regressions || [])];
+                        newRegressions[index] = e.target.value;
+                        setEditedExercise(prev => ({ ...prev, regressions: newRegressions }));
+                      }}
+                      className="flex-1 border-sage-300 focus:border-sage-500"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => removeRegression(index)}
+                      className="text-red-600 border-red-300 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={newRegression}
+                    onChange={(e) => setNewRegression(e.target.value)}
+                    placeholder="Add new regression..."
+                    className="flex-1 border-sage-300 focus:border-sage-500"
+                    onKeyPress={(e) => e.key === 'Enter' && addRegression()}
+                  />
+                  <Button
+                    size="sm"
+                    onClick={addRegression}
+                    className="bg-sage-600 hover:bg-sage-700 text-white"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <Button onClick={handleSave} className="bg-sage-600 hover:bg-sage-700 text-white">
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+              <Button onClick={handleCancel} variant="outline" className="border-sage-300 text-sage-700">
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     );
@@ -295,27 +487,49 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
 
           {/* Progressions & Contraindications */}
           {(exercise.progressions && exercise.progressions.length > 0) || 
+           (exercise.regressions && exercise.regressions.length > 0) || 
            (exercise.contraindications && exercise.contraindications.length > 0) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {exercise.progressions && exercise.progressions.length > 0 && (
+              {/* Progressions & Regressions */}
+              {((exercise.progressions && exercise.progressions.length > 0) || 
+                (exercise.regressions && exercise.regressions.length > 0)) && (
                 <Card className={`${
                   preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-green-50 border-green-200'
                 }`}>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm text-green-600">
-                      Progressions
+                      Modifications
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-1">
-                      {exercise.progressions.map((progression, index) => (
-                        <li key={index} className={`text-xs ${
-                          preferences.darkMode ? 'text-gray-300' : 'text-green-700'
-                        }`}>
-                          • {progression}
-                        </li>
-                      ))}
-                    </ul>
+                  <CardContent className="space-y-3">
+                    {exercise.progressions && exercise.progressions.length > 0 && (
+                      <div>
+                        <h5 className="text-xs font-semibold text-green-600 mb-1">Progressions:</h5>
+                        <ul className="space-y-1">
+                          {exercise.progressions.map((progression, index) => (
+                            <li key={index} className={`text-xs ${
+                              preferences.darkMode ? 'text-gray-300' : 'text-green-700'
+                            }`}>
+                              ▲ {progression}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {exercise.regressions && exercise.regressions.length > 0 && (
+                      <div>
+                        <h5 className="text-xs font-semibold text-blue-600 mb-1">Regressions:</h5>
+                        <ul className="space-y-1">
+                          {exercise.regressions.map((regression, index) => (
+                            <li key={index} className={`text-xs ${
+                              preferences.darkMode ? 'text-gray-300' : 'text-blue-700'
+                            }`}>
+                              ▼ {regression}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
