@@ -36,7 +36,7 @@ export const SmartAddButton = ({
       size={size}
       className={`transition-all duration-300 ${
         isAdded 
-          ? 'bg-green-600 hover:bg-green-600 text-white shadow-lg' 
+          ? 'bg-green-600 hover:bg-green-600 text-white shadow-lg scale-105' 
           : 'bg-sage-600 hover:bg-sage-700'
       } ${className}`}
     >

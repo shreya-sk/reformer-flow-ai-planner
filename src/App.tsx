@@ -8,6 +8,9 @@ import { useState } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import PlanClass from "./pages/PlanClass";
+import Library from "./pages/Library";
+import Timer from "./pages/Timer";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
@@ -30,6 +33,9 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/plan" element={<PlanClass />} />
+              <Route path="/library" element={<Library />} />
+              <Route path="/timer" element={<Timer />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

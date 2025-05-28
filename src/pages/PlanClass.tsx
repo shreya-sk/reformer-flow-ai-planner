@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
 import { ExerciseLibrary } from '@/components/ExerciseLibrary';
@@ -13,19 +13,41 @@ import { toast } from '@/hooks/use-toast';
 
 const PlanClass = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { saveClassPlan, savedClasses } = useClassPlans();
   
-  const [currentClass, setCurrentClass] = useState<ClassPlan>({
-    id: '',
-    name: 'New Class',
-    exercises: [],
-    totalDuration: 0,
-    createdAt: new Date(),
-    notes: '',
+  // Get cart exercises from navigation state
+  const cartExercises = location.state?.cartExercises || [];
+  const loadedClass = location.state?.loadedClass;
+
+  const [currentClass, setCurrentClass] = useState<ClassPlan>(() => {
+    if (loadedClass) {
+      return loadedClass;
+    }
+    
+    const initialExercises = cartExercises.length > 0 ? cartExercises : [];
+    const totalDuration = initialExercises.reduce((sum: number, ex: Exercise) => sum + ex.duration, 0);
+    
+    return {
+      id: '',
+      name: 'New Class',
+      exercises: initialExercises,
+      totalDuration,
+      createdAt: new Date(),
+      notes: '',
+    };
   });
 
   const [isEditing, setIsEditing] = useState(false);
+
+  // Clear navigation state after using it
+  useEffect(() => {
+    if (location.state?.cartExercises || location.state?.loadedClass) {
+      // Replace the current entry in history to clear the state
+      navigate(location.pathname, { replace: true });
+    }
+  }, []);
 
   const addExerciseToClass = (exercise: Exercise) => {
     setCurrentClass(prev => ({
