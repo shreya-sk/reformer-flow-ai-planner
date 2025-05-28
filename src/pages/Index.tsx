@@ -73,77 +73,63 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20`}>
-      {/* Main Header Banner */}
-      <header className="bg-gradient-to-r from-sage-600 to-sage-700 shadow-lg">
-        <div className="px-6 py-4">
+      {/* Organic Wave Header */}
+      <header className="relative bg-gradient-to-r from-sage-600 via-sage-500 to-sage-600 overflow-hidden">
+        {/* Wave SVG Background */}
+        <div className="absolute inset-0">
+          <svg 
+            className="absolute bottom-0 w-full h-16" 
+            viewBox="0 0 1200 120" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M0,0 C150,100 350,0 600,50 C850,100 1050,0 1200,50 L1200,120 L0,120 Z" 
+              fill="rgba(255,255,255,0.1)"
+            />
+          </svg>
+          <svg 
+            className="absolute bottom-0 w-full h-12" 
+            viewBox="0 0 1200 120" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M0,20 C300,80 600,20 900,60 C1050,80 1150,40 1200,60 L1200,120 L0,120 Z" 
+              fill="rgba(255,255,255,0.05)"
+            />
+          </svg>
+        </div>
+
+        <div className="relative px-6 py-8">
           <div className="flex items-center justify-between">
             {/* Welcome Message & Logo */}
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                <Sparkles className="h-5 w-5 text-white" />
+              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20">
+                <Sparkles className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">
+                <h1 className="text-3xl font-bold text-white">
                   Hi <span className="text-sage-100">{getFirstName()}</span>!
                 </h1>
-                <p className="text-sage-100 text-sm opacity-90">Welcome back to ReformerPro</p>
+                <p className="text-sage-100 text-base opacity-90">Welcome back to ReformerPro</p>
               </div>
             </div>
             
-            {/* Navigation & Profile */}
-            <div className="flex items-center space-x-6">
-              <nav className="hidden md:flex items-center space-x-4">
-                <Button 
-                  variant="ghost" 
-                  className="text-white hover:bg-white/10 hover:text-white"
-                  onClick={() => navigate('/plan')}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  className="text-white hover:bg-white/10 hover:text-white"
-                  onClick={() => navigate('/library')}
-                >
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Library
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  className="text-white hover:bg-white/10 hover:text-white"
-                  onClick={() => navigate('/timer')}
-                >
-                  <Clock className="h-4 w-4 mr-2" />
-                  Timer
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  className="text-white hover:bg-white/10 hover:text-white"
-                  onClick={() => navigate('/profile')}
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Button>
-              </nav>
-              
-              {/* Profile Avatar */}
-              <div className="flex items-center space-x-3">
-                <div className="text-right text-white hidden sm:block">
-                  <p className="text-sm font-medium opacity-90">
-                    {savedClasses.length} saved classes
-                  </p>
-                </div>
-                <Avatar 
-                  className="h-12 w-12 cursor-pointer hover:ring-4 hover:ring-white/30 transition-all border-2 border-white/20"
-                  onClick={() => navigate('/profile')}
-                >
-                  <AvatarImage src={preferences.profileImage} alt="Profile" />
-                  <AvatarFallback className="text-sm font-semibold bg-sage-500 text-white">
-                    {getUserInitials()}
-                  </AvatarFallback>
-                </Avatar>
+            {/* Profile Avatar - Larger and More Prominent */}
+            <div className="flex items-center space-x-4">
+              <div className="text-right text-white">
+                <p className="text-sm font-medium opacity-90">
+                  {savedClasses.length} saved classes
+                </p>
               </div>
+              <Avatar 
+                className="h-16 w-16 cursor-pointer hover:ring-4 hover:ring-white/30 transition-all border-4 border-white/30 shadow-lg"
+                onClick={() => navigate('/profile')}
+              >
+                <AvatarImage src={preferences.profileImage} alt="Profile" />
+                <AvatarFallback className="text-lg font-bold bg-sage-500 text-white">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
             </div>
           </div>
         </div>
