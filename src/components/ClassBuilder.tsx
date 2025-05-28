@@ -199,7 +199,7 @@ export const ClassBuilder = ({
                   </div>
                   
                   <div className="flex items-center gap-1">
-                    <SpringVisual springs={exercise.springs} size="sm" />
+                    <SpringVisual springs={exercise.springs} className="w-3 h-3" />
                   </div>
 
                   <Badge variant="outline" className="text-xs border-sage-300 text-sage-700 rounded-full px-1 py-0">
