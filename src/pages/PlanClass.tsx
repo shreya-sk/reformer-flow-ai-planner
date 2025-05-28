@@ -4,9 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
 import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { ClassPlanCart } from '@/components/plan-class/ClassPlanCart';
 import { ClassHeader } from '@/components/plan-class/ClassHeader';
-import { Exercise } from '@/types/reformer';
+import { TabbedPlanView } from '@/components/plan-class/TabbedPlanView';
 import { toast } from '@/hooks/use-toast';
 import { AuthPage } from '@/components/AuthPage';
 
@@ -17,11 +16,8 @@ const PlanClass = () => {
   const { preferences } = useUserPreferences();
   const {
     currentClass,
-    addExercise,
     removeExercise,
     updateClassName,
-    reorderExercises,
-    updateExercise,
     clearClassPlan
   } = usePersistedClassPlan();
 
@@ -74,13 +70,10 @@ const PlanClass = () => {
         canRedo={false}
       />
 
-      <ClassPlanCart
+      <TabbedPlanView
         currentClass={currentClass}
-        onUpdateClassName={updateClassName}
         onRemoveExercise={removeExercise}
-        onReorderExercises={reorderExercises}
-        onUpdateExercise={updateExercise}
-        onSaveClass={handleSaveClass}
+        onUpdateClassName={updateClassName}
         onAddExercise={handleAddExercise}
       />
     </div>

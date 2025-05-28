@@ -25,20 +25,21 @@ export const SmartAddButton = ({
     e.preventDefault();
     e.stopPropagation();
     
-    // Create a unique copy of the exercise with a new ID
+    // Create a unique copy of the exercise with a new ID that includes timestamp and random number
+    const uniqueId = `${exercise.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const exerciseToAdd = {
       ...exercise,
-      id: `${exercise.id}-${Date.now()}`,
+      id: uniqueId,
     };
     
-    console.log('Adding exercise to persisted class plan:', exerciseToAdd.name);
+    console.log('Adding exercise to persisted class plan:', exerciseToAdd.name, 'with ID:', uniqueId);
     addExercise(exerciseToAdd);
     
     if (showFeedback) {
       setIsAdded(true);
       setTimeout(() => {
         setIsAdded(false);
-      }, 2500);
+      }, 1500); // Shorter feedback duration
     }
   };
 
