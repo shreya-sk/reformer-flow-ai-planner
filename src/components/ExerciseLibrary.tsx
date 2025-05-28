@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,7 @@ import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { exerciseDatabase } from '@/data/exercises';
 import { ExerciseForm } from './ExerciseForm';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
+import { SmartAddButton } from './SmartAddButton';
 
 interface ExerciseLibraryProps {
   onAddExercise: (exercise: Exercise) => void;
@@ -284,13 +286,13 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                         >
                           <Copy className="h-3 w-3" />
                         </Button>
-                        <Button
-                          size="sm"
-                          onClick={(e) => handleAddExercise(exercise, e)}
-                          className="bg-sage-600 hover:bg-sage-700 text-white h-7 w-7 p-0"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
+                        <SmartAddButton
+                          exercise={exercise}
+                          onAddExercise={(ex) => {
+                            onAddExercise(ex);
+                          }}
+                          className="h-7 w-7 p-0"
+                        />
                       </div>
                     </div>
 

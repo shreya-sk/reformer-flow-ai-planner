@@ -1,28 +1,17 @@
-import { useState } from 'react';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
 import { AuthPage } from '@/components/AuthPage';
-import { ExerciseLibrary } from '@/components/ExerciseLibrary';
-import { ClassBuilder } from '@/components/ClassBuilder';
 import { Header } from '@/components/Header';
-import { ClassPlanManager } from '@/components/ClassPlanManager';
-import { Exercise, ClassPlan } from '@/types/reformer';
-import { toast } from '@/hooks/use-toast';
+import { ClassPlanList } from '@/components/ClassPlanList';
+import { BottomNavigation } from '@/components/BottomNavigation';
+import { useNavigate } from 'react-router-dom';
+import { ClassPlan } from '@/types/reformer';
 
 const Index = () => {
   const { user, loading } = useAuth();
-  const { savedClasses, saveClassPlan, deleteClassPlan, updateClassPlan } = useClassPlans();
-  
-  const [currentClass, setCurrentClass] = useState<ClassPlan>({
-    id: '',
-    name: 'New Class',
-    exercises: [],
-    totalDuration: 0,
-    createdAt: new Date(),
-    notes: '',
-  });
-
-  const [showClassManager, setShowClassManager] = useState(false);
+  const { savedClasses, deleteClassPlan, updateClassPlan } = useClassPlans();
+  const navigate = useNavigate();
 
   // Show loading state while checking authentication
   if (loading) {
@@ -38,106 +27,52 @@ const Index = () => {
     return <AuthPage />;
   }
 
-  const addExerciseToClass = (exercise: Exercise) => {
-    setCurrentClass(prev => ({
-      ...prev,
-      exercises: [...prev.exercises, { ...exercise, id: `${exercise.id}-${Date.now()}` }],
-      totalDuration: prev.totalDuration + exercise.duration,
-    }));
-  };
-
-  const removeExerciseFromClass = (exerciseId: string) => {
-    const exercise = currentClass.exercises.find(ex => ex.id === exerciseId);
-    if (exercise) {
-      setCurrentClass(prev => ({
-        ...prev,
-        exercises: prev.exercises.filter(ex => ex.id !== exerciseId),
-        totalDuration: prev.totalDuration - exercise.duration,
-      }));
-    }
-  };
-
-  const reorderExercises = (exercises: Exercise[]) => {
-    setCurrentClass(prev => ({
-      ...prev,
-      exercises,
-    }));
-  };
-
-  const updateExerciseInClass = (updatedExercise: Exercise) => {
-    setCurrentClass(prev => ({
-      ...prev,
-      exercises: prev.exercises.map(ex => 
-        ex.id === updatedExercise.id ? updatedExercise : ex
-      ),
-    }));
-  };
-
-  const handleSaveClass = async () => {
-    if (currentClass.exercises.length === 0) return;
-    
-    const classToSave = {
-      ...currentClass,
-      name: currentClass.name || `Class ${savedClasses.length + 1}`,
-    };
-    
-    await saveClassPlan(classToSave);
-    
-    // Reset current class after saving
-    setCurrentClass({
-      id: '',
-      name: 'New Class',
-      exercises: [],
-      totalDuration: 0,
-      createdAt: new Date(),
-      notes: '',
-    });
-  };
-
   const loadClass = (classPlan: ClassPlan) => {
-    setCurrentClass(classPlan);
-    setShowClassManager(false);
+    // Navigate to plan class page with the loaded class
+    navigate('/plan', { state: { loadedClass: classPlan } });
+  };
+
+  const handlePlanClass = () => {
+    navigate('/plan');
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
-      <Header 
-        currentClass={currentClass}
-        onSaveClass={handleSaveClass}
-        onUpdateClassName={(name) => setCurrentClass(prev => ({ ...prev, name }))}
-        onToggleClassManager={() => setShowClassManager(!showClassManager)}
-        showClassManager={showClassManager}
-      />
-      
-      <div className="flex h-[calc(100vh-85px)]">
-        {showClassManager ? (
-          <div className="w-96 bg-white border-r border-sage-200 overflow-y-auto">
-            <div className="p-6">
-              <ClassPlanManager
-                currentClass={currentClass}
-                savedClasses={savedClasses}
-                onUpdateClassName={(name) => setCurrentClass(prev => ({ ...prev, name }))}
-                onUpdateClassNotes={(notes) => setCurrentClass(prev => ({ ...prev, notes }))}
-                onDeleteClass={deleteClassPlan}
-                onLoadClass={loadClass}
-                onUpdateClass={updateClassPlan}
-                onSaveClass={handleSaveClass}
-              />
+      {/* Header */}
+      <header className="bg-white border-b border-sage-200 px-6 py-5 shadow-sm">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-sage-500 to-sage-600 rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-lg">R</span>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-sage-700 to-sage-900 bg-clip-text text-transparent">
+                My Classes
+              </h1>
+              <p className="text-sage-600 text-sm">
+                {savedClasses.length} saved class{savedClasses.length !== 1 ? 'es' : ''}
+              </p>
             </div>
           </div>
-        ) : (
-          <ExerciseLibrary onAddExercise={addExerciseToClass} />
-        )}
-        
-        <ClassBuilder 
-          currentClass={currentClass}
-          onRemoveExercise={removeExerciseFromClass}
-          onReorderExercises={reorderExercises}
-          onUpdateExercise={updateExerciseInClass}
+          
+          <div className="text-sage-600">
+            Welcome back, {user.email?.split('@')[0]}
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-4xl mx-auto px-6 py-6">
+        <ClassPlanList
           savedClasses={savedClasses}
-          onAddExercise={addExerciseToClass}
+          onDeleteClass={deleteClassPlan}
+          onLoadClass={loadClass}
+          onUpdateClass={updateClassPlan}
         />
-      </div>
+      </main>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation onPlanClass={handlePlanClass} />
     </div>
   );
 };

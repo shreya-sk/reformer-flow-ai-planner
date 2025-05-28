@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
+import PlanClass from "./pages/PlanClass";
 import NotFound from "./pages/NotFound";
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/plan" element={<PlanClass />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
