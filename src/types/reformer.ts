@@ -66,7 +66,8 @@ export type ExerciseCategory =
   | 'sitting'
   | 'side-lying'
   | 'kneeling'
-  | 'cool-down';
+  | 'cool-down'
+  | 'callout'; // Keep callout for organizational structure
 
 export type SpringSetting = string; // Now supports multiple springs like "1.5,2" or "red,yellow"
 
