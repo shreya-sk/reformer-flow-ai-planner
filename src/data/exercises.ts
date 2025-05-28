@@ -7,10 +7,12 @@ export const exerciseDatabase: Exercise[] = [
     name: "Footwork - Parallel",
     category: "supine",
     duration: 3,
+    repsOrDuration: "10-15 reps",
     springs: "heavy",
     difficulty: "beginner",
     intensityLevel: "low",
     muscleGroups: ["legs", "core"],
+    targetAreas: ["quadriceps", "glutes", "calves"],
     equipment: ["none"],
     description: "Basic footwork in parallel position to strengthen legs and establish proper alignment.",
     cues: [
@@ -19,6 +21,11 @@ export const exerciseDatabase: Exercise[] = [
       "Maintain neutral pelvis throughout",
       "Keep knees tracking over toes"
     ],
+    tempo: "Slow and controlled, 3 seconds out, 2 seconds in",
+    progressions: ["Single leg footwork", "Add pulses at extension"],
+    regressions: ["Reduce spring tension", "Use assistance for return"],
+    contraindications: ["Severe knee injury", "Recent ankle surgery"],
+    teachingFocus: ["alignment", "stability"],
     isPregnancySafe: true,
     image: "/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png"
   },
@@ -27,10 +34,12 @@ export const exerciseDatabase: Exercise[] = [
     name: "Hundred",
     category: "supine",
     duration: 2,
+    repsOrDuration: "100 pumps (10 breaths)",
     springs: "light",
     difficulty: "intermediate",
     intensityLevel: "high",
     muscleGroups: ["core", "arms"],
+    targetAreas: ["deep abdominals", "shoulders"],
     equipment: ["straps"],
     description: "Classic Pilates exercise focusing on breathing coordination and core stability.",
     cues: [
@@ -39,6 +48,11 @@ export const exerciseDatabase: Exercise[] = [
       "Keep shoulders away from ears",
       "Maintain strong core connection"
     ],
+    tempo: "Quick arm pumps, coordinated with breath",
+    progressions: ["Legs in table top", "Lower legs toward floor"],
+    regressions: ["Head down", "Bend knees"],
+    contraindications: ["Neck injury", "Severe back pain"],
+    teachingFocus: ["breath", "coordination"],
     isPregnancySafe: false,
     image: "/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png"
   },
@@ -47,10 +61,12 @@ export const exerciseDatabase: Exercise[] = [
     name: "Short Box - Round Back",
     category: "sitting",
     duration: 4,
+    repsOrDuration: "8-10 reps",
     springs: "medium",
     difficulty: "intermediate",
     intensityLevel: "medium",
     muscleGroups: ["core", "back"],
+    targetAreas: ["spinal mobility", "deep abdominals"],
     equipment: ["none"],
     description: "Spinal articulation exercise performed sitting on the short box.",
     cues: [
@@ -59,6 +75,11 @@ export const exerciseDatabase: Exercise[] = [
       "Use deep abdominals to return to sitting",
       "Keep shoulders over hips"
     ],
+    tempo: "Slow and articulated, 4 seconds down, 4 seconds up",
+    progressions: ["Add arm circles", "Increase range of motion"],
+    regressions: ["Hands behind thighs for support", "Smaller range"],
+    contraindications: ["Acute back pain", "Disc herniation"],
+    teachingFocus: ["mobility", "alignment"],
     isPregnancySafe: true,
     image: "/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png"
   },
@@ -67,10 +88,12 @@ export const exerciseDatabase: Exercise[] = [
     name: "Long Stretch",
     category: "prone",
     duration: 3,
+    repsOrDuration: "6-8 reps",
     springs: "medium",
     difficulty: "advanced",
     intensityLevel: "high",
     muscleGroups: ["core", "arms", "shoulders"],
+    targetAreas: ["full body integration", "shoulder stability"],
     equipment: ["none"],
     description: "Advanced exercise challenging full body integration and control.",
     cues: [
@@ -79,6 +102,11 @@ export const exerciseDatabase: Exercise[] = [
       "Use deep core to return carriage",
       "Keep shoulders stable and strong"
     ],
+    tempo: "Controlled, 3 seconds out, 3 seconds in",
+    progressions: ["Single arm variations", "Add leg lifts"],
+    regressions: ["Hands on footbar", "Knees down"],
+    contraindications: ["Wrist injury", "Shoulder impingement"],
+    teachingFocus: ["strength", "stability"],
     isPregnancySafe: false,
     image: "/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png"
   },
@@ -87,10 +115,12 @@ export const exerciseDatabase: Exercise[] = [
     name: "Arms in Straps - Chest Expansion",
     category: "sitting",
     duration: 3,
+    repsOrDuration: "8-12 reps",
     springs: "light",
     difficulty: "beginner",
     intensityLevel: "low",
     muscleGroups: ["arms", "back", "shoulders"],
+    targetAreas: ["posterior deltoids", "rhomboids", "posture"],
     equipment: ["straps"],
     description: "Upper body strengthening with focus on posture and shoulder blade stability.",
     cues: [
@@ -99,6 +129,11 @@ export const exerciseDatabase: Exercise[] = [
       "Keep chest open and shoulders down",
       "Return with control maintaining posture"
     ],
+    tempo: "Moderate, 2 seconds back, 3 seconds return",
+    progressions: ["Add head turns", "Increase range"],
+    regressions: ["Lighter springs", "Smaller range of motion"],
+    contraindications: ["Recent shoulder surgery"],
+    teachingFocus: ["alignment", "strength"],
     isPregnancySafe: true,
     image: "/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png"
   },
@@ -107,10 +142,12 @@ export const exerciseDatabase: Exercise[] = [
     name: "Side Splits",
     category: "standing",
     duration: 4,
+    repsOrDuration: "6-10 reps each side",
     springs: "heavy",
     difficulty: "intermediate",
     intensityLevel: "medium",
     muscleGroups: ["legs", "glutes", "core"],
+    targetAreas: ["inner thighs", "hip stability", "balance"],
     equipment: ["none"],
     description: "Standing exercise targeting inner thighs and hip stability.",
     cues: [
@@ -119,6 +156,11 @@ export const exerciseDatabase: Exercise[] = [
       "Control the carriage with inner thigh engagement",
       "Maintain upright posture throughout"
     ],
+    tempo: "Controlled, 3 seconds out, 2 seconds in",
+    progressions: ["Add arm movements", "Increase range"],
+    regressions: ["Hold onto frame", "Smaller range of motion"],
+    contraindications: ["Hip injury", "Balance issues"],
+    teachingFocus: ["balance", "stability"],
     isPregnancySafe: false,
     image: "/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png"
   },
@@ -127,10 +169,12 @@ export const exerciseDatabase: Exercise[] = [
     name: "Arm Circles",
     category: "supine",
     duration: 2,
+    repsOrDuration: "5 circles each direction",
     springs: "light",
     difficulty: "beginner",
     intensityLevel: "low",
     muscleGroups: ["arms", "shoulders"],
+    targetAreas: ["shoulder mobility", "upper body coordination"],
     equipment: ["straps"],
     description: "Gentle shoulder mobility and strengthening exercise.",
     cues: [
@@ -139,6 +183,11 @@ export const exerciseDatabase: Exercise[] = [
       "Maintain stable core throughout",
       "Keep shoulders away from ears"
     ],
+    tempo: "Smooth and flowing, 4 seconds per circle",
+    progressions: ["Larger circles", "Add resistance"],
+    regressions: ["Smaller circles", "Lighter springs"],
+    contraindications: ["Acute shoulder pain"],
+    teachingFocus: ["mobility", "flow"],
     isPregnancySafe: true,
     image: "/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png"
   },
@@ -147,10 +196,12 @@ export const exerciseDatabase: Exercise[] = [
     name: "Coordination",
     category: "supine", 
     duration: 3,
+    repsOrDuration: "6-8 sets",
     springs: "light",
     difficulty: "advanced",
     intensityLevel: "high",
     muscleGroups: ["core", "arms", "legs"],
+    targetAreas: ["full body coordination", "deep stabilizers"],
     equipment: ["straps"],
     description: "Complex coordination exercise challenging full body control.",
     cues: [
@@ -159,6 +210,11 @@ export const exerciseDatabase: Exercise[] = [
       "Keep deep core connection throughout",
       "Move with control and precision"
     ],
+    tempo: "Precise and controlled, 2 seconds each phase",
+    progressions: ["Add complexity", "Increase speed"],
+    regressions: ["Arms only", "Legs only"],
+    contraindications: ["Neck strain", "Lower back pain"],
+    teachingFocus: ["coordination", "strength"],
     isPregnancySafe: false,
     image: "/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png"
   }

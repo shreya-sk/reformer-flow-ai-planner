@@ -7,6 +7,7 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ClassPlanList } from '@/components/ClassPlanList';
 import { ClassTeachingMode } from '@/components/ClassTeachingMode';
 import { AuthPage } from '@/components/AuthPage';
+import { BottomNavigation } from '@/components/BottomNavigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -52,7 +53,7 @@ const Index = () => {
   };
 
   return (
-    <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
+    <div className={`min-h-screen pb-20 ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
       {/* Hero Section */}
       <div className={`${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm border-b ${preferences.darkMode ? 'border-gray-700' : 'border-sage-100'}`}>
         <div className="max-w-6xl mx-auto px-6 py-12">
@@ -179,6 +180,9 @@ const Index = () => {
           </div>
         )}
       </div>
+
+      {/* Bottom Navigation */}
+      <BottomNavigation onPlanClass={handleCreateNewClass} />
     </div>
   );
 };
