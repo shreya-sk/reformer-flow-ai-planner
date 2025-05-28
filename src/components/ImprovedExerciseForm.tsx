@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Save, X, Plus, Trash2, Dumbbell, Target, Clock, Image as ImageIcon, Shield } from 'lucide-react';
-import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
+import { Exercise, MuscleGroup, ExerciseCategory, Equipment } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
 interface ImprovedExerciseFormProps {
@@ -29,7 +28,7 @@ const springOptions = [
   { value: 'mixed', label: 'Mixed', color: 'bg-gradient-to-r from-red-500 via-yellow-500 to-green-500' }
 ];
 
-const equipmentOptions = ['reformer', 'tower', 'chair', 'cadillac', 'mat', 'props', 'barrels'] as const;
+const equipmentOptions: Equipment[] = ['reformer', 'tower', 'chair', 'cadillac', 'mat', 'props', 'barrels'];
 
 export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExerciseFormProps) => {
   const { preferences } = useUserPreferences();
@@ -73,7 +72,7 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
       description: formData.description || '',
       category: formData.category!,
       difficulty: formData.difficulty!,
-      intensityLevel: formData.difficulty === 'beginner' ? 'low' : formData.difficulty === 'intermediate' ? 'moderate' : 'high',
+      intensityLevel: formData.difficulty === 'beginner' ? 'low' : formData.difficulty === 'intermediate' ? 'medium' : 'high',
       duration: formData.duration!,
       repsOrDuration: `${formData.duration} min`,
       muscleGroups: formData.muscleGroups!,
@@ -100,12 +99,12 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
     }));
   };
 
-  const toggleEquipment = (equipment: string) => {
+  const toggleEquipment = (equipment: Equipment) => {
     setFormData(prev => ({
       ...prev,
-      equipment: prev.equipment?.includes(equipment as any)
+      equipment: prev.equipment?.includes(equipment)
         ? prev.equipment.filter(eq => eq !== equipment)
-        : [...(prev.equipment || []), equipment as any]
+        : [...(prev.equipment || []), equipment]
     }));
   };
 
