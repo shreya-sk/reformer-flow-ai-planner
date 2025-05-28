@@ -1,97 +1,63 @@
 
 import { useState, useEffect } from 'react';
 
-export interface UserPreferences {
+interface UserPreferences {
   darkMode: boolean;
-  favoriteExercises: string[];
-  customCallouts: string[];
-  showPregnancySafeOnly: boolean;
+  showPregnancySafeOnly?: boolean;
+  profileImage?: string;
+  customCallouts?: string[];
 }
 
-const defaultPreferences: UserPreferences = {
-  darkMode: false,
-  favoriteExercises: [],
-  customCallouts: ['Warm-up', 'Standing', 'Supine', 'Prone', 'Cool-down'],
-  showPregnancySafeOnly: false,
-};
+const PREFERENCES_KEY = 'user-preferences';
 
 export const useUserPreferences = () => {
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
     try {
-      const storedPreferences = localStorage.getItem('user-preferences');
-      if (storedPreferences) {
-        return JSON.parse(storedPreferences) as UserPreferences;
+      const saved = localStorage.getItem(PREFERENCES_KEY);
+      if (saved) {
+        return JSON.parse(saved);
       }
     } catch (error) {
-      console.error('Failed to load user preferences from localStorage:', error);
+      console.error('Failed to load user preferences:', error);
     }
-    return defaultPreferences;
+    return { 
+      darkMode: false, 
+      showPregnancySafeOnly: false,
+      profileImage: '',
+      customCallouts: []
+    };
   });
 
   useEffect(() => {
     try {
-      localStorage.setItem('user-preferences', JSON.stringify(preferences));
+      localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
     } catch (error) {
-      console.error('Failed to save user preferences to localStorage:', error);
+      console.error('Failed to save user preferences:', error);
     }
   }, [preferences]);
-
-  const toggleDarkMode = () => {
-    setPreferences(prev => ({ ...prev, darkMode: !prev.darkMode }));
-  };
-
-  const toggleFavoriteExercise = (exerciseId: string) => {
-    setPreferences(prev => {
-      const isFavorite = prev.favoriteExercises.includes(exerciseId);
-      const updatedFavorites = isFavorite
-        ? prev.favoriteExercises.filter(id => id !== exerciseId)
-        : [...prev.favoriteExercises, exerciseId];
-      return { ...prev, favoriteExercises: updatedFavorites };
-    });
-  };
-
-  const clearFavorites = () => {
-    setPreferences(prev => ({ ...prev, favoriteExercises: [] }));
-  };
-
-  const addCustomCallout = (calloutName: string) => {
-    setPreferences(prev => ({
-      ...prev,
-      customCallouts: [...prev.customCallouts, calloutName]
-    }));
-  };
-
-  const removeCustomCallout = (calloutName: string) => {
-    setPreferences(prev => ({
-      ...prev,
-      customCallouts: prev.customCallouts.filter(c => c !== calloutName)
-    }));
-  };
-
-  const updateCustomCallouts = (callouts: string[]) => {
-    setPreferences(prev => ({
-      ...prev,
-      customCallouts: callouts
-    }));
-  };
-
-  const togglePregnancySafeOnly = () => {
-    setPreferences(prev => ({ ...prev, showPregnancySafeOnly: !prev.showPregnancySafeOnly }));
-  };
 
   const updatePreferences = (updates: Partial<UserPreferences>) => {
     setPreferences(prev => ({ ...prev, ...updates }));
   };
 
+  const addCustomCallout = (callout: string) => {
+    setPreferences(prev => ({
+      ...prev,
+      customCallouts: [...(prev.customCallouts || []), callout]
+    }));
+  };
+
+  const removeCustomCallout = (callout: string) => {
+    setPreferences(prev => ({
+      ...prev,
+      customCallouts: (prev.customCallouts || []).filter(c => c !== callout)
+    }));
+  };
+
   return {
     preferences,
-    toggleDarkMode,
-    toggleFavoriteExercise,
-    clearFavorites,
-    addCustomCallout,
-    removeCustomCallout,
-    updateCustomCallouts,
-    togglePregnancySafeOnly,
     updatePreferences,
+    addCustomCallout,
+    removeCustomCallout
   };
 };

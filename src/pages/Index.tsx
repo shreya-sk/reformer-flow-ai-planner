@@ -3,24 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { AuthPage } from '@/components/AuthPage';
+import { ClassPlanList } from '@/components/ClassPlanList';
 import { BottomNavigation } from '@/components/BottomNavigation';
-import { Header } from '@/components/Header';
+import { NavigationButtons } from '@/components/NavigationButtons';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { 
   Plus, 
-  Clock, 
-  Calendar, 
   BookOpen, 
-  Users, 
-  Zap,
-  Play,
-  Edit2,
-  Trash2,
-  Copy
+  Sparkles, 
+  User,
+  Calendar,
+  Target,
+  Clock
 } from 'lucide-react';
+import { AuthPage } from '@/components/AuthPage';
+import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -30,8 +28,11 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} flex items-center justify-center`}>
-        <div className={preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}>Loading...</div>
+      <div className={`min-h-screen flex items-center justify-center ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sage-600 mx-auto mb-4"></div>
+          <p className={preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}>Loading...</p>
+        </div>
       </div>
     );
   }
@@ -40,214 +41,178 @@ const Index = () => {
     return <AuthPage />;
   }
 
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+  const handleEditClass = (classPlan: any) => {
+    navigate('/plan', { state: { loadedClass: classPlan } });
   };
 
-  const handleDeleteClass = (classId: string, className: string) => {
-    if (window.confirm(`Delete "${className}"? This cannot be undone.`)) {
-      deleteClassPlan(classId);
+  const handleDeleteClass = async (classId: string) => {
+    try {
+      await deleteClassPlan(classId);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete class plan",
+        variant: "destructive",
+      });
     }
+  };
+
+  const getUserInitials = () => {
+    const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
+    return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20`}>
       {/* Compact Header */}
-      <header className={`${preferences.darkMode ? 'bg-gray-800/95 border-gray-700' : 'bg-white/95 border-sage-200'} backdrop-blur-sm border-b sticky top-0 z-50`}>
-        <div className="max-w-6xl mx-auto px-4 py-3">
+      <header className={`${preferences.darkMode ? 'bg-gray-800/90 border-gray-700' : 'bg-white/90 border-sage-200'} border-b backdrop-blur-sm sticky top-0 z-40`}>
+        <div className="px-4 py-3">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className={`text-xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+            {/* Logo and Brand */}
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-sage-500 to-sage-600 rounded-xl flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-sage-700 to-sage-900 bg-clip-text text-transparent">
                 ReformerPro
               </h1>
-              <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-                AI-Powered Class Planning
-              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={() => navigate('/library')}
-                variant="outline"
-                size="sm"
-                className={`${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300 text-sage-700'}`}
+            
+            {/* Profile Section */}
+            <div className="flex items-center gap-3">
+              <div className={`text-right ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                <p className="text-sm font-medium">
+                  {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                </p>
+                <p className="text-xs opacity-70">
+                  {savedClasses.length} saved classes
+                </p>
+              </div>
+              <Avatar 
+                className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-sage-400 transition-all"
+                onClick={() => navigate('/profile')}
               >
-                <BookOpen className="h-4 w-4 mr-1" />
-                Library
-              </Button>
-              <Button
-                onClick={() => navigate('/plan')}
-                size="sm"
-                className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                New Class
-              </Button>
+                <AvatarImage src={preferences.profileImage} alt="Profile" />
+                <AvatarFallback className="text-sm font-semibold bg-sage-100 text-sage-800">
+                  {getUserInitials()}
+                </AvatarFallback>
+              </Avatar>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto p-4 space-y-6">
-        {/* Welcome Section with Color */}
-        <div className={`${preferences.darkMode ? 'bg-gradient-to-r from-gray-800 to-gray-700' : 'bg-gradient-to-r from-sage-100 via-sage-50 to-white'} rounded-xl p-6 border ${preferences.darkMode ? 'border-gray-600' : 'border-sage-200'}`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className={`text-2xl font-bold mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                Welcome back, {user.user_metadata?.full_name || user.email?.split('@')[0] || 'Instructor'}! 
-              </h2>
-              <p className={`${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'} mb-4`}>
-                Ready to create inspiring Pilates classes?
-              </p>
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1">
-                  <Calendar className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
-                  <span className={preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}>{savedClasses.length} saved classes</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Zap className={`h-4 w-4 ${preferences.darkMode ? 'text-yellow-400' : 'text-yellow-500'}`} />
-                  <span className={preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}>AI-powered suggestions</span>
-                </div>
+      <div className="p-4 space-y-6">
+        {/* Welcome Section */}
+        <div className="text-center space-y-4">
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${preferences.darkMode ? 'bg-gray-800 text-gray-300' : 'bg-sage-100 text-sage-700'} text-sm`}>
+            <Calendar className="h-4 w-4" />
+            Welcome back, {user.user_metadata?.full_name || user.email?.split('@')[0]}!
+          </div>
+          
+          {/* Quick Stats */}
+          <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+            <div className={`p-3 rounded-lg ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
+              <div className="flex items-center gap-2 justify-center">
+                <Target className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+                <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  {savedClasses.length}
+                </span>
               </div>
+              <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center`}>
+                Classes
+              </p>
             </div>
-            <div className={`hidden md:block w-24 h-24 ${preferences.darkMode ? 'bg-gray-600' : 'bg-sage-200'} rounded-full flex items-center justify-center`}>
-              <Users className={`h-12 w-12 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
+            
+            <div className={`p-3 rounded-lg ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
+              <div className="flex items-center gap-2 justify-center">
+                <Clock className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+                <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  {savedClasses.reduce((total, plan) => total + plan.totalDuration, 0)}
+                </span>
+              </div>
+              <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center`}>
+                Minutes
+              </p>
+            </div>
+            
+            <div className={`p-3 rounded-lg ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
+              <div className="flex items-center gap-2 justify-center">
+                <BookOpen className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+                <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  {savedClasses.reduce((total, plan) => total + plan.exercises.filter(ex => ex.category !== 'callout').length, 0)}
+                </span>
+              </div>
+              <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center`}>
+                Exercises
+              </p>
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-sage-200 hover:shadow-md'} cursor-pointer transition-all`} onClick={() => navigate('/plan')}>
-            <CardContent className="p-4 text-center">
-              <div className={`w-12 h-12 ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'} rounded-full flex items-center justify-center mx-auto mb-3`}>
-                <Plus className={`h-6 w-6 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`} />
-              </div>
-              <h3 className={`font-semibold mb-1 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>Plan New Class</h3>
-              <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>Create with AI suggestions</p>
-            </CardContent>
-          </Card>
-
-          <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-sage-200 hover:shadow-md'} cursor-pointer transition-all`} onClick={() => navigate('/library')}>
-            <CardContent className="p-4 text-center">
-              <div className={`w-12 h-12 ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'} rounded-full flex items-center justify-center mx-auto mb-3`}>
-                <BookOpen className={`h-6 w-6 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`} />
-              </div>
-              <h3 className={`font-semibold mb-1 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>Exercise Library</h3>
-              <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>Browse 200+ exercises</p>
-            </CardContent>
-          </Card>
-
-          <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700 hover:bg-gray-750' : 'bg-white border-sage-200 hover:shadow-md'} cursor-pointer transition-all`} onClick={() => navigate('/timer')}>
-            <CardContent className="p-4 text-center">
-              <div className={`w-12 h-12 ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'} rounded-full flex items-center justify-center mx-auto mb-3`}>
-                <Clock className={`h-6 w-6 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`} />
-              </div>
-              <h3 className={`font-semibold mb-1 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>Class Timer</h3>
-              <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>Time your sessions</p>
-            </CardContent>
-          </Card>
+        <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+          <Button 
+            onClick={() => navigate('/plan')}
+            className="flex-1 bg-sage-600 hover:bg-sage-700 text-white py-6 text-base"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Create New Class
+          </Button>
+          
+          <Button 
+            onClick={() => navigate('/library')}
+            variant="outline"
+            className={`flex-1 py-6 text-base ${preferences.darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-sage-300 text-sage-700 hover:bg-sage-50'}`}
+          >
+            <BookOpen className="h-5 w-5 mr-2" />
+            Browse Library
+          </Button>
         </div>
 
-        {/* Saved Classes */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className={`text-xl font-semibold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+        {/* My Classes Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
               My Classes
             </h2>
             {savedClasses.length > 0 && (
-              <Badge variant="secondary" className={preferences.darkMode ? 'bg-gray-700 text-gray-300' : 'bg-sage-100 text-sage-700'}>
-                {savedClasses.length} classes
-              </Badge>
+              <p className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                {savedClasses.length} class{savedClasses.length === 1 ? '' : 'es'}
+              </p>
             )}
           </div>
 
-          {savedClasses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {savedClasses.map((classPlan) => (
-                <Card key={classPlan.id} className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} hover:shadow-md transition-shadow`}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className={`text-base ${preferences.darkMode ? 'text-white' : 'text-sage-800'} truncate`}>
-                          {classPlan.name}
-                        </CardTitle>
-                        <div className="flex items-center gap-2 mt-1 text-xs">
-                          <span className={`flex items-center gap-1 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(classPlan.createdAt)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3 text-sm">
-                        <span className={`flex items-center gap-1 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-                          <Clock className="h-3 w-3" />
-                          {classPlan.totalDuration}min
-                        </span>
-                        <span className={preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}>
-                          {classPlan.exercises.length} exercises
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => navigate('/plan', { state: { loadedClass: classPlan } })}
-                        size="sm"
-                        className="flex-1 bg-sage-600 hover:bg-sage-700 text-white"
-                      >
-                        <Play className="h-3 w-3 mr-1" />
-                        Load
-                      </Button>
-                      <Button
-                        onClick={() => navigate('/plan', { state: { loadedClass: { ...classPlan, id: '', name: `${classPlan.name} (Copy)` } } })}
-                        size="sm"
-                        variant="outline"
-                        className={`${preferences.darkMode ? 'border-gray-600 text-gray-300' : 'border-sage-300 text-sage-700'}`}
-                      >
-                        <Copy className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        onClick={() => handleDeleteClass(classPlan.id, classPlan.name)}
-                        size="sm"
-                        variant="outline"
-                        className="border-red-300 text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+          {savedClasses.length === 0 ? (
+            <div className={`text-center py-12 px-4 ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm`}>
+              <div className={`w-16 h-16 ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                <Plus className={`h-8 w-8 ${preferences.darkMode ? 'text-gray-500' : 'text-sage-500'}`} />
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                No classes yet
+              </h3>
+              <p className={`text-sm mb-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                Create your first class plan to get started
+              </p>
+              <Button 
+                onClick={() => navigate('/plan')}
+                className="bg-sage-600 hover:bg-sage-700 text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Class
+              </Button>
             </div>
           ) : (
-            <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} text-center py-12`}>
-              <CardContent>
-                <div className={`w-16 h-16 ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                  <Calendar className={`h-8 w-8 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
-                </div>
-                <h3 className={`text-lg font-medium ${preferences.darkMode ? 'text-white' : 'text-sage-600'} mb-2`}>No classes yet</h3>
-                <p className={`${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'} text-sm mb-4`}>
-                  Start building your first class to see it here
-                </p>
-                <Button 
-                  onClick={() => navigate('/plan')}
-                  className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Create Your First Class
-                </Button>
-              </CardContent>
-            </Card>
+            <ClassPlanList 
+              classes={savedClasses} 
+              onEditClass={handleEditClass}
+              onDeleteClass={handleDeleteClass}
+            />
           )}
         </div>
+
+        {/* Navigation */}
+        <NavigationButtons />
       </div>
 
       <BottomNavigation onPlanClass={() => navigate('/plan')} />

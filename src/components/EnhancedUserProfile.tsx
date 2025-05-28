@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { 
   User, 
   Mail, 
@@ -15,17 +16,29 @@ import {
   LogOut,
   Save,
   Edit2,
-  Baby
+  Baby,
+  Camera
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { CustomCalloutsManager } from './CustomCalloutsManager';
 import { toast } from '@/hooks/use-toast';
 
+// Default profile images
+const defaultProfileImages = [
+  '/lovable-uploads/156c5622-2826-4e16-8de0-e4c9aaa78cd3.png',
+  '/lovable-uploads/4f3b5d45-3013-4b5a-a650-b00727408e73.png',
+  '/lovable-uploads/f2338ebb-8a0c-4afe-9088-9a7ebb481767.png',
+  '/lovable-uploads/8cb5e632-af4e-471a-a2c4-0371ce90cda2.png',
+  '/lovable-uploads/52923e3d-1669-4ae1-9710-9e1c18d8820d.png',
+  '/lovable-uploads/52c9b506-ac25-4335-8a26-0c2b10d2c954.png',
+];
+
 export const EnhancedUserProfile = () => {
   const { user, signOut } = useAuth();
   const { preferences, updatePreferences } = useUserPreferences();
   const [isEditing, setIsEditing] = useState(false);
+  const [showImageSelector, setShowImageSelector] = useState(false);
   const [profileData, setProfileData] = useState({
     displayName: user?.user_metadata?.full_name || user?.email?.split('@')[0] || '',
     email: user?.email || '',
@@ -58,12 +71,28 @@ export const EnhancedUserProfile = () => {
   const resetPreferences = () => {
     updatePreferences({ 
       darkMode: false, 
-      showPregnancySafeOnly: false 
+      showPregnancySafeOnly: false,
+      profileImage: '',
+      customCallouts: []
     });
     toast({
       title: "Preferences reset",
       description: "All preferences have been reset to default.",
     });
+  };
+
+  const handleProfileImageSelect = (imageUrl: string) => {
+    updatePreferences({ profileImage: imageUrl });
+    setShowImageSelector(false);
+    toast({
+      title: "Profile image updated",
+      description: "Your profile image has been changed.",
+    });
+  };
+
+  const getUserInitials = () => {
+    const name = profileData.displayName || profileData.email;
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   return (
@@ -78,6 +107,50 @@ export const EnhancedUserProfile = () => {
             Manage your account and preferences
           </p>
         </div>
+
+        {/* Profile Image Section */}
+        <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'}`}>
+          <CardHeader>
+            <CardTitle className={`text-lg flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+              <Camera className="h-5 w-5" />
+              Profile Picture
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex items-center gap-4">
+            <Avatar className="h-20 w-20">
+              <AvatarImage src={preferences.profileImage} alt="Profile" />
+              <AvatarFallback className="text-lg font-semibold bg-sage-100 text-sage-800">
+                {getUserInitials()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <Button
+                onClick={() => setShowImageSelector(!showImageSelector)}
+                variant="outline"
+                className="mb-2"
+              >
+                Choose Image
+              </Button>
+              {showImageSelector && (
+                <div className="grid grid-cols-3 gap-2 mt-3">
+                  {defaultProfileImages.map((imageUrl, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleProfileImageSelect(imageUrl)}
+                      className="relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-sage-400 transition-colors"
+                    >
+                      <img
+                        src={imageUrl}
+                        alt={`Profile option ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Profile Information */}
         <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'}`}>

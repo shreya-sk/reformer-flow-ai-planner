@@ -64,6 +64,7 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
     setTeachingClass(classPlan);
   };
 
+  // If teaching mode is active, show the teaching component
   if (teachingClass) {
     return (
       <ClassTeachingMode
