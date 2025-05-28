@@ -105,7 +105,7 @@ export const ClassTeachingMode = ({
 
   return (
     <div className="min-h-screen bg-sage-700 text-white">
-      {/* Fixed Header with Timer */}
+      {/* Fixed Header with Timer - NO PROFILE PIC */}
       <div className="fixed top-0 left-0 right-0 z-30 bg-sage-800/95 backdrop-blur-sm border-b border-sage-600">
         <div className="flex items-center justify-between p-4">
           <Button 

@@ -2,14 +2,17 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Clock, Users, Target, AlertTriangle, Baby, Save, X, Plus, Trash2, TrendingUp, TrendingDown } from 'lucide-react';
-import { Exercise, MuscleGroup } from '@/types/reformer';
-import { SpringVisual } from './SpringVisual';
-import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { X, Save, Plus, Trash2, Clock, Target, Dumbbell, Settings, FileText, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
+import { Exercise, MuscleGroup, ExerciseCategory, DifficultyLevel } from '@/types/reformer';
+import { SpringVisual } from '@/components/SpringVisual';
 
 interface ExerciseDetailModalProps {
   exercise: Exercise;
@@ -18,15 +21,37 @@ interface ExerciseDetailModalProps {
   onUpdate: (updatedExercise: Exercise) => void;
 }
 
+const muscleGroupOptions: MuscleGroup[] = [
+  'Core', 'Arms', 'Legs', 'Back', 'Chest', 'Shoulders', 'Glutes', 'Calves'
+];
+
+const categoryOptions: ExerciseCategory[] = [
+  'warm-up', 'standing', 'supine', 'prone', 'sitting', 'side-lying', 'kneeling', 'cool-down'
+];
+
+const difficultyOptions: DifficultyLevel[] = ['beginner', 'intermediate', 'advanced'];
+
+const springOptions = [
+  { value: 'light', label: 'Light', color: 'bg-green-500' },
+  { value: 'medium', label: 'Medium', color: 'bg-yellow-500' },
+  { value: 'heavy', label: 'Heavy', color: 'bg-red-500' },
+  { value: 'light-medium', label: 'Light + Medium', color: 'bg-gradient-to-r from-green-500 to-yellow-500' },
+  { value: 'medium-heavy', label: 'Medium + Heavy', color: 'bg-gradient-to-r from-yellow-500 to-red-500' },
+  { value: 'all', label: 'All Springs', color: 'bg-gradient-to-r from-green-500 via-yellow-500 to-red-500' }
+];
+
 export const ExerciseDetailModal = ({
   exercise,
   isOpen,
   onClose,
   onUpdate
 }: ExerciseDetailModalProps) => {
-  const { preferences } = useUserPreferences();
-  const [isEditing, setIsEditing] = useState(false);
   const [editedExercise, setEditedExercise] = useState<Exercise>(exercise);
+  const [activeTab, setActiveTab] = useState('details');
+  const [newProgression, setNewProgression] = useState('');
+  const [newRegression, setNewRegression] = useState('');
+  const [newCue, setNewCue] = useState('');
+  const [newContraindication, setNewContraindication] = useState('');
 
   useEffect(() => {
     setEditedExercise(exercise);
@@ -34,26 +59,40 @@ export const ExerciseDetailModal = ({
 
   const handleSave = () => {
     onUpdate(editedExercise);
-    setIsEditing(false);
+    onClose();
   };
 
-  const handleCancel = () => {
-    setEditedExercise(exercise);
-    setIsEditing(false);
+  const handleFieldChange = (field: keyof Exercise, value: any) => {
+    setEditedExercise(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleMuscleGroupToggle = (muscleGroup: MuscleGroup) => {
+    setEditedExercise(prev => {
+      const currentGroups = prev.muscleGroups || [];
+      const isSelected = currentGroups.includes(muscleGroup);
+      
+      const newGroups = isSelected
+        ? currentGroups.filter(group => group !== muscleGroup)
+        : [...currentGroups, muscleGroup];
+      
+      return {
+        ...prev,
+        muscleGroups: newGroups
+      };
+    });
   };
 
   const addProgression = () => {
-    setEditedExercise(prev => ({
-      ...prev,
-      progressions: [...(prev.progressions || []), '']
-    }));
-  };
-
-  const updateProgression = (index: number, value: string) => {
-    setEditedExercise(prev => ({
-      ...prev,
-      progressions: prev.progressions?.map((prog, i) => i === index ? value : prog) || []
-    }));
+    if (newProgression.trim()) {
+      setEditedExercise(prev => ({
+        ...prev,
+        progressions: [...(prev.progressions || []), newProgression.trim()]
+      }));
+      setNewProgression('');
+    }
   };
 
   const removeProgression = (index: number) => {
@@ -64,17 +103,13 @@ export const ExerciseDetailModal = ({
   };
 
   const addRegression = () => {
-    setEditedExercise(prev => ({
-      ...prev,
-      regressions: [...(prev.regressions || []), '']
-    }));
-  };
-
-  const updateRegression = (index: number, value: string) => {
-    setEditedExercise(prev => ({
-      ...prev,
-      regressions: prev.regressions?.map((reg, i) => i === index ? value : reg) || []
-    }));
+    if (newRegression.trim()) {
+      setEditedExercise(prev => ({
+        ...prev,
+        regressions: [...(prev.regressions || []), newRegression.trim()]
+      }));
+      setNewRegression('');
+    }
   };
 
   const removeRegression = (index: number) => {
@@ -84,358 +119,342 @@ export const ExerciseDetailModal = ({
     }));
   };
 
-  // Helper function to validate muscle groups
-  const isValidMuscleGroup = (value: string): value is MuscleGroup => {
-    const validMuscleGroups: MuscleGroup[] = [
-      'core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body',
-      'quadriceps', 'hamstrings', 'calves', 'lower-abs', 'upper-abs', 'obliques',
-      'transverse-abdominis', 'traps', 'deltoids', 'biceps', 'triceps', 'lats',
-      'chest', 'rhomboids', 'erector-spinae', 'hip-flexors', 'adductors', 'abductors',
-      'pelvic-floor', 'deep-stabilizers', 'spinal-extensors', 'neck', 'forearms',
-      'wrists', 'ankles', 'feet', 'hip-abductors', 'hip-adductors', 'rotator-cuff',
-      'serratus-anterior', 'psoas', 'iliotibial-band', 'thoracic-spine', 'lumbar-spine',
-      'cervical-spine', 'diaphragm', 'intercostals'
-    ];
-    return validMuscleGroups.includes(value as MuscleGroup);
+  const addCue = () => {
+    if (newCue.trim()) {
+      setEditedExercise(prev => ({
+        ...prev,
+        cues: [...(prev.cues || []), newCue.trim()]
+      }));
+      setNewCue('');
+    }
   };
 
-  if (isEditing) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
-          <div className="p-6 space-y-4">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Edit className="h-5 w-5" />
-                Edit Exercise
-              </DialogTitle>
-            </DialogHeader>
+  const removeCue = (index: number) => {
+    setEditedExercise(prev => ({
+      ...prev,
+      cues: prev.cues?.filter((_, i) => i !== index) || []
+    }));
+  };
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium text-sage-700 mb-1 block">Exercise Name</label>
-                  <Input
-                    value={editedExercise.name}
-                    onChange={(e) => setEditedExercise(prev => ({ ...prev, name: e.target.value }))}
-                    className="border-sage-300 focus:border-sage-500"
-                  />
-                </div>
+  const addContraindication = () => {
+    if (newContraindication.trim()) {
+      setEditedExercise(prev => ({
+        ...prev,
+        contraindications: [...(prev.contraindications || []), newContraindication.trim()]
+      }));
+      setNewContraindication('');
+    }
+  };
 
-                <div>
-                  <label className="text-sm font-medium text-sage-700 mb-1 block">Duration (minutes)</label>
-                  <Input
-                    type="number"
-                    value={editedExercise.duration || ''}
-                    onChange={(e) => setEditedExercise(prev => ({ ...prev, duration: parseInt(e.target.value) || 0 }))}
-                    className="border-sage-300 focus:border-sage-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-sage-700 mb-1 block">Target Muscles (comma separated)</label>
-                  <Input
-                    value={editedExercise.muscleGroups.join(', ')}
-                    onChange={(e) => {
-                      const muscleGroupStrings = e.target.value.split(',').map(m => m.trim()).filter(m => m);
-                      const validMuscleGroups = muscleGroupStrings.filter(isValidMuscleGroup);
-                      setEditedExercise(prev => ({ 
-                        ...prev, 
-                        muscleGroups: validMuscleGroups
-                      }));
-                    }}
-                    className="border-sage-300 focus:border-sage-500"
-                    placeholder="core, glutes, legs"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-sage-700 mb-1 block">Teaching Cues</label>
-                  <Textarea
-                    value={editedExercise.cues?.join('\n') || ''}
-                    onChange={(e) => setEditedExercise(prev => ({ 
-                      ...prev, 
-                      cues: e.target.value.split('\n').filter(cue => cue.trim()) 
-                    }))}
-                    className="border-sage-300 focus:border-sage-500 min-h-[100px]"
-                    placeholder="Enter each cue on a new line"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {/* Progressions */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium text-sage-700 flex items-center gap-1">
-                      <TrendingUp className="h-4 w-4 text-green-600" />
-                      Progressions
-                    </label>
-                    <Button onClick={addProgression} size="sm" variant="outline" className="h-6 w-6 p-0">
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {editedExercise.progressions?.map((progression, index) => (
-                      <div key={index} className="flex gap-2">
-                        <Input
-                          value={progression}
-                          onChange={(e) => updateProgression(index, e.target.value)}
-                          className="border-sage-300 focus:border-sage-500 text-sm"
-                          placeholder="Add progression..."
-                        />
-                        <Button 
-                          onClick={() => removeProgression(index)}
-                          size="sm" 
-                          variant="ghost" 
-                          className="h-8 w-8 p-0 text-red-500 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Regressions */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium text-sage-700 flex items-center gap-1">
-                      <TrendingDown className="h-4 w-4 text-blue-600" />
-                      Regressions
-                    </label>
-                    <Button onClick={addRegression} size="sm" variant="outline" className="h-6 w-6 p-0">
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {editedExercise.regressions?.map((regression, index) => (
-                      <div key={index} className="flex gap-2">
-                        <Input
-                          value={regression}
-                          onChange={(e) => updateRegression(index, e.target.value)}
-                          className="border-sage-300 focus:border-sage-500 text-sm"
-                          placeholder="Add regression..."
-                        />
-                        <Button 
-                          onClick={() => removeRegression(index)}
-                          size="sm" 
-                          variant="ghost" 
-                          className="h-8 w-8 p-0 text-red-500 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-sage-700 mb-1 block">Setup Instructions</label>
-                  <Textarea
-                    value={editedExercise.setup || ''}
-                    onChange={(e) => setEditedExercise(prev => ({ ...prev, setup: e.target.value }))}
-                    className="border-sage-300 focus:border-sage-500 min-h-[80px]"
-                    placeholder="Setup instructions..."
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4 border-t">
-              <Button onClick={handleCancel} variant="outline">
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-              <Button onClick={handleSave} className="bg-sage-600 hover:bg-sage-700">
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+  const removeContraindication = (index: number) => {
+    setEditedExercise(prev => ({
+      ...prev,
+      contraindications: prev.contraindications?.filter((_, i) => i !== index) || []
+    }));
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
-        <div className={`${preferences.darkMode ? 'bg-gray-800 text-white' : 'bg-white'}`}>
-          {/* Header */}
-          <div className={`p-6 border-b ${preferences.darkMode ? 'border-gray-700' : 'border-sage-100'}`}>
-            <DialogHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Target className={`h-6 w-6 ${preferences.darkMode ? 'text-sage-400' : 'text-sage-600'}`} />
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl font-semibold text-sage-800">
+              Edit Exercise
+            </DialogTitle>
+            <div className="flex items-center gap-2">
+              <Button onClick={handleSave} size="sm" className="bg-sage-600 hover:bg-sage-700">
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+              <Button onClick={onClose} variant="ghost" size="sm">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+          <TabsList className="grid w-full grid-cols-4 mb-4">
+            <TabsTrigger value="details" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Details
+            </TabsTrigger>
+            <TabsTrigger value="instructions" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Instructions
+            </TabsTrigger>
+            <TabsTrigger value="modifications" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Modifications
+            </TabsTrigger>
+            <TabsTrigger value="safety" className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Safety
+            </TabsTrigger>
+          </TabsList>
+
+          <ScrollArea className="flex-1">
+            <TabsContent value="details" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
                   <div>
-                    <DialogTitle className={`text-xl ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                      {exercise.name}
-                    </DialogTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      {exercise.muscleGroups.slice(0, 3).map(group => (
-                        <Badge key={group} variant="secondary" className="text-xs">
-                          {group}
-                        </Badge>
+                    <Label htmlFor="name">Exercise Name</Label>
+                    <Input
+                      id="name"
+                      value={editedExercise.name}
+                      onChange={(e) => handleFieldChange('name', e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="category">Category</Label>
+                    <Select value={editedExercise.category} onValueChange={(value) => handleFieldChange('category', value)}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categoryOptions.map(category => (
+                          <SelectItem key={category} value={category}>
+                            {category.charAt(0).toUpperCase() + category.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="duration">Duration (minutes)</Label>
+                    <Input
+                      id="duration"
+                      type="number"
+                      value={editedExercise.duration || ''}
+                      onChange={(e) => handleFieldChange('duration', parseInt(e.target.value) || 0)}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="difficulty">Difficulty</Label>
+                    <Select value={editedExercise.difficulty} onValueChange={(value) => handleFieldChange('difficulty', value)}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {difficultyOptions.map(difficulty => (
+                          <SelectItem key={difficulty} value={difficulty}>
+                            {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <Label>Spring Setting</Label>
+                    <div className="mt-2 space-y-2">
+                      {springOptions.map(option => (
+                        <div 
+                          key={option.value}
+                          className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
+                            editedExercise.springs === option.value 
+                              ? 'border-sage-500 bg-sage-50' 
+                              : 'border-gray-200 hover:border-sage-300'
+                          }`}
+                          onClick={() => handleFieldChange('springs', option.value)}
+                        >
+                          <span className="font-medium">{option.label}</span>
+                          <div className={`w-6 h-6 rounded-full ${option.color}`}></div>
+                        </div>
                       ))}
                     </div>
                   </div>
                 </div>
-                <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-              </div>
-            </DialogHeader>
-          </div>
-
-          {/* Content */}
-          <div className="p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left Column */}
-              <div className="space-y-4">
-                <Card className={`${preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-sage-50 border-sage-200'}`}>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <Clock className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-                        <span className="font-medium">{exercise.duration} min</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">Springs:</span>
-                        <SpringVisual springs={exercise.springs} />
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Users className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-                      <Badge className={`${exercise.difficulty === 'beginner' ? 'bg-green-100 text-green-800' : 
-                                         exercise.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-800' : 
-                                         'bg-red-100 text-red-800'}`}>
-                        {exercise.difficulty}
-                      </Badge>
-                      {exercise.isPregnancySafe && (
-                        <Badge className="bg-pink-100 text-pink-800 ml-2">
-                          <Baby className="h-3 w-3 mr-1" />
-                          Pregnancy Safe
-                        </Badge>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Teaching Cues */}
-                {exercise.cues && exercise.cues.length > 0 && (
-                  <Card className={`${preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-sage-200'}`}>
-                    <CardContent className="p-4">
-                      <h4 className={`font-medium mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>Teaching Cues</h4>
-                      <ul className="space-y-1">
-                        {exercise.cues.map((cue, index) => (
-                          <li key={index} className={`text-sm flex items-start gap-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
-                            <span className="text-sage-500 mt-1">•</span>
-                            <span>{cue}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Progressions & Regressions */}
-                {((exercise.progressions && exercise.progressions.length > 0) || 
-                  (exercise.regressions && exercise.regressions.length > 0)) && (
-                  <Card className={`${preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-sage-200'}`}>
-                    <CardContent className="p-4 space-y-4">
-                      {exercise.progressions && exercise.progressions.length > 0 && (
-                        <div>
-                          <h4 className={`font-medium mb-2 flex items-center gap-1 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                            <TrendingUp className="h-4 w-4 text-green-600" />
-                            Progressions
-                          </h4>
-                          <ul className="space-y-1">
-                            {exercise.progressions.map((progression, index) => (
-                              <li key={index} className={`text-sm flex items-start gap-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
-                                <span className="text-green-500 mt-1">▲</span>
-                                <span>{progression}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {exercise.regressions && exercise.regressions.length > 0 && (
-                        <div>
-                          <h4 className={`font-medium mb-2 flex items-center gap-1 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                            <TrendingDown className="h-4 w-4 text-blue-600" />
-                            Regressions
-                          </h4>
-                          <ul className="space-y-1">
-                            {exercise.regressions.map((regression, index) => (
-                              <li key={index} className={`text-sm flex items-start gap-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
-                                <span className="text-blue-500 mt-1">▼</span>
-                                <span>{regression}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
               </div>
 
-              {/* Right Column */}
-              <div className="space-y-4">
-                {/* Exercise Image */}
-                <Card className={`${preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-sage-200'}`}>
-                  <CardContent className="p-0">
-                    <div className="h-64 bg-gradient-to-br from-sage-100 to-sage-200 rounded-lg overflow-hidden">
-                      {exercise.image ? (
-                        <img src={exercise.image} alt={exercise.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>
-                            No image available
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Setup */}
-                {exercise.setup && (
-                  <Card className={`${preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-sage-200'}`}>
-                    <CardContent className="p-4">
-                      <h4 className={`font-medium mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>Setup</h4>
-                      <p className={`text-sm ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>{exercise.setup}</p>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Safety */}
-                {exercise.contraindications && exercise.contraindications.length > 0 && (
-                  <Card className="bg-amber-50 border-amber-200">
-                    <CardContent className="p-4">
-                      <h4 className="font-medium mb-2 text-amber-800 flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4" />
-                        Safety Notes
-                      </h4>
-                      <ul className="space-y-1">
-                        {exercise.contraindications.map((item, index) => (
-                          <li key={index} className="text-sm text-amber-700 flex items-start gap-2">
-                            <span className="text-amber-500 mt-1">⚠</span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
+              <div>
+                <Label>Target Muscle Groups</Label>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {muscleGroupOptions.map(group => (
+                    <Badge
+                      key={group}
+                      variant={editedExercise.muscleGroups?.includes(group) ? "default" : "outline"}
+                      className={`cursor-pointer transition-all ${
+                        editedExercise.muscleGroups?.includes(group)
+                          ? 'bg-sage-600 hover:bg-sage-700'
+                          : 'hover:bg-sage-100'
+                      }`}
+                      onClick={() => handleMuscleGroupToggle(group)}
+                    >
+                      <Target className="h-3 w-3 mr-1" />
+                      {group}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
+
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={editedExercise.description || ''}
+                  onChange={(e) => handleFieldChange('description', e.target.value)}
+                  rows={3}
+                  className="mt-1"
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="instructions" className="space-y-6">
+              <div>
+                <Label>Teaching Cues</Label>
+                <div className="mt-2 space-y-2">
+                  {editedExercise.cues?.map((cue, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 bg-sage-50 rounded-lg">
+                      <span className="flex-1">{cue}</span>
+                      <Button
+                        onClick={() => removeCue(index)}
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <div className="flex gap-2">
+                    <Input
+                      value={newCue}
+                      onChange={(e) => setNewCue(e.target.value)}
+                      placeholder="Add a teaching cue..."
+                      onKeyPress={(e) => e.key === 'Enter' && addCue()}
+                    />
+                    <Button onClick={addCue} size="sm">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="setup">Setup Instructions</Label>
+                <Textarea
+                  id="setup"
+                  value={editedExercise.setup || ''}
+                  onChange={(e) => handleFieldChange('setup', e.target.value)}
+                  rows={3}
+                  className="mt-1"
+                  placeholder="Describe how to set up this exercise..."
+                />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="modifications" className="space-y-6">
+              <div>
+                <Label className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  Progressions
+                </Label>
+                <div className="mt-2 space-y-2">
+                  {editedExercise.progressions?.map((progression, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
+                      <span className="flex-1">{progression}</span>
+                      <Button
+                        onClick={() => removeProgression(index)}
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <div className="flex gap-2">
+                    <Input
+                      value={newProgression}
+                      onChange={(e) => setNewProgression(e.target.value)}
+                      placeholder="Add a progression..."
+                      onKeyPress={(e) => e.key === 'Enter' && addProgression()}
+                    />
+                    <Button onClick={addProgression} size="sm" className="bg-green-600 hover:bg-green-700">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2">
+                  <TrendingDown className="h-4 w-4 text-blue-600" />
+                  Regressions
+                </Label>
+                <div className="mt-2 space-y-2">
+                  {editedExercise.regressions?.map((regression, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+                      <span className="flex-1">{regression}</span>
+                      <Button
+                        onClick={() => removeRegression(index)}
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <div className="flex gap-2">
+                    <Input
+                      value={newRegression}
+                      onChange={(e) => setNewRegression(e.target.value)}
+                      placeholder="Add a regression..."
+                      onKeyPress={(e) => e.key === 'Enter' && addRegression()}
+                    />
+                    <Button onClick={addRegression} size="sm" className="bg-blue-600 hover:bg-blue-700">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="safety" className="space-y-6">
+              <div>
+                <Label className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                  Contraindications & Safety Notes
+                </Label>
+                <div className="mt-2 space-y-2">
+                  {editedExercise.contraindications?.map((contraindication, index) => (
+                    <div key={index} className="flex items-center gap-2 p-2 bg-amber-50 rounded-lg">
+                      <span className="flex-1">{contraindication}</span>
+                      <Button
+                        onClick={() => removeContraindication(index)}
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <div className="flex gap-2">
+                    <Input
+                      value={newContraindication}
+                      onChange={(e) => setNewContraindication(e.target.value)}
+                      placeholder="Add a safety note or contraindication..."
+                      onKeyPress={(e) => e.key === 'Enter' && addContraindication()}
+                    />
+                    <Button onClick={addContraindication} size="sm" className="bg-amber-600 hover:bg-amber-700">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </ScrollArea>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
