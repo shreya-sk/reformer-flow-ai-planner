@@ -1,434 +1,479 @@
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Save, Plus, Trash2, Clock, Target, Dumbbell, Settings, FileText, AlertTriangle, TrendingUp, TrendingDown, Image as ImageIcon } from 'lucide-react';
-import { Exercise, MuscleGroup, ExerciseCategory, DifficultyLevel } from '@/types/reformer';
-import { useCustomExercises } from '@/hooks/useCustomExercises';
-import { toast } from '@/hooks/use-toast';
-
-const muscleGroupOptions: MuscleGroup[] = [
-  'Core', 'Arms', 'Legs', 'Back', 'Chest', 'Shoulders', 'Glutes', 'Calves'
-];
-
-const categoryOptions: ExerciseCategory[] = [
-  'warm-up', 'standing', 'supine', 'prone', 'sitting', 'side-lying', 'kneeling', 'cool-down'
-];
-
-const difficultyOptions: DifficultyLevel[] = ['beginner', 'intermediate', 'advanced'];
-
-const equipmentOptions = [
-  'Reformer', 'Carriage', 'Footbar', 'Straps', 'Headrest', 'Box', 'Platform'
-];
-
-const springOptions = [
-  { value: 'light', label: 'Light', color: 'bg-green-500', icon: '●' },
-  { value: 'medium', label: 'Medium', color: 'bg-yellow-500', icon: '●●' },
-  { value: 'heavy', label: 'Heavy', color: 'bg-red-500', icon: '●●●' },
-  { value: 'light-medium', label: 'Light + Medium', color: 'bg-gradient-to-r from-green-500 to-yellow-500', icon: '●+●●' },
-  { value: 'medium-heavy', label: 'Medium + Heavy', color: 'bg-gradient-to-r from-yellow-500 to-red-500', icon: '●●+●●●' },
-  { value: 'all', label: 'All Springs', color: 'bg-gradient-to-r from-green-500 via-yellow-500 to-red-500', icon: '●●●●' }
-];
-
-const exerciseSchema = z.object({
-  name: z.string().min(1, 'Exercise name is required'),
-  category: z.string().min(1, 'Category is required'),
-  duration: z.number().min(1, 'Duration must be at least 1 minute'),
-  springs: z.string().min(1, 'Spring setting is required'),
-  difficulty: z.string().min(1, 'Difficulty is required'),
-  description: z.string().optional(),
-});
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Save, X, Plus, Trash2, Dumbbell, Target, Clock, Image as ImageIcon, Shield } from 'lucide-react';
+import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 
 interface ImprovedExerciseFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSave?: (exercise: Exercise) => void;
+  exercise?: Exercise | null;
+  onSave: (exercise: Exercise) => void;
+  onCancel: () => void;
 }
 
-export const ImprovedExerciseForm = ({
-  isOpen,
-  onClose,
-  onSave
-}: ImprovedExerciseFormProps) => {
-  const { saveCustomExercise } = useCustomExercises();
-  const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<MuscleGroup[]>([]);
-  const [selectedEquipment, setSelectedEquipment] = useState<string[]>(['Reformer']);
-  const [cues, setCues] = useState<string[]>([]);
-  const [progressions, setProgressions] = useState<string[]>([]);
-  const [regressions, setRegressions] = useState<string[]>([]);
-  const [contraindications, setContraindications] = useState<string[]>([]);
-  const [newCue, setNewCue] = useState('');
-  const [newProgression, setNewProgression] = useState('');
-  const [newRegression, setNewRegression] = useState('');
-  const [newContraindication, setNewContraindication] = useState('');
-  const [setup, setSetup] = useState('');
-  const [notes, setNotes] = useState('');
+const muscleGroups: MuscleGroup[] = ['core', 'arms', 'legs', 'back', 'chest', 'shoulders', 'glutes', 'calves'];
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    reset,
-    formState: { errors }
-  } = useForm<z.infer<typeof exerciseSchema>>({
-    resolver: zodResolver(exerciseSchema),
-    defaultValues: {
-      duration: 5,
-    }
+const categories: ExerciseCategory[] = ['supine', 'prone', 'standing', 'sitting', 'side-lying', 'kneeling'];
+
+const springOptions = [
+  { value: 'light', label: 'Light', color: 'bg-green-500' },
+  { value: 'medium', label: 'Medium', color: 'bg-yellow-500' },
+  { value: 'heavy', label: 'Heavy', color: 'bg-red-500' },
+  { value: 'mixed', label: 'Mixed', color: 'bg-gradient-to-r from-red-500 via-yellow-500 to-green-500' }
+];
+
+const equipmentOptions = ['reformer', 'tower', 'chair', 'cadillac', 'mat', 'props', 'barrels'] as const;
+
+export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExerciseFormProps) => {
+  const { preferences } = useUserPreferences();
+  const [formData, setFormData] = useState<Partial<Exercise>>({
+    name: exercise?.name || '',
+    description: exercise?.description || '',
+    category: exercise?.category || 'supine',
+    difficulty: exercise?.difficulty || 'beginner',
+    duration: exercise?.duration || 5,
+    muscleGroups: exercise?.muscleGroups || [],
+    equipment: exercise?.equipment || ['reformer'],
+    springs: exercise?.springs || 'medium',
+    isPregnancySafe: exercise?.isPregnancySafe || false,
+    cues: exercise?.cues || [],
+    progressions: exercise?.progressions || [],
+    regressions: exercise?.regressions || [],
+    contraindications: exercise?.contraindications || [],
+    notes: exercise?.notes || '',
+    image: exercise?.image || ''
   });
 
-  const selectedSpring = watch('springs');
-  const selectedCategory = watch('category');
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleMuscleGroupToggle = (muscleGroup: MuscleGroup) => {
-    setSelectedMuscleGroups(prev =>
-      prev.includes(muscleGroup)
-        ? prev.filter(g => g !== muscleGroup)
-        : [...prev, muscleGroup]
-    );
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.name?.trim()) newErrors.name = 'Exercise name is required';
+    if (!formData.muscleGroups?.length) newErrors.muscleGroups = 'At least one muscle group is required';
+    if (!formData.duration || formData.duration <= 0) newErrors.duration = 'Duration must be greater than 0';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleEquipmentToggle = (equipment: string) => {
-    setSelectedEquipment(prev =>
-      prev.includes(equipment)
-        ? prev.filter(e => e !== equipment)
-        : [...prev, equipment]
-    );
-  };
+  const handleSubmit = () => {
+    if (!validateForm()) return;
 
-  const addItem = (item: string, setter: React.Dispatch<React.SetStateAction<string[]>>, resetSetter: React.Dispatch<React.SetStateAction<string>>) => {
-    if (item.trim()) {
-      setter(prev => [...prev, item.trim()]);
-      resetSetter('');
-    }
-  };
-
-  const removeItem = (index: number, setter: React.Dispatch<React.SetStateAction<string[]>>) => {
-    setter(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const onSubmit = async (data: z.infer<typeof exerciseSchema>) => {
-    if (selectedMuscleGroups.length === 0) {
-      toast({
-        title: "Missing muscle groups",
-        description: "Please select at least one target muscle group.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newExercise: Omit<Exercise, 'id'> = {
-      name: data.name,
-      category: data.category as ExerciseCategory,
-      duration: data.duration,
-      springs: data.springs,
-      difficulty: data.difficulty as DifficultyLevel,
-      intensityLevel: 'medium',
-      muscleGroups: selectedMuscleGroups,
-      equipment: selectedEquipment,
-      description: data.description || '',
-      image: '',
-      videoUrl: '',
-      notes,
-      cues,
-      progressions,
-      regressions,
-      contraindications,
-      setup,
-      isPregnancySafe: false,
-      createdAt: new Date(),
+    const newExercise: Exercise = {
+      id: exercise?.id || `exercise-${Date.now()}`,
+      name: formData.name!,
+      description: formData.description || '',
+      category: formData.category!,
+      difficulty: formData.difficulty!,
+      intensityLevel: formData.difficulty === 'beginner' ? 'low' : formData.difficulty === 'intermediate' ? 'moderate' : 'high',
+      duration: formData.duration!,
+      repsOrDuration: `${formData.duration} min`,
+      muscleGroups: formData.muscleGroups!,
+      equipment: formData.equipment!,
+      springs: formData.springs!,
+      isPregnancySafe: formData.isPregnancySafe!,
+      cues: formData.cues!,
+      progressions: formData.progressions,
+      regressions: formData.regressions,
+      contraindications: formData.contraindications,
+      notes: formData.notes,
+      image: formData.image
     };
 
-    if (onSave) {
-      onSave(newExercise as Exercise);
-    } else {
-      await saveCustomExercise(newExercise);
-    }
-
-    handleClose();
+    onSave(newExercise);
   };
 
-  const handleClose = () => {
-    reset();
-    setSelectedMuscleGroups([]);
-    setSelectedEquipment(['Reformer']);
-    setCues([]);
-    setProgressions([]);
-    setRegressions([]);
-    setContraindications([]);
-    setSetup('');
-    setNotes('');
-    onClose();
+  const toggleMuscleGroup = (muscleGroup: MuscleGroup) => {
+    setFormData(prev => ({
+      ...prev,
+      muscleGroups: prev.muscleGroups?.includes(muscleGroup)
+        ? prev.muscleGroups.filter(mg => mg !== muscleGroup)
+        : [...(prev.muscleGroups || []), muscleGroup]
+    }));
+  };
+
+  const toggleEquipment = (equipment: string) => {
+    setFormData(prev => ({
+      ...prev,
+      equipment: prev.equipment?.includes(equipment as any)
+        ? prev.equipment.filter(eq => eq !== equipment)
+        : [...(prev.equipment || []), equipment as any]
+    }));
+  };
+
+  const addCue = () => {
+    setFormData(prev => ({
+      ...prev,
+      cues: [...(prev.cues || []), '']
+    }));
+  };
+
+  const updateCue = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      cues: prev.cues?.map((cue, i) => i === index ? value : cue) || []
+    }));
+  };
+
+  const removeCue = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      cues: prev.cues?.filter((_, i) => i !== index) || []
+    }));
+  };
+
+  const addProgression = () => {
+    setFormData(prev => ({
+      ...prev,
+      progressions: [...(prev.progressions || []), '']
+    }));
+  };
+
+  const updateProgression = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      progressions: prev.progressions?.map((p, i) => i === index ? value : p) || []
+    }));
+  };
+
+  const removeProgression = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      progressions: prev.progressions?.filter((_, i) => i !== index) || []
+    }));
+  };
+
+  const addRegression = () => {
+    setFormData(prev => ({
+      ...prev,
+      regressions: [...(prev.regressions || []), '']
+    }));
+  };
+
+  const updateRegression = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      regressions: prev.regressions?.map((r, i) => i === index ? value : r) || []
+    }));
+  };
+
+  const removeRegression = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      regressions: prev.regressions?.filter((_, i) => i !== index) || []
+    }));
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden">
-        <DialogHeader className="flex-shrink-0 border-b border-sage-200 pb-4">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-semibold text-sage-800 flex items-center gap-2">
-              <Plus className="h-5 w-5 text-sage-600" />
-              Create New Exercise
-            </DialogTitle>
-            <Button onClick={handleClose} variant="ghost" size="sm">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </DialogHeader>
+    <div className={`p-6 max-h-[80vh] overflow-y-auto ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+          {exercise ? 'Edit Exercise' : 'Create New Exercise'}
+        </h2>
+        <div className="flex gap-2">
+          <Button onClick={handleSubmit} className="bg-sage-600 hover:bg-sage-700">
+            <Save className="h-4 w-4 mr-2" />
+            Save Exercise
+          </Button>
+          <Button onClick={onCancel} variant="outline">
+            <X className="h-4 w-4 mr-2" />
+            Cancel
+          </Button>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-hidden">
-          <ScrollArea className="h-[calc(95vh-200px)] px-1">
-            <div className="space-y-6 p-1">
-              {/* Basic Information */}
-              <Card className="border-sage-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2 text-sage-700">
-                    <Settings className="h-5 w-5" />
-                    Basic Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="name" className="flex items-center gap-1">
-                        <FileText className="h-4 w-4" />
-                        Exercise Name *
-                      </Label>
-                      <Input
-                        id="name"
-                        {...register('name')}
-                        placeholder="e.g., Single Leg Stretch"
-                        className="mt-1"
-                      />
-                      {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>}
-                    </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Column - Basic Info */}
+        <div className="space-y-4">
+          {/* Exercise Details */}
+          <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Dumbbell className="h-5 w-5 text-sage-600" />
+                Exercise Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Exercise Name *</label>
+                <Input
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter exercise name..."
+                  className={`mt-1 ${errors.name ? 'border-red-500' : ''}`}
+                />
+                {errors.name && <span className="text-red-500 text-xs">{errors.name}</span>}
+              </div>
 
-                    <div>
-                      <Label htmlFor="category" className="flex items-center gap-1">
-                        <Target className="h-4 w-4" />
-                        Category *
-                      </Label>
-                      <Select onValueChange={(value) => setValue('category', value)}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categoryOptions.map(category => (
-                            <SelectItem key={category} value={category}>
-                              <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-sage-500"></span>
-                                {category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' ')}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.category && <p className="text-sm text-red-600 mt-1">{errors.category.message}</p>}
-                    </div>
+              <div>
+                <label className="text-sm font-medium">Description</label>
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe the exercise..."
+                  className="mt-1"
+                  rows={3}
+                />
+              </div>
 
-                    <div>
-                      <Label htmlFor="duration" className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        Duration (minutes) *
-                      </Label>
-                      <Input
-                        id="duration"
-                        type="number"
-                        min="1"
-                        max="60"
-                        {...register('duration', { valueAsNumber: true })}
-                        className="mt-1"
-                      />
-                      {errors.duration && <p className="text-sm text-red-600 mt-1">{errors.duration.message}</p>}
-                    </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Category</label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, category: value as ExerciseCategory }))}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map(category => (
+                        <SelectItem key={category} value={category} className="capitalize">
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                    <div>
-                      <Label htmlFor="difficulty" className="flex items-center gap-1">
-                        <Dumbbell className="h-4 w-4" />
-                        Difficulty *
-                      </Label>
-                      <Select onValueChange={(value) => setValue('difficulty', value)}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Select difficulty" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {difficultyOptions.map(difficulty => (
-                            <SelectItem key={difficulty} value={difficulty}>
-                              <div className="flex items-center gap-2">
-                                <div className={`w-3 h-3 rounded-full ${
-                                  difficulty === 'beginner' ? 'bg-green-500' :
-                                  difficulty === 'intermediate' ? 'bg-yellow-500' : 'bg-red-500'
-                                }`}></div>
-                                {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {errors.difficulty && <p className="text-sm text-red-600 mt-1">{errors.difficulty.message}</p>}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                <div>
+                  <label className="text-sm font-medium">Difficulty</label>
+                  <Select
+                    value={formData.difficulty}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty: value as any }))}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-              {/* Spring Settings */}
-              <Card className="border-sage-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2 text-sage-700">
-                    <div className="w-5 h-5 bg-gradient-to-r from-green-500 to-red-500 rounded-full"></div>
-                    Spring Configuration *
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {springOptions.map(option => (
-                      <div
-                        key={option.value}
-                        className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${
-                          selectedSpring === option.value
-                            ? 'border-sage-500 bg-sage-50 shadow-md'
-                            : 'border-gray-200 hover:border-sage-300'
-                        }`}
-                        onClick={() => setValue('springs', option.value)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full ${option.color} flex items-center justify-center`}>
-                            <span className="text-white text-xs font-bold">{option.icon}</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Duration (minutes) *</label>
+                  <Input
+                    type="number"
+                    value={formData.duration}
+                    onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
+                    className={`mt-1 ${errors.duration ? 'border-red-500' : ''}`}
+                    min="1"
+                  />
+                  {errors.duration && <span className="text-red-500 text-xs">{errors.duration}</span>}
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Springs</label>
+                  <Select
+                    value={formData.springs}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, springs: value }))}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {springOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${option.color}`} />
+                            {option.label}
                           </div>
-                          <span className="font-medium text-sage-800">{option.label}</span>
-                        </div>
-                        {selectedSpring === option.value && (
-                          <div className="w-5 h-5 bg-sage-500 rounded-full flex items-center justify-center">
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  {errors.springs && <p className="text-sm text-red-600 mt-2">{errors.springs.message}</p>}
-                </CardContent>
-              </Card>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-              {/* Target Muscle Groups */}
-              <Card className="border-sage-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2 text-sage-700">
-                    <Target className="h-5 w-5" />
-                    Target Muscle Groups *
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {muscleGroupOptions.map(group => (
-                      <Badge
-                        key={group}
-                        variant={selectedMuscleGroups.includes(group) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all p-3 justify-center ${
-                          selectedMuscleGroups.includes(group)
-                            ? 'bg-sage-600 hover:bg-sage-700 text-white'
-                            : 'hover:bg-sage-100 border-sage-300'
-                        }`}
-                        onClick={() => handleMuscleGroupToggle(group)}
-                      >
-                        <Target className="h-3 w-3 mr-1" />
-                        {group}
-                      </Badge>
-                    ))}
-                  </div>
-                  {selectedMuscleGroups.length === 0 && (
-                    <p className="text-sm text-sage-600 mt-2">Select at least one muscle group</p>
-                  )}
-                </CardContent>
-              </Card>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="pregnancy-safe"
+                  checked={formData.isPregnancySafe}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPregnancySafe: !!checked }))}
+                />
+                <label htmlFor="pregnancy-safe" className="text-sm font-medium">
+                  Pregnancy Safe
+                </label>
+              </div>
+            </CardContent>
+          </Card>
 
-              {/* Equipment */}
-              <Card className="border-sage-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2 text-sage-700">
-                    <Settings className="h-5 w-5" />
-                    Required Equipment
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {equipmentOptions.map(equipment => (
-                      <Badge
-                        key={equipment}
-                        variant={selectedEquipment.includes(equipment) ? "default" : "outline"}
-                        className={`cursor-pointer transition-all ${
-                          selectedEquipment.includes(equipment)
-                            ? 'bg-sage-600 hover:bg-sage-700'
-                            : 'hover:bg-sage-100'
-                        }`}
-                        onClick={() => handleEquipmentToggle(equipment)}
-                      >
-                        {equipment}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Description & Setup */}
-              <Card className="border-sage-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2 text-sage-700">
-                    <FileText className="h-5 w-5" />
-                    Instructions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="description">Exercise Description</Label>
-                    <Textarea
-                      id="description"
-                      {...register('description')}
-                      rows={3}
-                      placeholder="Describe the exercise movement and benefits..."
-                      className="mt-1"
+          {/* Target Muscles */}
+          <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-sage-600" />
+                Target Muscles *
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-2">
+                {muscleGroups.map(group => (
+                  <div key={group} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={group}
+                      checked={formData.muscleGroups?.includes(group) || false}
+                      onCheckedChange={() => toggleMuscleGroup(group)}
                     />
+                    <label htmlFor={group} className="text-sm font-medium capitalize">
+                      {group}
+                    </label>
                   </div>
-                  <div>
-                    <Label htmlFor="setup">Setup Instructions</Label>
-                    <Textarea
-                      id="setup"
-                      value={setup}
-                      onChange={(e) => setSetup(e.target.value)}
-                      rows={2}
-                      placeholder="How to set up the reformer for this exercise..."
-                      className="mt-1"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </ScrollArea>
+                ))}
+              </div>
+              {errors.muscleGroups && <span className="text-red-500 text-xs">{errors.muscleGroups}</span>}
+            </CardContent>
+          </Card>
 
-          {/* Footer */}
-          <div className="flex-shrink-0 border-t border-sage-200 pt-4 mt-4">
-            <div className="flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button type="submit" className="bg-sage-600 hover:bg-sage-700">
-                <Save className="h-4 w-4 mr-2" />
-                Create Exercise
-              </Button>
-            </div>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+          {/* Equipment */}
+          <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
+            <CardHeader>
+              <CardTitle>Equipment</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {equipmentOptions.map(equipment => (
+                  <Badge
+                    key={equipment}
+                    variant={formData.equipment?.includes(equipment) ? "default" : "outline"}
+                    className="cursor-pointer capitalize"
+                    onClick={() => toggleEquipment(equipment)}
+                  >
+                    {equipment}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Advanced Options */}
+        <div className="space-y-4">
+          {/* Teaching Cues */}
+          <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                Teaching Cues
+                <Button onClick={addCue} size="sm" variant="outline">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {(formData.cues || []).map((cue, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={cue}
+                      onChange={(e) => updateCue(index, e.target.value)}
+                      placeholder="Add teaching cue..."
+                    />
+                    <Button
+                      onClick={() => removeCue(index)}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Progressions */}
+          <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between text-green-600">
+                Progressions
+                <Button onClick={addProgression} size="sm" variant="outline">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {(formData.progressions || []).map((progression, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={progression}
+                      onChange={(e) => updateProgression(index, e.target.value)}
+                      placeholder="Add progression..."
+                    />
+                    <Button
+                      onClick={() => removeProgression(index)}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Regressions */}
+          <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between text-blue-600">
+                Regressions
+                <Button onClick={addRegression} size="sm" variant="outline">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {(formData.regressions || []).map((regression, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={regression}
+                      onChange={(e) => updateRegression(index, e.target.value)}
+                      placeholder="Add regression..."
+                    />
+                    <Button
+                      onClick={() => removeRegression(index)}
+                      size="sm"
+                      variant="outline"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Notes */}
+          <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
+            <CardHeader>
+              <CardTitle>Additional Notes</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Any additional notes..."
+                rows={3}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 };

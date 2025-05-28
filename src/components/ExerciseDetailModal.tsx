@@ -1,460 +1,364 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Save, Plus, Trash2, Clock, Target, Dumbbell, Settings, FileText, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
-import { Exercise, MuscleGroup, ExerciseCategory, DifficultyLevel } from '@/types/reformer';
-import { SpringVisual } from '@/components/SpringVisual';
+import { Separator } from '@/components/ui/separator';
+import { Edit, Save, X, Plus, Trash2, Clock, Dumbbell, Target, Shield } from 'lucide-react';
+import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { SpringVisual } from './SpringVisual';
 
 interface ExerciseDetailModalProps {
   exercise: Exercise;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (updatedExercise: Exercise) => void;
+  onUpdate: (exercise: Exercise) => void;
 }
 
-const muscleGroupOptions: MuscleGroup[] = [
-  'Core', 'Arms', 'Legs', 'Back', 'Chest', 'Shoulders', 'Glutes', 'Calves'
-];
+const muscleGroups: MuscleGroup[] = ['core', 'arms', 'legs', 'back', 'chest', 'shoulders', 'glutes', 'calves'];
 
-const categoryOptions: ExerciseCategory[] = [
-  'warm-up', 'standing', 'supine', 'prone', 'sitting', 'side-lying', 'kneeling', 'cool-down'
-];
-
-const difficultyOptions: DifficultyLevel[] = ['beginner', 'intermediate', 'advanced'];
-
-const springOptions = [
-  { value: 'light', label: 'Light', color: 'bg-green-500' },
-  { value: 'medium', label: 'Medium', color: 'bg-yellow-500' },
-  { value: 'heavy', label: 'Heavy', color: 'bg-red-500' },
-  { value: 'light-medium', label: 'Light + Medium', color: 'bg-gradient-to-r from-green-500 to-yellow-500' },
-  { value: 'medium-heavy', label: 'Medium + Heavy', color: 'bg-gradient-to-r from-yellow-500 to-red-500' },
-  { value: 'all', label: 'All Springs', color: 'bg-gradient-to-r from-green-500 via-yellow-500 to-red-500' }
-];
-
-export const ExerciseDetailModal = ({
-  exercise,
-  isOpen,
-  onClose,
-  onUpdate
-}: ExerciseDetailModalProps) => {
-  const [editedExercise, setEditedExercise] = useState<Exercise>(exercise);
-  const [activeTab, setActiveTab] = useState('details');
-  const [newProgression, setNewProgression] = useState('');
-  const [newRegression, setNewRegression] = useState('');
-  const [newCue, setNewCue] = useState('');
-  const [newContraindication, setNewContraindication] = useState('');
-
-  useEffect(() => {
-    setEditedExercise(exercise);
-  }, [exercise]);
+export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: ExerciseDetailModalProps) => {
+  const { preferences } = useUserPreferences();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<Exercise>(exercise);
 
   const handleSave = () => {
-    onUpdate(editedExercise);
-    onClose();
+    onUpdate(editForm);
+    setIsEditing(false);
   };
 
-  const handleFieldChange = (field: keyof Exercise, value: any) => {
-    setEditedExercise(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleMuscleGroupToggle = (muscleGroup: MuscleGroup) => {
-    setEditedExercise(prev => {
-      const currentGroups = prev.muscleGroups || [];
-      const isSelected = currentGroups.includes(muscleGroup);
-      
-      const newGroups = isSelected
-        ? currentGroups.filter(group => group !== muscleGroup)
-        : [...currentGroups, muscleGroup];
-      
-      return {
-        ...prev,
-        muscleGroups: newGroups
-      };
-    });
+  const handleCancel = () => {
+    setEditForm(exercise);
+    setIsEditing(false);
   };
 
   const addProgression = () => {
-    if (newProgression.trim()) {
-      setEditedExercise(prev => ({
-        ...prev,
-        progressions: [...(prev.progressions || []), newProgression.trim()]
-      }));
-      setNewProgression('');
-    }
+    setEditForm(prev => ({
+      ...prev,
+      progressions: [...(prev.progressions || []), '']
+    }));
+  };
+
+  const updateProgression = (index: number, value: string) => {
+    setEditForm(prev => ({
+      ...prev,
+      progressions: prev.progressions?.map((p, i) => i === index ? value : p) || []
+    }));
   };
 
   const removeProgression = (index: number) => {
-    setEditedExercise(prev => ({
+    setEditForm(prev => ({
       ...prev,
       progressions: prev.progressions?.filter((_, i) => i !== index) || []
     }));
   };
 
   const addRegression = () => {
-    if (newRegression.trim()) {
-      setEditedExercise(prev => ({
-        ...prev,
-        regressions: [...(prev.regressions || []), newRegression.trim()]
-      }));
-      setNewRegression('');
-    }
+    setEditForm(prev => ({
+      ...prev,
+      regressions: [...(prev.regressions || []), '']
+    }));
+  };
+
+  const updateRegression = (index: number, value: string) => {
+    setEditForm(prev => ({
+      ...prev,
+      regressions: prev.regressions?.map((r, i) => i === index ? value : r) || []
+    }));
   };
 
   const removeRegression = (index: number) => {
-    setEditedExercise(prev => ({
+    setEditForm(prev => ({
       ...prev,
       regressions: prev.regressions?.filter((_, i) => i !== index) || []
     }));
   };
 
-  const addCue = () => {
-    if (newCue.trim()) {
-      setEditedExercise(prev => ({
-        ...prev,
-        cues: [...(prev.cues || []), newCue.trim()]
-      }));
-      setNewCue('');
-    }
-  };
-
-  const removeCue = (index: number) => {
-    setEditedExercise(prev => ({
+  const toggleMuscleGroup = (muscleGroup: MuscleGroup) => {
+    setEditForm(prev => ({
       ...prev,
-      cues: prev.cues?.filter((_, i) => i !== index) || []
+      muscleGroups: prev.muscleGroups.includes(muscleGroup)
+        ? prev.muscleGroups.filter(mg => mg !== muscleGroup)
+        : [...prev.muscleGroups, muscleGroup]
     }));
   };
 
-  const addContraindication = () => {
-    if (newContraindication.trim()) {
-      setEditedExercise(prev => ({
-        ...prev,
-        contraindications: [...(prev.contraindications || []), newContraindication.trim()]
-      }));
-      setNewContraindication('');
-    }
-  };
-
-  const removeContraindication = (index: number) => {
-    setEditedExercise(prev => ({
-      ...prev,
-      contraindications: prev.contraindications?.filter((_, i) => i !== index) || []
-    }));
-  };
+  if (!isOpen) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-semibold text-sage-800">
-              Edit Exercise
-            </DialogTitle>
-            <div className="flex items-center gap-2">
-              <Button onClick={handleSave} size="sm" className="bg-sage-600 hover:bg-sage-700">
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
+      <DialogContent className={`max-w-4xl max-h-[90vh] overflow-y-auto ${
+        preferences.darkMode ? 'bg-gray-800 border-gray-600' : 'bg-white'
+      }`}>
+        <DialogHeader className="flex flex-row items-center justify-between">
+          <DialogTitle className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+            {isEditing ? 'Edit Exercise' : exercise.name}
+          </DialogTitle>
+          <div className="flex gap-2">
+            {!isEditing ? (
+              <Button
+                onClick={() => setIsEditing(true)}
+                size="sm"
+                className="bg-sage-600 hover:bg-sage-700"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
               </Button>
-              <Button onClick={onClose} variant="ghost" size="sm">
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+            ) : (
+              <div className="flex gap-2">
+                <Button onClick={handleSave} size="sm" className="bg-sage-600 hover:bg-sage-700">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save
+                </Button>
+                <Button onClick={handleCancel} size="sm" variant="outline">
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+              </div>
+            )}
           </div>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-          <TabsList className="grid w-full grid-cols-4 mb-4">
-            <TabsTrigger value="details" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Details
-            </TabsTrigger>
-            <TabsTrigger value="instructions" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Instructions
-            </TabsTrigger>
-            <TabsTrigger value="modifications" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Modifications
-            </TabsTrigger>
-            <TabsTrigger value="safety" className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Safety
-            </TabsTrigger>
-          </TabsList>
-
-          <ScrollArea className="flex-1">
-            <TabsContent value="details" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Exercise Name</Label>
-                    <Input
-                      id="name"
-                      value={editedExercise.name}
-                      onChange={(e) => handleFieldChange('name', e.target.value)}
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="category">Category</Label>
-                    <Select value={editedExercise.category} onValueChange={(value) => handleFieldChange('category', value)}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categoryOptions.map(category => (
-                          <SelectItem key={category} value={category}>
-                            {category.charAt(0).toUpperCase() + category.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="duration">Duration (minutes)</Label>
-                    <Input
-                      id="duration"
-                      type="number"
-                      value={editedExercise.duration || ''}
-                      onChange={(e) => handleFieldChange('duration', parseInt(e.target.value) || 0)}
-                      className="mt-1"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="difficulty">Difficulty</Label>
-                    <Select value={editedExercise.difficulty} onValueChange={(value) => handleFieldChange('difficulty', value)}>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {difficultyOptions.map(difficulty => (
-                          <SelectItem key={difficulty} value={difficulty}>
-                            {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <Label>Spring Setting</Label>
-                    <div className="mt-2 space-y-2">
-                      {springOptions.map(option => (
-                        <div 
-                          key={option.value}
-                          className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${
-                            editedExercise.springs === option.value 
-                              ? 'border-sage-500 bg-sage-50' 
-                              : 'border-gray-200 hover:border-sage-300'
-                          }`}
-                          onClick={() => handleFieldChange('springs', option.value)}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Exercise Details */}
+          <div className="space-y-4">
+            {/* Basic Info */}
+            <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Dumbbell className="h-5 w-5" />
+                  Exercise Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isEditing ? (
+                  <>
+                    <div>
+                      <label className="text-sm font-medium">Exercise Name</label>
+                      <Input
+                        value={editForm.name}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Description</label>
+                      <Textarea
+                        value={editForm.description || ''}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">Duration (min)</label>
+                        <Input
+                          type="number"
+                          value={editForm.duration}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Difficulty</label>
+                        <Select
+                          value={editForm.difficulty}
+                          onValueChange={(value) => setEditForm(prev => ({ ...prev, difficulty: value as any }))}
                         >
-                          <span className="font-medium">{option.label}</span>
-                          <div className={`w-6 h-6 rounded-full ${option.color}`}></div>
-                        </div>
-                      ))}
+                          <SelectTrigger className="mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="beginner">Beginner</SelectItem>
+                            <SelectItem value="intermediate">Intermediate</SelectItem>
+                            <SelectItem value="advanced">Advanced</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-sage-600" />
+                        <span>{exercise.duration} min</span>
+                      </div>
+                      <Badge variant="outline">{exercise.difficulty}</Badge>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">Springs:</span>
+                        <SpringVisual springs={exercise.springs} />
+                      </div>
+                    </div>
+                    {exercise.description && (
+                      <p className={`text-sm ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
+                        {exercise.description}
+                      </p>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Muscle Groups */}
+            <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Target Muscles
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {muscleGroups.map(group => (
+                      <div key={group} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={group}
+                          checked={editForm.muscleGroups.includes(group)}
+                          onCheckedChange={() => toggleMuscleGroup(group)}
+                        />
+                        <label htmlFor={group} className="text-sm font-medium capitalize">
+                          {group}
+                        </label>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {exercise.muscleGroups.map(group => (
+                      <Badge key={group} variant="secondary" className="capitalize">
+                        {group}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-              <div>
-                <Label>Target Muscle Groups</Label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {muscleGroupOptions.map(group => (
-                    <Badge
-                      key={group}
-                      variant={editedExercise.muscleGroups?.includes(group) ? "default" : "outline"}
-                      className={`cursor-pointer transition-all ${
-                        editedExercise.muscleGroups?.includes(group)
-                          ? 'bg-sage-600 hover:bg-sage-700'
-                          : 'hover:bg-sage-100'
-                      }`}
-                      onClick={() => handleMuscleGroupToggle(group)}
-                    >
-                      <Target className="h-3 w-3 mr-1" />
-                      {group}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={editedExercise.description || ''}
-                  onChange={(e) => handleFieldChange('description', e.target.value)}
-                  rows={3}
-                  className="mt-1"
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="instructions" className="space-y-6">
-              <div>
-                <Label>Teaching Cues</Label>
-                <div className="mt-2 space-y-2">
-                  {editedExercise.cues?.map((cue, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-sage-50 rounded-lg">
-                      <span className="flex-1">{cue}</span>
-                      <Button
-                        onClick={() => removeCue(index)}
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <div className="flex gap-2">
-                    <Input
-                      value={newCue}
-                      onChange={(e) => setNewCue(e.target.value)}
-                      placeholder="Add a teaching cue..."
-                      onKeyPress={(e) => e.key === 'Enter' && addCue()}
-                    />
-                    <Button onClick={addCue} size="sm">
+          {/* Right Column - Progressions & Regressions */}
+          <div className="space-y-4">
+            {/* Progressions */}
+            <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="text-green-600">Progressions</span>
+                  {isEditing && (
+                    <Button onClick={addProgression} size="sm" variant="outline">
                       <Plus className="h-4 w-4" />
                     </Button>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
+                  <div className="space-y-2">
+                    {(editForm.progressions || []).map((progression, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          value={progression}
+                          onChange={(e) => updateProgression(index, e.target.value)}
+                          placeholder="Add progression..."
+                        />
+                        <Button
+                          onClick={() => removeProgression(index)}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              </div>
+                ) : (
+                  <ul className="space-y-1">
+                    {(exercise.progressions || []).map((progression, index) => (
+                      <li key={index} className="text-sm flex items-start gap-2">
+                        <span className="text-green-500">▲</span>
+                        <span>{progression}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
 
-              <div>
-                <Label htmlFor="setup">Setup Instructions</Label>
-                <Textarea
-                  id="setup"
-                  value={editedExercise.setup || ''}
-                  onChange={(e) => handleFieldChange('setup', e.target.value)}
-                  rows={3}
-                  className="mt-1"
-                  placeholder="Describe how to set up this exercise..."
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="modifications" className="space-y-6">
-              <div>
-                <Label className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                  Progressions
-                </Label>
-                <div className="mt-2 space-y-2">
-                  {editedExercise.progressions?.map((progression, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
-                      <span className="flex-1">{progression}</span>
-                      <Button
-                        onClick={() => removeProgression(index)}
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <div className="flex gap-2">
-                    <Input
-                      value={newProgression}
-                      onChange={(e) => setNewProgression(e.target.value)}
-                      placeholder="Add a progression..."
-                      onKeyPress={(e) => e.key === 'Enter' && addProgression()}
-                    />
-                    <Button onClick={addProgression} size="sm" className="bg-green-600 hover:bg-green-700">
+            {/* Regressions */}
+            <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="text-blue-600">Regressions</span>
+                  {isEditing && (
+                    <Button onClick={addRegression} size="sm" variant="outline">
                       <Plus className="h-4 w-4" />
                     </Button>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isEditing ? (
+                  <div className="space-y-2">
+                    {(editForm.regressions || []).map((regression, index) => (
+                      <div key={index} className="flex gap-2">
+                        <Input
+                          value={regression}
+                          onChange={(e) => updateRegression(index, e.target.value)}
+                          placeholder="Add regression..."
+                        />
+                        <Button
+                          onClick={() => removeRegression(index)}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              </div>
+                ) : (
+                  <ul className="space-y-1">
+                    {(exercise.regressions || []).map((regression, index) => (
+                      <li key={index} className="text-sm flex items-start gap-2">
+                        <span className="text-blue-500">▼</span>
+                        <span>{regression}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </CardContent>
+            </Card>
 
-              <div>
-                <Label className="flex items-center gap-2">
-                  <TrendingDown className="h-4 w-4 text-blue-600" />
-                  Regressions
-                </Label>
-                <div className="mt-2 space-y-2">
-                  {editedExercise.regressions?.map((regression, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
-                      <span className="flex-1">{regression}</span>
-                      <Button
-                        onClick={() => removeRegression(index)}
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <div className="flex gap-2">
-                    <Input
-                      value={newRegression}
-                      onChange={(e) => setNewRegression(e.target.value)}
-                      placeholder="Add a regression..."
-                      onKeyPress={(e) => e.key === 'Enter' && addRegression()}
-                    />
-                    <Button onClick={addRegression} size="sm" className="bg-blue-600 hover:bg-blue-700">
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="safety" className="space-y-6">
-              <div>
-                <Label className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
-                  Contraindications & Safety Notes
-                </Label>
-                <div className="mt-2 space-y-2">
-                  {editedExercise.contraindications?.map((contraindication, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-amber-50 rounded-lg">
-                      <span className="flex-1">{contraindication}</span>
-                      <Button
-                        onClick={() => removeContraindication(index)}
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <div className="flex gap-2">
-                    <Input
-                      value={newContraindication}
-                      onChange={(e) => setNewContraindication(e.target.value)}
-                      placeholder="Add a safety note or contraindication..."
-                      onKeyPress={(e) => e.key === 'Enter' && addContraindication()}
-                    />
-                    <Button onClick={addContraindication} size="sm" className="bg-amber-600 hover:bg-amber-700">
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-          </ScrollArea>
-        </Tabs>
+            {/* Safety Notes */}
+            {exercise.contraindications && exercise.contraindications.length > 0 && (
+              <Card className={preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-white'}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-amber-600">
+                    <Shield className="h-5 w-5" />
+                    Safety Notes
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-1">
+                    {exercise.contraindications.map((item, index) => (
+                      <li key={index} className="text-sm flex items-start gap-2">
+                        <span className="text-amber-500">⚠️</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

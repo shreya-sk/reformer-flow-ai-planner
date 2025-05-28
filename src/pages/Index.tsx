@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
@@ -8,37 +9,32 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Plus, BookOpen, Sparkles, Target, Clock, Timer, Home } from 'lucide-react';
 import { AuthPage } from '@/components/AuthPage';
 import { toast } from '@/hooks/use-toast';
+
 const Index = () => {
   const navigate = useNavigate();
-  const {
-    user,
-    loading
-  } = useAuth();
-  const {
-    savedClasses,
-    deleteClassPlan
-  } = useClassPlans();
-  const {
-    preferences
-  } = useUserPreferences();
+  const { user, loading } = useAuth();
+  const { savedClasses, deleteClassPlan } = useClassPlans();
+  const { preferences } = useUserPreferences();
+
   if (loading) {
-    return <div className={`min-h-screen flex items-center justify-center ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
+    return (
+      <div className={`min-h-screen flex items-center justify-center ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sage-600 mx-auto mb-4"></div>
           <p className={preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}>Loading...</p>
         </div>
-      </div>;
+      </div>
+    );
   }
+
   if (!user) {
     return <AuthPage />;
   }
+
   const handleEditClass = (classPlan: any) => {
-    navigate('/plan', {
-      state: {
-        loadedClass: classPlan
-      }
-    });
+    navigate('/plan', { state: { loadedClass: classPlan } });
   };
+
   const handleDeleteClass = async (classId: string) => {
     try {
       await deleteClassPlan(classId);
@@ -50,10 +46,12 @@ const Index = () => {
       });
     }
   };
+
   const getUserInitials = () => {
     const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
     return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   };
+
   const getFirstName = () => {
     const fullName = user?.user_metadata?.full_name;
     if (fullName) {
@@ -61,7 +59,9 @@ const Index = () => {
     }
     return user?.email?.split('@')[0] || 'User';
   };
-  return <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
+
+  return (
+    <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
       {/* Organic Flowing Header */}
       <header className="relative overflow-hidden h-28">
         <div className="absolute inset-0 bg-gradient-to-br from-sage-500 via-sage-600 to-sage-700"></div>
@@ -91,8 +91,113 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Floating Profile Picture - Overlapping */}
-      
+      {/* Main Content */}
+      <main className="px-6 py-8 pb-24">
+        <div className="max-w-6xl mx-auto">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} rounded-2xl p-4 border shadow-sm`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                    {savedClasses.length}
+                  </p>
+                  <p className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                    Saved Classes
+                  </p>
+                </div>
+                <BookOpen className={`h-8 w-8 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
+              </div>
+            </div>
+
+            <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} rounded-2xl p-4 border shadow-sm`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                    {savedClasses.reduce((total, plan) => total + plan.exercises.filter(ex => ex.category !== 'callout').length, 0)}
+                  </p>
+                  <p className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                    Total Exercises
+                  </p>
+                </div>
+                <Target className={`h-8 w-8 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
+              </div>
+            </div>
+
+            <div className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} rounded-2xl p-4 border shadow-sm`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                    {Math.round(savedClasses.reduce((total, plan) => total + plan.totalDuration, 0) / savedClasses.length) || 0}
+                  </p>
+                  <p className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                    Avg. Duration
+                  </p>
+                </div>
+                <Clock className={`h-8 w-8 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
+              </div>
+            </div>
+
+            <Button
+              onClick={() => navigate('/plan')}
+              className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-2xl h-full flex flex-col items-center justify-center gap-2 transform hover:scale-105 transition-all duration-300 shadow-lg"
+            >
+              <Plus className="h-6 w-6" />
+              <span className="text-sm font-medium">New Class</span>
+            </Button>
+          </div>
+
+          {/* Class Plans Section */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                Your Class Plans
+              </h2>
+              {savedClasses.length > 0 && (
+                <Button
+                  onClick={() => navigate('/plan')}
+                  className="bg-sage-600 hover:bg-sage-700 text-white"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create New
+                </Button>
+              )}
+            </div>
+
+            {savedClasses.length === 0 ? (
+              <div className="text-center py-12">
+                <div className={`rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6 ${
+                  preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'
+                }`}>
+                  <BookOpen className={`h-12 w-12 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
+                </div>
+                
+                <h3 className={`text-2xl font-semibold mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  No class plans yet
+                </h3>
+                
+                <p className={`text-center mb-6 max-w-md mx-auto ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
+                  Create your first class plan to get started with organizing your Pilates sessions.
+                </p>
+                
+                <Button 
+                  onClick={() => navigate('/plan')}
+                  className="bg-sage-600 hover:bg-sage-700 text-white px-8 py-3 text-lg transform hover:scale-105 transition-all duration-300"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Create Your First Class
+                </Button>
+              </div>
+            ) : (
+              <ClassPlanList
+                classes={savedClasses}
+                onEditClass={handleEditClass}
+                onDeleteClass={handleDeleteClass}
+              />
+            )}
+          </div>
+        </div>
+      </main>
 
       {/* Enhanced Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
@@ -131,8 +236,8 @@ const Index = () => {
           </div>
         </div>
       </div>
-
-      
-    </div>;
+    </div>
+  );
 };
+
 export default Index;
