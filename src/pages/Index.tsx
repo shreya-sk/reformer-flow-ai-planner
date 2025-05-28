@@ -64,9 +64,9 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20`}>
-      {/* Compact Header */}
+      {/* Header */}
       <header className={`${preferences.darkMode ? 'bg-gray-800/90 border-gray-700' : 'bg-white/90 border-sage-200'} border-b backdrop-blur-sm sticky top-0 z-40`}>
-        <div className="px-4 py-3">
+        <div className="px-4 py-4">
           <div className="flex items-center justify-between">
             {/* Logo and Brand */}
             <div className="flex items-center space-x-3">
@@ -82,7 +82,7 @@ const Index = () => {
             <div className="flex items-center gap-3">
               <div className={`text-right ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
                 <p className="text-sm font-medium">
-                  {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                  Welcome back, {user.user_metadata?.full_name || user.email?.split('@')[0]}!
                 </p>
                 <p className="text-xs opacity-70">
                   {savedClasses.length} saved classes
@@ -102,78 +102,70 @@ const Index = () => {
         </div>
       </header>
 
-      <div className="p-4 space-y-6">
-        {/* Welcome Section */}
-        <div className="text-center space-y-4">
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${preferences.darkMode ? 'bg-gray-800 text-gray-300' : 'bg-sage-100 text-sage-700'} text-sm`}>
-            <Calendar className="h-4 w-4" />
-            Welcome back, {user.user_metadata?.full_name || user.email?.split('@')[0]}!
+      <div className="p-4 space-y-4">
+        {/* Quick Stats - Reduced Size */}
+        <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto">
+          <div className={`p-2 rounded-lg ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
+            <div className="flex items-center gap-1 justify-center">
+              <Target className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                {savedClasses.length}
+              </span>
+            </div>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center`}>
+              Classes
+            </p>
           </div>
           
-          {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
-            <div className={`p-3 rounded-lg ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
-              <div className="flex items-center gap-2 justify-center">
-                <Target className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-                <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                  {savedClasses.length}
-                </span>
-              </div>
-              <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center`}>
-                Classes
-              </p>
+          <div className={`p-2 rounded-lg ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
+            <div className="flex items-center gap-1 justify-center">
+              <Clock className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                {savedClasses.reduce((total, plan) => total + plan.totalDuration, 0)}
+              </span>
             </div>
-            
-            <div className={`p-3 rounded-lg ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
-              <div className="flex items-center gap-2 justify-center">
-                <Clock className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-                <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                  {savedClasses.reduce((total, plan) => total + plan.totalDuration, 0)}
-                </span>
-              </div>
-              <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center`}>
-                Minutes
-              </p>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center`}>
+              Minutes
+            </p>
+          </div>
+          
+          <div className={`p-2 rounded-lg ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
+            <div className="flex items-center gap-1 justify-center">
+              <BookOpen className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                {savedClasses.reduce((total, plan) => total + plan.exercises.filter(ex => ex.category !== 'callout').length, 0)}
+              </span>
             </div>
-            
-            <div className={`p-3 rounded-lg ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
-              <div className="flex items-center gap-2 justify-center">
-                <BookOpen className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-                <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                  {savedClasses.reduce((total, plan) => total + plan.exercises.filter(ex => ex.category !== 'callout').length, 0)}
-                </span>
-              </div>
-              <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center`}>
-                Exercises
-              </p>
-            </div>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center`}>
+              Exercises
+            </p>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+        {/* Quick Actions - Reduced Size */}
+        <div className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
           <Button 
             onClick={() => navigate('/plan')}
-            className="flex-1 bg-sage-600 hover:bg-sage-700 text-white py-6 text-base"
+            className="flex-1 bg-sage-600 hover:bg-sage-700 text-white py-3 text-sm"
           >
-            <Plus className="h-5 w-5 mr-2" />
+            <Plus className="h-4 w-4 mr-2" />
             Create New Class
           </Button>
           
           <Button 
             onClick={() => navigate('/library')}
             variant="outline"
-            className={`flex-1 py-6 text-base ${preferences.darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-sage-300 text-sage-700 hover:bg-sage-50'}`}
+            className={`flex-1 py-3 text-sm ${preferences.darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-sage-300 text-sage-700 hover:bg-sage-50'}`}
           >
-            <BookOpen className="h-5 w-5 mr-2" />
+            <BookOpen className="h-4 w-4 mr-2" />
             Browse Library
           </Button>
         </div>
 
         {/* My Classes Section */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+            <h2 className={`text-xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
               My Classes
             </h2>
             {savedClasses.length > 0 && (
@@ -184,14 +176,14 @@ const Index = () => {
           </div>
 
           {savedClasses.length === 0 ? (
-            <div className={`text-center py-12 px-4 ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm`}>
-              <div className={`w-16 h-16 ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                <Plus className={`h-8 w-8 ${preferences.darkMode ? 'text-gray-500' : 'text-sage-500'}`} />
+            <div className={`text-center py-8 px-4 ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm`}>
+              <div className={`w-12 h-12 ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'} rounded-full flex items-center justify-center mx-auto mb-3`}>
+                <Plus className={`h-6 w-6 ${preferences.darkMode ? 'text-gray-500' : 'text-sage-500'}`} />
               </div>
               <h3 className={`text-lg font-semibold mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                 No classes yet
               </h3>
-              <p className={`text-sm mb-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+              <p className={`text-sm mb-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
                 Create your first class plan to get started
               </p>
               <Button 
