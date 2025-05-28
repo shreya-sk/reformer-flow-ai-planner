@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Search, Plus, Clock, Edit, Copy, Filter, Heart } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Clock, Edit, Copy, Heart, Baby, Check } from 'lucide-react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { exerciseDatabase } from '@/data/exercises';
 import { ExerciseForm } from './ExerciseForm';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
 import { SmartAddButton } from './SmartAddButton';
+import { ExerciseLibraryHeader } from './ExerciseLibraryHeader';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
 interface ExerciseLibraryProps {
@@ -17,7 +17,7 @@ interface ExerciseLibraryProps {
 }
 
 export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
-  const { preferences, togglePregnancySafeOnly, toggleFavoriteExercise } = useUserPreferences();
+  const { preferences, toggleFavoriteExercise } = useUserPreferences();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<ExerciseCategory | 'all'>('all');
@@ -27,25 +27,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-
-  const muscleGroups: { value: MuscleGroup | 'all'; label: string }[] = [
-    { value: 'all', label: 'All' },
-    { value: 'core', label: 'Core' },
-    { value: 'legs', label: 'Legs' },
-    { value: 'arms', label: 'Arms' },
-    { value: 'back', label: 'Back' },
-    { value: 'glutes', label: 'Glutes' },
-    { value: 'shoulders', label: 'Shoulders' },
-  ];
-
-  const positions: { value: ExerciseCategory | 'all'; label: string }[] = [
-    { value: 'all', label: 'All Positions' },
-    { value: 'supine', label: 'Supine' },
-    { value: 'prone', label: 'Prone' },
-    { value: 'sitting', label: 'Sitting' },
-    { value: 'side-lying', label: 'Side-lying' },
-    { value: 'kneeling', label: 'Kneeling' },
-  ];
 
   const filteredExercises = exercises.filter(exercise => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -124,11 +105,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     setShowForm(true);
   };
 
-  const handleAddExercise = (exercise: Exercise, e: React.MouseEvent) => {
-    e.stopPropagation();
-    onAddExercise(exercise);
-  };
-
   const handleCardClick = (exercise: Exercise) => {
     setSelectedExercise(exercise);
     setShowDetailModal(true);
@@ -147,123 +123,23 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
 
   const activeFiltersCount = (selectedMuscleGroup !== 'all' ? 1 : 0) + (selectedPosition !== 'all' ? 1 : 0);
 
-  // Pregnancy silhouette icon component
-  const PregnancyIcon = ({ className = "h-4 w-4" }: { className?: string }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm4 7v10h-8V10c0-2.2 1.8-4 4-4s4 1.8 4 4z"/>
-    </svg>
-  );
-
   return (
     <>
       <div className={`w-full ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-white to-sage-25'} flex flex-col h-full`}>
-        {/* Search and Filters Header */}
-        <div className={`p-6 border-b ${preferences.darkMode ? 'border-gray-700 bg-gray-800' : 'border-sage-200 bg-white'}`}>
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                {/* Search */}
-                <div className="relative w-80">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search exercises..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className={`pl-10 ${preferences.darkMode ? 'border-gray-600 focus:border-gray-500 bg-gray-700 text-white' : 'border-sage-300 focus:border-sage-500 bg-white'}`}
-                  />
-                </div>
-
-                {/* Filter Toggle */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowFilters(!showFilters)}
-                  className={`${preferences.darkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'}`}
-                >
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}
-                </Button>
-
-                {activeFiltersCount > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className={`text-xs ${preferences.darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-sage-500 hover:text-sage-700'}`}
-                  >
-                    Clear all
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex items-center gap-4">
-                {/* Pregnancy Safe Toggle */}
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={preferences.showPregnancySafeOnly}
-                    onChange={togglePregnancySafeOnly}
-                    className="rounded"
-                  />
-                  <PregnancyIcon className={`h-4 w-4 ${preferences.darkMode ? 'text-pink-400' : 'text-pink-600'}`} />
-                  <span className={preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}>
-                    Pregnancy-safe only
-                  </span>
-                </label>
-
-                <Button 
-                  size="sm" 
-                  onClick={() => setShowForm(true)}
-                  className="bg-sage-600 hover:bg-sage-700 shadow-sm"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Exercise
-                </Button>
-              </div>
-            </div>
-
-            {/* Collapsible Filters */}
-            {showFilters && (
-              <div className={`p-4 ${preferences.darkMode ? 'bg-gray-700/50' : 'bg-sage-50'} rounded-lg border ${preferences.darkMode ? 'border-gray-600' : 'border-sage-200'}`}>
-                <div className="flex gap-8">
-                  <div>
-                    <label className={`text-sm font-medium mb-2 block ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>Muscle Groups</label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {muscleGroups.map(group => (
-                        <Button
-                          key={group.value}
-                          variant={selectedMuscleGroup === group.value ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedMuscleGroup(group.value)}
-                          className={`text-xs h-7 ${preferences.darkMode ? 'border-gray-600 hover:border-gray-500' : 'border-sage-300 hover:border-sage-400'}`}
-                        >
-                          {group.label}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className={`text-sm font-medium mb-2 block ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>Position</label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {positions.map(position => (
-                        <Button
-                          key={position.value}
-                          variant={selectedPosition === position.value ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedPosition(position.value)}
-                          className={`text-xs h-7 ${preferences.darkMode ? 'border-gray-600 hover:border-gray-500' : 'border-sage-300 hover:border-sage-400'}`}
-                        >
-                          {position.label}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Clean Header */}
+        <ExerciseLibraryHeader
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          selectedMuscleGroup={selectedMuscleGroup}
+          onMuscleGroupChange={setSelectedMuscleGroup}
+          selectedPosition={selectedPosition}
+          onPositionChange={setSelectedPosition}
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters(!showFilters)}
+          onAddExercise={() => setShowForm(true)}
+          onClearFilters={clearFilters}
+          activeFiltersCount={activeFiltersCount}
+        />
 
         {/* Exercise Grid */}
         <div className="flex-1 overflow-y-auto p-6">
@@ -298,13 +174,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                     >
                       <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
                     </Button>
-
-                    {/* Pregnancy Safe Indicator - Top Left */}
-                    {exercise.isPregnancySafe && (
-                      <div className="absolute top-2 left-2 bg-pink-100 rounded-full p-1 z-10">
-                        <PregnancyIcon className="h-3 w-3 text-pink-600" />
-                      </div>
-                    )}
 
                     <CardContent className="p-4">
                       {/* Exercise Thumbnail */}
@@ -364,11 +233,21 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                         </div>
 
                         <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-1">
-                            <Clock className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
-                            <span className={`font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
-                              {exercise.duration}min
-                            </span>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
+                              <Clock className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
+                              <span className={`font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
+                                {exercise.duration}min
+                              </span>
+                            </div>
+                            
+                            {/* Pregnancy Safe Indicator */}
+                            {exercise.isPregnancySafe && (
+                              <div className="flex items-center gap-1">
+                                <Baby className="h-3 w-3 text-pink-500" />
+                                <Check className="h-2 w-2 text-green-500" />
+                              </div>
+                            )}
                           </div>
                           
                           <div className="flex items-center gap-1">
@@ -402,6 +281,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                             onAddExercise={onAddExercise}
                             className="w-full"
                             size="sm"
+                            showFeedback={true}
                           />
                         </div>
                       </div>

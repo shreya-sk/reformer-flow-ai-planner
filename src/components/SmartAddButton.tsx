@@ -9,13 +9,15 @@ interface SmartAddButtonProps {
   onAddExercise: (exercise: Exercise) => void;
   className?: string;
   size?: 'sm' | 'default' | 'lg';
+  showFeedback?: boolean; // Control whether to show the checkmark feedback
 }
 
 export const SmartAddButton = ({ 
   exercise, 
   onAddExercise, 
   className = '',
-  size = 'sm'
+  size = 'sm',
+  showFeedback = true
 }: SmartAddButtonProps) => {
   const [isAdded, setIsAdded] = useState(false);
 
@@ -25,11 +27,13 @@ export const SmartAddButton = ({
     
     console.log('Adding exercise:', exercise.name);
     onAddExercise(exercise);
-    setIsAdded(true);
     
-    setTimeout(() => {
-      setIsAdded(false);
-    }, 2500);
+    if (showFeedback) {
+      setIsAdded(true);
+      setTimeout(() => {
+        setIsAdded(false);
+      }, 2500);
+    }
   };
 
   return (
