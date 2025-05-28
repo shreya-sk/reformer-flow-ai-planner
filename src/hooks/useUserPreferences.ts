@@ -1,15 +1,18 @@
+
 import { useState, useEffect } from 'react';
 
 export interface UserPreferences {
   darkMode: boolean;
   favoriteExercises: string[];
   customCallouts: string[];
+  showPregnancySafeOnly: boolean;
 }
 
 const defaultPreferences: UserPreferences = {
   darkMode: false,
   favoriteExercises: [],
   customCallouts: ['Warm-up', 'Standing', 'Supine', 'Prone', 'Cool-down'],
+  showPregnancySafeOnly: false,
 };
 
 export const useUserPreferences = () => {
@@ -72,6 +75,14 @@ export const useUserPreferences = () => {
     }));
   };
 
+  const togglePregnancySafeOnly = () => {
+    setPreferences(prev => ({ ...prev, showPregnancySafeOnly: !prev.showPregnancySafeOnly }));
+  };
+
+  const updatePreferences = (updates: Partial<UserPreferences>) => {
+    setPreferences(prev => ({ ...prev, ...updates }));
+  };
+
   return {
     preferences,
     toggleDarkMode,
@@ -80,5 +91,7 @@ export const useUserPreferences = () => {
     addCustomCallout,
     removeCustomCallout,
     updateCustomCallouts,
+    togglePregnancySafeOnly,
+    updatePreferences,
   };
 };
