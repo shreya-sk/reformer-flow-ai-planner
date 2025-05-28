@@ -10,11 +10,8 @@ import {
   Plus, 
   BookOpen, 
   Sparkles, 
-  User,
-  Calendar,
   Target,
   Clock,
-  Settings,
   Timer
 } from 'lucide-react';
 import { AuthPage } from '@/components/AuthPage';
@@ -72,17 +69,27 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
-      {/* Organic Wave Header with Navigation Background */}
-      <header className="relative bg-gradient-to-r from-sage-600 via-sage-500 to-sage-600 overflow-hidden">
-        {/* Complex Wave SVG Background */}
+      {/* Organic Wave Header - More Compact with Floating Profile */}
+      <header className="relative bg-gradient-to-r from-sage-600 via-sage-500 to-sage-600 overflow-hidden h-32">
+        {/* Enhanced Wave SVG Background - Moved Up */}
         <div className="absolute inset-0">
+          <svg 
+            className="absolute bottom-0 w-full h-24" 
+            viewBox="0 0 1200 120" 
+            preserveAspectRatio="none"
+          >
+            <path 
+              d="M0,0 C150,100 350,0 600,50 C850,100 1050,0 1200,50 L1200,120 L0,120 Z" 
+              fill="rgba(255,255,255,0.2)"
+            />
+          </svg>
           <svg 
             className="absolute bottom-0 w-full h-20" 
             viewBox="0 0 1200 120" 
             preserveAspectRatio="none"
           >
             <path 
-              d="M0,0 C150,100 350,0 600,50 C850,100 1050,0 1200,50 L1200,120 L0,120 Z" 
+              d="M0,20 C300,80 600,20 900,60 C1050,80 1150,40 1200,60 L1200,120 L0,120 Z" 
               fill="rgba(255,255,255,0.15)"
             />
           </svg>
@@ -92,61 +99,43 @@ const Index = () => {
             preserveAspectRatio="none"
           >
             <path 
-              d="M0,20 C300,80 600,20 900,60 C1050,80 1150,40 1200,60 L1200,120 L0,120 Z" 
-              fill="rgba(255,255,255,0.08)"
-            />
-          </svg>
-          <svg 
-            className="absolute bottom-0 w-full h-12" 
-            viewBox="0 0 1200 120" 
-            preserveAspectRatio="none"
-          >
-            <path 
               d="M0,40 C200,100 400,40 800,80 C1000,100 1100,60 1200,80 L1200,120 L0,120 Z" 
-              fill="rgba(255,255,255,0.05)"
+              fill="rgba(255,255,255,0.1)"
             />
           </svg>
         </div>
 
-        <div className="relative px-6 py-10">
-          <div className="flex items-center justify-between">
-            {/* Welcome Message & Logo */}
-            <div className="flex items-center space-x-5">
-              <div className="w-16 h-16 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-xl">
-                <Sparkles className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-4xl font-bold text-white">
-                  Hi <span className="text-sage-100">{getFirstName()}</span>!
-                </h1>
-                <p className="text-sage-100 text-lg opacity-90">Welcome back to ReformerPro</p>
-              </div>
+        <div className="relative px-6 py-8 flex items-center justify-between">
+          {/* Welcome Message & Logo */}
+          <div className="flex items-center space-x-5">
+            <div className="w-14 h-14 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-xl">
+              <Sparkles className="h-7 w-7 text-white" />
             </div>
-            
-            {/* Profile Avatar - Larger */}
-            <div className="flex items-center space-x-5">
-              <div className="text-right text-white">
-                <p className="text-sm font-medium opacity-90">
-                  {savedClasses.length} saved classes
-                </p>
-              </div>
-              <Avatar 
-                className="h-20 w-20 cursor-pointer hover:ring-4 hover:ring-white/30 transition-all border-4 border-white/30 shadow-xl"
-                onClick={() => navigate('/profile')}
-              >
-                <AvatarImage src={preferences.profileImage} alt="Profile" />
-                <AvatarFallback className="text-xl font-bold bg-sage-500 text-white">
-                  {getUserInitials()}
-                </AvatarFallback>
-              </Avatar>
+            <div>
+              <h1 className="text-3xl font-bold text-white">
+                Hi <span className="text-sage-100">{getFirstName()}</span>!
+              </h1>
+              <p className="text-sage-100 text-base opacity-90">Welcome back to ReformerPro</p>
             </div>
           </div>
         </div>
       </header>
 
+      {/* Floating Profile Picture - Crosses Banner Boundary */}
+      <div className="relative -mt-16 flex justify-end pr-8 mb-8">
+        <Avatar 
+          className="h-32 w-32 cursor-pointer hover:ring-6 hover:ring-white/40 transition-all border-6 border-white shadow-2xl relative z-10 hover:scale-105 transform"
+          onClick={() => navigate('/profile')}
+        >
+          <AvatarImage src={preferences.profileImage} alt="Profile" />
+          <AvatarFallback className="text-2xl font-bold bg-sage-500 text-white">
+            {getUserInitials()}
+          </AvatarFallback>
+        </Avatar>
+      </div>
+
       {/* Bottom Navigation Bar with Wave Background */}
       <div className="fixed bottom-0 left-0 right-0 z-50">
-        {/* Wave Background */}
         <div className="relative bg-gradient-to-r from-sage-600 via-sage-500 to-sage-600 overflow-hidden">
           <div className="absolute inset-0">
             <svg 
@@ -156,7 +145,7 @@ const Index = () => {
             >
               <path 
                 d="M0,120 C150,20 350,120 600,70 C850,20 1050,120 1200,70 L1200,0 L0,0 Z" 
-                fill="rgba(255,255,255,0.1)"
+                fill="rgba(255,255,255,0.15)"
               />
             </svg>
           </div>
@@ -191,7 +180,7 @@ const Index = () => {
       </div>
 
       <div className="p-4 space-y-4 pb-24">
-        {/* Quick Stats - Smaller */}
+        {/* Quick Stats - More Compact */}
         <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
           <div className={`p-2 rounded-lg ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm`}>
             <div className="flex items-center gap-1 justify-center">
