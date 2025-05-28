@@ -80,6 +80,11 @@ const PlanClass = () => {
     navigate('/library');
   };
 
+  // Create wrapper function that converts position to callout name and position
+  const handleAddCallout = (position: number) => {
+    addCallout(`Note ${Date.now()}`, position);
+  };
+
   const handleUpdateCallout = (calloutId: string, newName: string) => {
     const updatedExercises = currentClass.exercises.map(exercise => 
       exercise.id === calloutId && exercise.category === 'callout'
@@ -144,7 +149,7 @@ const PlanClass = () => {
               onUpdateClassName={updateClassName}
               onUpdateClassDuration={updateClassDuration}
               onAddExercise={handleAddExercise}
-              onAddCallout={addCallout}
+              onAddCallout={handleAddCallout}
               onUpdateCallout={handleUpdateCallout}
               onDeleteCallout={handleDeleteCallout}
               onReorderExercises={reorderExercises}
@@ -160,7 +165,7 @@ const PlanClass = () => {
               onUpdateClassName={updateClassName}
               onUpdateClassDuration={updateClassDuration}
               onAddExercise={handleAddExercise}
-              onAddCallout={addCallout}
+              onAddCallout={handleAddCallout}
               onUpdateCallout={handleUpdateCallout}
               onDeleteCallout={handleDeleteCallout}
               onReorderExercises={reorderExercises}
