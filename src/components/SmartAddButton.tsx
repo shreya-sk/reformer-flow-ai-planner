@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Check, Baby } from 'lucide-react';
+import { Plus, Check, Heart } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
 
 interface SmartAddButtonProps {
@@ -54,8 +54,8 @@ export const SmartAddButton = ({
       </Button>
       
       {showPregnancyIcon && exercise.isPregnancySafe && (
-        <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
-          <Baby className="h-3 w-3 text-white" />
+        <div className="absolute -top-1 -right-1 bg-rose-400 rounded-full p-1">
+          <Heart className="h-3 w-3 text-white fill-white" />
         </div>
       )}
     </div>

@@ -52,7 +52,7 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
+    --primary: 94 37% 70%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -136,6 +136,23 @@
     width: 200px !important;
     height: 200px !important;
   }
+
+  /* Grid adjustments for mobile */
+  .grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+  
+  .xl\:grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
 }
 
 /* Improve touch targets on mobile */
@@ -148,4 +165,16 @@
   .touch-target {
     padding: 12px !important;
   }
+
+  /* Better spacing for mobile filters */
+  .flex-wrap {
+    gap: 0.5rem !important;
+  }
+}
+
+/* Dark mode improvements */
+.dark {
+  /* Better contrast for dark mode */
+  --sage-600: 94 37% 70%;
+  --sage-700: 94 37% 60%;
 }

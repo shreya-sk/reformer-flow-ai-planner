@@ -76,7 +76,8 @@ export const useUserPreferences = () => {
   };
 
   const toggleDarkMode = () => {
-    updatePreferences({ darkMode: !preferences.darkMode });
+    const newDarkMode = !preferences.darkMode;
+    updatePreferences({ darkMode: newDarkMode });
   };
 
   const togglePregnancySafeOnly = () => {
