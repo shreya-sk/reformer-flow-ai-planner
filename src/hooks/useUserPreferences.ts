@@ -49,7 +49,7 @@ export const useUserPreferences = () => {
           id: data.id,
           showPregnancySafeOnly: data.show_pregnancy_safe_only || false,
           darkMode: data.dark_mode || false,
-          favoriteExercises: data.favorite_exercises || [],
+          favoriteExercises: data.favorite_exercises ? JSON.parse(JSON.stringify(data.favorite_exercises)) : [],
         });
       }
     } catch (error) {

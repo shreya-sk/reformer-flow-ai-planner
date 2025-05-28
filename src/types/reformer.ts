@@ -43,13 +43,15 @@ export type ExerciseCategory =
   | 'sitting'
   | 'side-lying'
   | 'kneeling'
-  | 'cool-down';
+  | 'cool-down'
+  | 'callout';
 
 export type SpringSetting = 
   | 'light' 
   | 'medium' 
   | 'heavy' 
-  | 'mixed';
+  | 'mixed'
+  | 'none';
 
 export type DifficultyLevel = 
   | 'beginner' 

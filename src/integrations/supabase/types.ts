@@ -202,6 +202,7 @@ export type Database = {
         Row: {
           created_at: string
           dark_mode: boolean | null
+          favorite_exercises: Json | null
           id: string
           show_pregnancy_safe_only: boolean | null
           updated_at: string
@@ -210,6 +211,7 @@ export type Database = {
         Insert: {
           created_at?: string
           dark_mode?: boolean | null
+          favorite_exercises?: Json | null
           id?: string
           show_pregnancy_safe_only?: boolean | null
           updated_at?: string
@@ -218,6 +220,7 @@ export type Database = {
         Update: {
           created_at?: string
           dark_mode?: boolean | null
+          favorite_exercises?: Json | null
           id?: string
           show_pregnancy_safe_only?: boolean | null
           updated_at?: string
