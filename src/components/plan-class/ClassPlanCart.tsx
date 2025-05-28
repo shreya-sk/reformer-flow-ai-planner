@@ -11,7 +11,9 @@ import {
   Clock, 
   Plus,
   Save,
-  Baby
+  ChevronDown,
+  ChevronUp,
+  Edit2
 } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
@@ -36,10 +38,13 @@ export const ClassPlanCart = ({
   onAddExercise
 }: ClassPlanCartProps) => {
   const { preferences } = useUserPreferences();
+  const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
   const [editingExercise, setEditingExercise] = useState<string | null>(null);
-  const [editingNotes, setEditingNotes] = useState('');
+  const [editForm, setEditForm] = useState<Partial<Exercise>>({});
 
   const getSpringVisual = (springs: string) => {
+    if (springs === 'none') return null;
+    
     const springConfig = {
       'light': [{ color: 'bg-green-500', count: 1 }],
       'medium': [{ color: 'bg-yellow-500', count: 1 }],
@@ -72,12 +77,12 @@ export const ClassPlanCart = ({
       name: type.charAt(0).toUpperCase() + type.slice(1).replace('-', ' '),
       category: 'callout',
       difficulty: 'beginner',
-      duration: 2,
+      duration: 0,
       muscleGroups: [],
       equipment: [],
       springs: 'none',
       isPregnancySafe: true,
-      description: `${type} section`,
+      description: `${type} section divider`,
       cues: [],
       notes: ''
     };
@@ -85,6 +90,33 @@ export const ClassPlanCart = ({
     const newExercises = [...currentClass.exercises];
     newExercises.splice(index, 0, calloutExercise);
     onReorderExercises(newExercises);
+  };
+
+  const handleExerciseClick = (exerciseId: string) => {
+    if (expandedExercise === exerciseId) {
+      setExpandedExercise(null);
+      setEditingExercise(null);
+    } else {
+      setExpandedExercise(exerciseId);
+    }
+  };
+
+  const startEditing = (exercise: Exercise) => {
+    setEditingExercise(exercise.id);
+    setEditForm(exercise);
+  };
+
+  const saveEdit = () => {
+    if (editingExercise && editForm) {
+      onUpdateExercise(editForm as Exercise);
+      setEditingExercise(null);
+      setEditForm({});
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingExercise(null);
+    setEditForm({});
   };
 
   if (currentClass.exercises.length === 0) {
@@ -126,7 +158,7 @@ export const ClassPlanCart = ({
             <div className="flex items-center gap-4">
               <div className="text-center">
                 <div className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                  {currentClass.exercises.length}
+                  {currentClass.exercises.filter(ex => ex.category !== 'callout').length}
                 </div>
                 <div className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
                   Exercises
@@ -134,7 +166,7 @@ export const ClassPlanCart = ({
               </div>
               <div className="text-center">
                 <div className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                  {currentClass.totalDuration}
+                  {currentClass.exercises.filter(ex => ex.category !== 'callout').reduce((sum, ex) => sum + ex.duration, 0)}
                 </div>
                 <div className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
                   Minutes
@@ -193,75 +225,158 @@ export const ClassPlanCart = ({
                 preferences.darkMode 
                   ? 'border-gray-600 bg-gray-800' 
                   : 'border-sage-200 bg-white'
-              } ${exercise.category === 'callout' ? 'border-l-4 border-l-amber-400' : ''}`}>
+              } ${exercise.category === 'callout' ? 'border-l-4 border-l-amber-400' : 'cursor-pointer hover:shadow-md'} transition-all`}
+              onClick={() => exercise.category !== 'callout' && handleExerciseClick(exercise.id)}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-3">
                       <GripVertical className={`h-5 w-5 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'} cursor-grab`} />
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                        preferences.darkMode ? 'bg-gray-700 text-white' : 'bg-sage-100 text-sage-800'
-                      }`}>
-                        {index + 1}
-                      </div>
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h4 className={`font-semibold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                          {exercise.name}
-                        </h4>
-                        {exercise.isPregnancySafe && (
-                          <div className="bg-pink-100 rounded-full p-1">
-                            <Baby className="h-3 w-3 text-pink-600" />
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-1">
-                          <Clock className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
-                          <span className={preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}>
-                            {exercise.duration}min
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>
-                            Springs:
-                          </span>
-                          {getSpringVisual(exercise.springs)}
-                        </div>
-
-                        <Badge className={`text-xs ${
-                          preferences.darkMode 
-                            ? 'bg-gray-700 text-gray-300 border-gray-600' 
-                            : 'bg-sage-100 text-sage-700 border-sage-200'
+                      {exercise.category !== 'callout' && (
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                          preferences.darkMode ? 'bg-gray-700 text-white' : 'bg-sage-100 text-sage-800'
                         }`}>
-                          {exercise.category}
-                        </Badge>
-                      </div>
-
-                      {exercise.notes && (
-                        <div className={`mt-2 p-2 rounded text-xs ${
-                          preferences.darkMode ? 'bg-gray-700 text-gray-300' : 'bg-sage-50 text-sage-600'
-                        }`}>
-                          {exercise.notes}
+                          {currentClass.exercises.filter((ex, idx) => idx <= index && ex.category !== 'callout').length}
                         </div>
                       )}
                     </div>
 
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => onRemoveExercise(exercise.id)}
-                      className={`${
-                        preferences.darkMode 
-                          ? 'text-red-400 hover:text-red-300 hover:bg-gray-700' 
-                          : 'text-red-600 hover:text-red-700 hover:bg-red-50'
-                      }`}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h4 className={`font-semibold ${preferences.darkMode ? 'text-white' : 'text-sage-800'} ${
+                            exercise.category === 'callout' ? 'text-amber-600 text-lg' : ''
+                          }`}>
+                            {exercise.name}
+                          </h4>
+                          {exercise.category !== 'callout' && expandedExercise === exercise.id && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                startEditing(exercise);
+                              }}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          {exercise.category !== 'callout' && (
+                            <div className="flex items-center gap-1">
+                              {expandedExercise === exercise.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                            </div>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onRemoveExercise(exercise.id);
+                            }}
+                            className={`${
+                              preferences.darkMode 
+                                ? 'text-red-400 hover:text-red-300 hover:bg-gray-700' 
+                                : 'text-red-600 hover:text-red-700 hover:bg-red-50'
+                            }`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {exercise.category !== 'callout' && (
+                        <div className="flex items-center gap-4 text-sm">
+                          <div className="flex items-center gap-1">
+                            <Clock className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
+                            <span className={preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}>
+                              {exercise.duration}min
+                            </span>
+                          </div>
+                          
+                          {getSpringVisual(exercise.springs) && (
+                            <div className="flex items-center gap-2">
+                              <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>
+                                Springs:
+                              </span>
+                              {getSpringVisual(exercise.springs)}
+                            </div>
+                          )}
+
+                          <Badge className={`text-xs ${
+                            preferences.darkMode 
+                              ? 'bg-gray-700 text-gray-300 border-gray-600' 
+                              : 'bg-sage-100 text-sage-700 border-sage-200'
+                          }`}>
+                            {exercise.category}
+                          </Badge>
+                        </div>
+                      )}
+
+                      {/* Expanded Content */}
+                      {expandedExercise === exercise.id && exercise.category !== 'callout' && (
+                        <div className={`mt-4 p-4 rounded-lg ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-50'}`}>
+                          {editingExercise === exercise.id ? (
+                            <div className="space-y-4">
+                              <div>
+                                <label className="text-sm font-medium">Duration (minutes)</label>
+                                <Input
+                                  type="number"
+                                  value={editForm.duration}
+                                  onChange={(e) => setEditForm({...editForm, duration: parseInt(e.target.value)})}
+                                  className="mt-1"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium">Notes</label>
+                                <Textarea
+                                  value={editForm.notes || ''}
+                                  onChange={(e) => setEditForm({...editForm, notes: e.target.value})}
+                                  className="mt-1"
+                                  rows={3}
+                                />
+                              </div>
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={saveEdit} className="bg-sage-600 hover:bg-sage-700">
+                                  Save
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={cancelEdit}>
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {exercise.description && (
+                                <div>
+                                  <h5 className="font-medium text-sm mb-1">Description</h5>
+                                  <p className="text-sm opacity-80">{exercise.description}</p>
+                                </div>
+                              )}
+                              {exercise.cues && exercise.cues.length > 0 && (
+                                <div>
+                                  <h5 className="font-medium text-sm mb-2">Cues</h5>
+                                  <ul className="text-sm space-y-1">
+                                    {exercise.cues.map((cue, idx) => (
+                                      <li key={idx} className="opacity-80">• {cue}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {exercise.notes && (
+                                <div>
+                                  <h5 className="font-medium text-sm mb-1">Notes</h5>
+                                  <p className="text-sm opacity-80">{exercise.notes}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -296,7 +411,7 @@ export const ClassPlanCart = ({
           
           <Button
             onClick={onSaveClass}
-            disabled={currentClass.exercises.length === 0}
+            disabled={currentClass.exercises.filter(ex => ex.category !== 'callout').length === 0}
             className="flex-1 bg-sage-600 hover:bg-sage-700 text-white"
           >
             <Save className="h-4 w-4 mr-2" />

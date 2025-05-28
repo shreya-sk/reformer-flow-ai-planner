@@ -29,27 +29,25 @@ export const SmartAddButton = ({
     
     setTimeout(() => {
       setIsAdded(false);
-    }, 2000);
+    }, 2500);
   };
 
   return (
-    <div className="relative">
-      <Button
-        onClick={handleAdd}
-        disabled={isAdded}
-        size={size}
-        className={`transition-all duration-500 shadow-sm ${
-          isAdded 
-            ? 'bg-green-500 hover:bg-green-500 text-white shadow-green-200 shadow-lg scale-110' 
-            : 'bg-sage-600 hover:bg-sage-700 shadow-sage-200'
-        } ${className}`}
-      >
-        {isAdded ? (
-          <Check className={`${size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'} animate-bounce`} />
-        ) : (
-          <Plus className={size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'} />
-        )}
-      </Button>
-    </div>
+    <Button
+      onClick={handleAdd}
+      disabled={isAdded}
+      size={size}
+      className={`transition-all duration-500 ${
+        isAdded 
+          ? 'bg-green-500 hover:bg-green-500 text-white scale-110' 
+          : 'bg-sage-600 hover:bg-sage-700'
+      } ${className}`}
+    >
+      {isAdded ? (
+        <Check className={`${size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'} animate-bounce`} />
+      ) : (
+        <Plus className={size === 'sm' ? 'h-4 w-4' : 'h-5 w-5'} />
+      )}
+    </Button>
   );
 };
