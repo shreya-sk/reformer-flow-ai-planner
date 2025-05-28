@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -279,7 +278,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                         <div className="pt-2">
                           <SmartAddButton
                             exercise={exercise}
-                            onAddExercise={onAddExercise}
                             className="w-full"
                             size="sm"
                             showFeedback={true}
@@ -312,7 +310,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
       </div>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="p-0 max-w-md">
+        <DialogContent className="p-0 max-w-lg">
           <ExerciseForm
             exercise={editingExercise}
             onSave={handleSaveExercise}
