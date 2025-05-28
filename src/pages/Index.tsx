@@ -70,8 +70,8 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
-      {/* Organic Flowing Header with Natural Curves */}
-      <header className="relative overflow-hidden h-40">
+      {/* Organic Flowing Header with Natural Curves - Reduced Height */}
+      <header className="relative overflow-hidden h-32">
         {/* Base gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-sage-500 via-sage-600 to-sage-700"></div>
         
@@ -79,7 +79,7 @@ const Index = () => {
         <div className="absolute inset-0">
           {/* Primary flowing wave */}
           <svg 
-            className="absolute bottom-0 w-full h-32" 
+            className="absolute bottom-0 w-full h-28" 
             viewBox="0 0 1440 320" 
             preserveAspectRatio="none"
           >
@@ -91,7 +91,7 @@ const Index = () => {
           
           {/* Secondary organic wave */}
           <svg 
-            className="absolute bottom-0 w-full h-28" 
+            className="absolute bottom-0 w-full h-24" 
             viewBox="0 0 1440 320" 
             preserveAspectRatio="none"
           >
@@ -103,7 +103,7 @@ const Index = () => {
           
           {/* Subtle accent wave */}
           <svg 
-            className="absolute bottom-0 w-full h-24" 
+            className="absolute bottom-0 w-full h-20" 
             viewBox="0 0 1440 320" 
             preserveAspectRatio="none"
           >
@@ -114,18 +114,18 @@ const Index = () => {
           </svg>
         </div>
 
-        {/* Content Container */}
-        <div className="relative px-6 py-6 flex items-center justify-between h-full">
-          {/* Welcome Section with Organic Icon */}
-          <div className="flex items-center space-x-5">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-xl transform hover:scale-105 transition-all duration-300">
-              <Sparkles className="h-8 w-8 text-white" />
+        {/* Content Container - Adjusted positioning */}
+        <div className="relative px-6 py-4 flex items-center h-full">
+          {/* Welcome Section with Organic Icon - Shifted Right */}
+          <div className="flex items-center space-x-5 ml-8">
+            <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-xl transform hover:scale-105 transition-all duration-300">
+              <Sparkles className="h-7 w-7 text-white" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-3xl font-light text-white tracking-wide">
+              <h1 className="text-2xl font-light text-white tracking-wide italic" style={{ fontFamily: 'cursive' }}>
                 Welcome back,
               </h1>
-              <p className="text-2xl font-medium text-sage-100">
+              <p className="text-xl font-medium text-sage-100">
                 {getFirstName()}
               </p>
             </div>
@@ -133,15 +133,15 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Floating Profile Picture - Larger and More Organic */}
-      <div className="relative -mt-20 flex justify-end pr-8 mb-6 z-10">
+      {/* Floating Profile Picture - Larger, More Centered, Overlapping */}
+      <div className="relative -mt-16 flex justify-center pr-4 mb-2 z-10">
         <div className="relative group">
           <Avatar 
-            className="h-40 w-40 cursor-pointer transition-all duration-500 hover:scale-110 hover:rotate-2 border-6 border-white shadow-2xl relative z-10 bg-white"
+            className="h-32 w-32 cursor-pointer transition-all duration-500 hover:scale-110 hover:rotate-2 border-4 border-white shadow-2xl relative z-10 bg-white"
             onClick={() => navigate('/profile')}
           >
             <AvatarImage src={preferences.profileImage} alt="Profile" className="rounded-full" />
-            <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-sage-400 to-sage-600 text-white rounded-full">
+            <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-sage-400 to-sage-600 text-white rounded-full">
               {getUserInitials()}
             </AvatarFallback>
           </Avatar>
@@ -223,50 +223,50 @@ const Index = () => {
         </div>
       </div>
 
-      <div className="p-4 space-y-6 pb-28">
-        {/* Organic Stats Cards */}
-        <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto">
-          <div className={`p-4 rounded-3xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105`}>
-            <div className="flex items-center gap-2 justify-center">
-              <Target className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-              <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+      <div className="p-4 space-y-3 pb-28">
+        {/* Organic Stats Cards - Reduced Size and Spacing */}
+        <div className="grid grid-cols-3 gap-2 max-w-xs mx-auto">
+          <div className={`p-3 rounded-2xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
+            <div className="flex items-center gap-1 justify-center">
+              <Target className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                 {savedClasses.length}
               </span>
             </div>
-            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-1`}>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-0.5`}>
               Classes
             </p>
           </div>
           
-          <div className={`p-4 rounded-3xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105`}>
-            <div className="flex items-center gap-2 justify-center">
-              <Clock className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-              <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+          <div className={`p-3 rounded-2xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
+            <div className="flex items-center gap-1 justify-center">
+              <Clock className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                 {savedClasses.reduce((total, plan) => total + plan.totalDuration, 0)}
               </span>
             </div>
-            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-1`}>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-0.5`}>
               Minutes
             </p>
           </div>
           
-          <div className={`p-4 rounded-3xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105`}>
-            <div className="flex items-center gap-2 justify-center">
-              <BookOpen className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-              <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+          <div className={`p-3 rounded-2xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
+            <div className="flex items-center gap-1 justify-center">
+              <BookOpen className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                 {savedClasses.reduce((total, plan) => total + plan.exercises.filter(ex => ex.category !== 'callout').length, 0)}
               </span>
             </div>
-            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-1`}>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-0.5`}>
               Exercises
             </p>
           </div>
         </div>
 
         {/* My Classes Section */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between px-2">
-            <h2 className={`text-xl font-light ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+            <h2 className={`text-lg font-light ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
               My Classes
             </h2>
             {savedClasses.length > 0 && (
@@ -277,21 +277,21 @@ const Index = () => {
           </div>
 
           {savedClasses.length === 0 ? (
-            <div className={`text-center py-12 px-6 ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} rounded-3xl shadow-lg`}>
-              <div className={`w-16 h-16 ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                <Plus className={`h-8 w-8 ${preferences.darkMode ? 'text-gray-500' : 'text-sage-500'}`} />
+            <div className={`text-center py-8 px-6 ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg`}>
+              <div className={`w-12 h-12 ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'} rounded-full flex items-center justify-center mx-auto mb-3`}>
+                <Plus className={`h-6 w-6 ${preferences.darkMode ? 'text-gray-500' : 'text-sage-500'}`} />
               </div>
-              <h3 className={`text-xl font-light mb-3 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+              <h3 className={`text-lg font-light mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                 No classes yet
               </h3>
-              <p className={`text-sm mb-6 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+              <p className={`text-sm mb-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
                 Create your first class plan to get started
               </p>
               <Button 
                 onClick={() => navigate('/plan')}
-                className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-full px-8 py-3 transform hover:scale-105 transition-all duration-300 shadow-lg"
+                className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-full px-6 py-2 transform hover:scale-105 transition-all duration-300 shadow-lg"
               >
-                <Plus className="h-5 w-5 mr-2" />
+                <Plus className="h-4 w-4 mr-2" />
                 Create Class
               </Button>
             </div>
