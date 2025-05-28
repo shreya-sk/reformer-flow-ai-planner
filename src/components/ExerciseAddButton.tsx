@@ -3,21 +3,25 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Check } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
+import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 
 interface ExerciseAddButtonProps {
   exercise: Exercise;
-  onAddExercise: (exercise: Exercise) => void;
   className?: string;
 }
 
-export const ExerciseAddButton = ({ exercise, onAddExercise, className }: ExerciseAddButtonProps) => {
+export const ExerciseAddButton = ({ exercise, className }: ExerciseAddButtonProps) => {
   const [isAdded, setIsAdded] = useState(false);
+  const { addExercise } = usePersistedClassPlan();
 
-  const handleAdd = () => {
-    onAddExercise(exercise);
+  const handleAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('Adding exercise to persisted class plan:', exercise.name);
+    addExercise(exercise);
     setIsAdded(true);
     
-    // Reset back to plus icon after 2.5 seconds
     setTimeout(() => {
       setIsAdded(false);
     }, 2500);

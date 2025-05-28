@@ -323,3 +323,7 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
     </Card>
   );
 };
+
+// This file is now deprecated in favor of ImprovedExerciseForm
+// All functionality has been moved to ImprovedExerciseForm for better UX
+export { ImprovedExerciseForm as ExerciseForm } from './ImprovedExerciseForm';

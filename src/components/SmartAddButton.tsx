@@ -3,30 +3,30 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Check } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
+import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 
 interface SmartAddButtonProps {
   exercise: Exercise;
-  onAddExercise: (exercise: Exercise) => void;
   className?: string;
   size?: 'sm' | 'default' | 'lg';
-  showFeedback?: boolean; // Control whether to show the checkmark feedback
+  showFeedback?: boolean;
 }
 
 export const SmartAddButton = ({ 
   exercise, 
-  onAddExercise, 
   className = '',
   size = 'sm',
   showFeedback = true
 }: SmartAddButtonProps) => {
   const [isAdded, setIsAdded] = useState(false);
+  const { addExercise } = usePersistedClassPlan();
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('Adding exercise:', exercise.name);
-    onAddExercise(exercise);
+    console.log('Adding exercise to persisted class plan:', exercise.name);
+    addExercise(exercise);
     
     if (showFeedback) {
       setIsAdded(true);

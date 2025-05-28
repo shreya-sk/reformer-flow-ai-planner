@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -17,14 +18,12 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [currentCueIndex, setCurrentCueIndex] = useState(0);
 
   const currentExercise = classPlan.exercises[currentExerciseIndex];
 
   useEffect(() => {
     if (currentExercise) {
       setTimeRemaining(currentExercise.duration * 60);
-      setCurrentCueIndex(0);
     }
   }, [currentExercise, currentExerciseIndex]);
 
@@ -68,7 +67,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
     
     return (
       <div className="flex items-center gap-3">
-        <span className="text-white/90 text-sm font-medium">Springs:</span>
+        <span className="text-sage-100 text-sm font-medium">Springs:</span>
         <div className="flex items-center gap-3">
           {config.map((spring, index) => (
             <div key={index} className="flex items-center gap-2">
@@ -77,7 +76,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
                   <div key={i} className={`w-4 h-4 rounded-full ${spring.color} shadow-lg border-2 border-white/30`} />
                 ))}
               </div>
-              <span className="text-white/70 text-sm">{spring.name}</span>
+              <span className="text-sage-200 text-sm">{spring.name}</span>
             </div>
           ))}
         </div>
@@ -116,23 +115,21 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
 
   const getTimerColor = () => {
     const percentage = (timeRemaining / (currentExercise?.duration * 60 || 1)) * 100;
-    if (percentage > 50) return 'text-emerald-400';
-    if (percentage > 25) return 'text-amber-400';
-    return 'text-rose-400';
+    if (percentage > 50) return 'text-sage-200';
+    if (percentage > 25) return 'text-amber-300';
+    return 'text-rose-300';
   };
 
   const PregnancyIcon = () => (
     <div className="bg-pink-100 rounded-full p-2">
-      <svg className="h-5 w-5 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M12 2C8.13 2 5 5.13 5 9c0 1.74.5 3.37 1.41 4.84.91 1.47 2.09 2.66 2.09 4.16v1c0 1.1.9 2 2 2h3c1.1 0 2-.9 2-2v-1c0-1.5 1.18-2.69 2.09-4.16.91-1.47 1.41-3.1 1.41-4.84 0-3.87-3.13-7-7-7z"/>
-      </svg>
+      <span className="text-pink-600 font-bold text-sm">👶✓</span>
     </div>
   );
 
   if (!currentExercise) {
     return (
-      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 z-50 flex items-center justify-center">
-        <div className="text-white text-center">
+      <div className="fixed inset-0 bg-gradient-to-br from-sage-900 via-sage-800 to-sage-900 z-50 flex items-center justify-center">
+        <div className="text-sage-100 text-center">
           <h2 className="text-3xl font-bold mb-6">Class Complete! 🎉</h2>
           <Button onClick={onClose} className="bg-sage-600 hover:bg-sage-700 text-white px-8 py-3">
             Return to Classes
@@ -143,21 +140,21 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
   }
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 z-50 text-white overflow-auto">
+    <div className="fixed inset-0 bg-gradient-to-br from-sage-900 via-sage-800 to-sage-900 z-50 text-sage-100 overflow-auto">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 bg-black/30 backdrop-blur-md border-b border-white/10">
+      <div className="flex items-center justify-between p-6 bg-sage-800/50 backdrop-blur-md border-b border-sage-700">
         <Button
           variant="ghost"
           onClick={onClose}
-          className="text-white hover:bg-white/10 transition-colors"
+          className="text-sage-100 hover:bg-sage-700/50 transition-colors"
         >
           <ArrowLeft className="h-5 w-5 mr-2" />
           Exit Teaching Mode
         </Button>
         
         <div className="text-center">
-          <h1 className="text-xl font-semibold">{classPlan.name}</h1>
-          <p className="text-sm text-white/70">
+          <h1 className="text-xl font-semibold text-sage-100">{classPlan.name}</h1>
+          <p className="text-sm text-sage-300">
             Exercise {currentExerciseIndex + 1} of {classPlan.exercises.length}
           </p>
         </div>
@@ -174,7 +171,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
           
           <Progress 
             value={progress} 
-            className="w-full max-w-lg mx-auto h-4 mb-8 bg-white/20"
+            className="w-full max-w-lg mx-auto h-4 mb-8 bg-sage-700"
           />
 
           {/* Timer Controls */}
@@ -182,7 +179,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
             <Button
               onClick={handlePlayPause}
               size="lg"
-              className={`${isTimerRunning ? 'bg-amber-500 hover:bg-amber-600' : 'bg-emerald-500 hover:bg-emerald-600'} text-white shadow-lg`}
+              className={`${isTimerRunning ? 'bg-amber-600 hover:bg-amber-700' : 'bg-sage-600 hover:bg-sage-700'} text-white shadow-lg`}
             >
               {isTimerRunning ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
             </Button>
@@ -190,7 +187,7 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
             <Button
               onClick={handleReset}
               size="lg"
-              className="bg-slate-600 hover:bg-slate-700 text-white shadow-lg"
+              className="bg-sage-700 hover:bg-sage-800 text-white shadow-lg"
             >
               <RotateCcw className="h-6 w-6" />
             </Button>
@@ -198,12 +195,12 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
         </div>
 
         {/* Exercise Info Card */}
-        <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+        <Card className="bg-sage-100/10 backdrop-blur-md border-sage-600 shadow-2xl">
           <CardContent className="p-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Exercise Image */}
               <div className="space-y-4">
-                <div className="bg-white/5 rounded-xl aspect-square flex items-center justify-center overflow-hidden">
+                <div className="bg-sage-800/20 rounded-xl aspect-square flex items-center justify-center overflow-hidden">
                   {currentExercise.image ? (
                     <img 
                       src={currentExercise.image} 
@@ -235,18 +232,18 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
               <div className="space-y-6">
                 <div>
                   <div className="flex items-center gap-4 mb-4">
-                    <h2 className="text-3xl font-bold text-white">{currentExercise.name}</h2>
+                    <h2 className="text-3xl font-bold text-sage-100">{currentExercise.name}</h2>
                     {currentExercise.isPregnancySafe && <PregnancyIcon />}
                   </div>
                   
                   <div className="flex flex-wrap gap-3 mb-6">
-                    <Badge className="bg-blue-500/20 text-blue-300 border-blue-400/30 text-sm px-3 py-1">
+                    <Badge className="bg-sage-600/30 text-sage-200 border-sage-500 text-sm px-3 py-1">
                       {currentExercise.category}
                     </Badge>
-                    <Badge className="bg-purple-500/20 text-purple-300 border-purple-400/30 text-sm px-3 py-1">
+                    <Badge className="bg-amber-600/30 text-amber-200 border-amber-500 text-sm px-3 py-1">
                       {currentExercise.difficulty}
                     </Badge>
-                    <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-400/30 text-sm px-3 py-1">
+                    <Badge className="bg-sage-500/30 text-sage-200 border-sage-400 text-sm px-3 py-1">
                       <Clock className="h-3 w-3 mr-1" />
                       {currentExercise.duration}min
                     </Badge>
@@ -257,75 +254,60 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
 
                 {currentExercise.description && (
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-3">Description</h3>
-                    <p className="text-white/80 leading-relaxed bg-white/5 p-4 rounded-lg">
+                    <h3 className="text-lg font-semibold text-sage-100 mb-3">Description</h3>
+                    <p className="text-sage-200 leading-relaxed bg-sage-800/20 p-4 rounded-lg">
                       {currentExercise.description}
                     </p>
                   </div>
                 )}
 
+                {/* Equipment and Muscle Groups in organized layout */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-sage-800/20 p-4 rounded-lg">
+                    <h4 className="text-sm font-semibold text-sage-200 mb-2">Equipment:</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {currentExercise.equipment.map((equip, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs bg-sage-700/50 text-sage-200">
+                          {equip}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bg-sage-800/20 p-4 rounded-lg">
+                    <h4 className="text-sm font-semibold text-sage-200 mb-2">Muscle Groups:</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {currentExercise.muscleGroups.map((group, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs bg-sage-700/50 text-sage-200">
+                          {group}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 {currentExercise.cues && currentExercise.cues.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold text-white mb-4">Teaching Cues</h3>
+                    <h3 className="text-lg font-semibold text-sage-100 mb-4">Teaching Cues</h3>
                     <div className="space-y-3 max-h-64 overflow-y-auto">
                       {currentExercise.cues.map((cue, index) => (
                         <div 
                           key={index} 
-                          className={`flex items-start gap-3 p-4 rounded-lg transition-all ${
-                            index === currentCueIndex 
-                              ? 'bg-sage-500/30 border border-sage-400/50' 
-                              : 'bg-white/5 hover:bg-white/10'
-                          }`}
+                          className="flex items-start gap-3 p-4 rounded-lg bg-sage-800/20 border border-sage-700"
                         >
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
-                            index === currentCueIndex 
-                              ? 'bg-sage-500 text-white' 
-                              : 'bg-white/20 text-white/70'
-                          }`}>
+                          <div className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 bg-sage-600 text-white">
                             {index + 1}
                           </div>
-                          <p className="text-white/90 leading-relaxed">{cue}</p>
+                          <p className="text-sage-200 leading-relaxed">{cue}</p>
                         </div>
                       ))}
                     </div>
-                    {currentExercise.cues.length > 1 && (
-                      <div className="flex justify-center gap-2 mt-4">
-                        <Button
-                          size="sm"
-                          onClick={() => setCurrentCueIndex(Math.max(0, currentCueIndex - 1))}
-                          disabled={currentCueIndex === 0}
-                          className="bg-white/10 hover:bg-white/20 text-white"
-                        >
-                          Previous Cue
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => setCurrentCueIndex(Math.min(currentExercise.cues.length - 1, currentCueIndex + 1))}
-                          disabled={currentCueIndex === currentExercise.cues.length - 1}
-                          className="bg-white/10 hover:bg-white/20 text-white"
-                        >
-                          Next Cue
-                        </Button>
-                      </div>
-                    )}
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div className="bg-white/5 p-3 rounded-lg">
-                    <span className="text-white/60">Muscle Groups:</span>
-                    <span className="text-white ml-2">{currentExercise.muscleGroups.join(', ')}</span>
-                  </div>
-                  <div className="bg-white/5 p-3 rounded-lg">
-                    <span className="text-white/60">Equipment:</span>
-                    <span className="text-white ml-2">{currentExercise.equipment.join(', ') || 'None'}</span>
-                  </div>
-                </div>
-
                 {currentExercise.notes && (
-                  <div className="bg-white/5 p-4 rounded-lg">
-                    <h4 className="text-sm font-semibold text-white mb-2">Notes:</h4>
-                    <p className="text-sm text-white/80">{currentExercise.notes}</p>
+                  <div className="bg-sage-800/20 p-4 rounded-lg">
+                    <h4 className="text-sm font-semibold text-sage-200 mb-2">Notes:</h4>
+                    <p className="text-sm text-sage-300">{currentExercise.notes}</p>
                   </div>
                 )}
               </div>
@@ -338,14 +320,14 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
           <Button
             onClick={handlePrevious}
             disabled={currentExerciseIndex === 0}
-            className="bg-white/10 hover:bg-white/20 text-white border border-white/20"
+            className="bg-sage-700/50 hover:bg-sage-600 text-sage-100 border border-sage-600"
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             Previous Exercise
           </Button>
 
           <div className="text-center">
-            <p className="text-white/60 text-sm">
+            <p className="text-sage-300 text-sm">
               {classPlan.exercises.length - currentExerciseIndex - 1} exercises remaining
             </p>
           </div>
