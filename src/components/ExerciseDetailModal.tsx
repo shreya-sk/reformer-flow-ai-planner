@@ -278,15 +278,23 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
               <Badge variant="outline" className="text-xs">
                 {exercise.repsOrDuration || `${exercise.duration}min`}
               </Badge>
-              <Badge className={`text-xs ${
-                exercise.difficulty === 'beginner' 
-                  ? 'bg-green-100 text-green-800' 
-                  : exercise.difficulty === 'intermediate'
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {exercise.difficulty}
-              </Badge>
+              {exercise.equipment && exercise.equipment.length > 0 ? (
+                    exercise.equipment.map(equip => (
+                      <Badge 
+                        key={equip} 
+                        variant="outline" 
+                        className="text-xs"
+                      >
+                        {equip}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className={`text-xs ${
+                      preferences.darkMode ? 'text-gray-400' : 'text-sage-500'
+                    }`}>
+                      No Equipment
+                    </span>
+                  )}
               <Badge className={`text-xs ${
                 preferences.darkMode ? 'bg-gray-700 text-gray-300' : 'bg-sage-100 text-sage-700'
               }`}>
@@ -337,7 +345,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
               <div className={`text-xs ${
                 preferences.darkMode ? 'text-gray-400' : 'text-sage-600'
               }`}>
-                {exercise.duration} min
+                 {exercise.repsOrDuration || `${exercise.duration}min`}
               </div>
             </div>
             
@@ -385,7 +393,18 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
               <div className={`text-xs ${
                 preferences.darkMode ? 'text-gray-400' : 'text-sage-600'
               }`}>
-                {exercise.muscleGroups[0]}
+                
+                
+                {exercise.muscleGroups.map(group => (
+                  <span key={group} className="inline-block mr-1">
+                    {group} 
+                  </span>
+                ))}
+                    
+                      
+                      
+               
+              
               </div>
             </div>
           </div>
@@ -448,25 +467,20 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
                 <CardTitle className={`text-sm ${
                   preferences.darkMode ? 'text-white' : 'text-sage-800'
                 }`}>
-                  Target Muscles
+                  Progressions
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-1">
-                  {exercise.muscleGroups.map(group => (
-                    <Badge 
-                      key={group} 
-                      variant="secondary" 
-                      className={`text-xs ${
-                        preferences.darkMode 
-                          ? 'bg-gray-600 text-gray-300' 
-                          : 'bg-sage-100 text-sage-700'
-                      }`}
-                    >
-                      {group}
-                    </Badge>
+                <ul className="space-y-2">
+                  {exercise.progressions.map((cue, index) => (
+                    <li key={index} className={`text-sm flex items-start gap-2 ${
+                      preferences.darkMode ? 'text-gray-300' : 'text-sage-700'
+                    }`}>
+                      <span className="text-sage-500 font-bold text-xs mt-1">•</span>
+                      <span>{cue}</span>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </CardContent>
             </Card>
 
@@ -477,29 +491,20 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
                 <CardTitle className={`text-sm ${
                   preferences.darkMode ? 'text-white' : 'text-sage-800'
                 }`}>
-                  Equipment
+                  Regressions
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-1">
-                  {exercise.equipment && exercise.equipment.length > 0 ? (
-                    exercise.equipment.map(equip => (
-                      <Badge 
-                        key={equip} 
-                        variant="outline" 
-                        className="text-xs"
-                      >
-                        {equip}
-                      </Badge>
-                    ))
-                  ) : (
-                    <span className={`text-xs ${
-                      preferences.darkMode ? 'text-gray-400' : 'text-sage-500'
+                <ul className="space-y-2">
+                  {exercise.regressions.map((cue, index) => (
+                    <li key={index} className={`text-sm flex items-start gap-2 ${
+                      preferences.darkMode ? 'text-gray-300' : 'text-sage-700'
                     }`}>
-                      No additional equipment
-                    </span>
-                  )}
-                </div>
+                      <span className="text-sage-500 font-bold text-xs mt-1">•</span>
+                      <span>{cue}</span>
+                    </li>
+                  ))}
+                </ul>
               </CardContent>
             </Card>
           </div>
