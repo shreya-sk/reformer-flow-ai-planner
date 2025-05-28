@@ -75,6 +75,14 @@ export const useUserPreferences = () => {
     }
   };
 
+  const toggleDarkMode = () => {
+    updatePreferences({ darkMode: !preferences.darkMode });
+  };
+
+  const togglePregnancySafeOnly = () => {
+    updatePreferences({ showPregnancySafeOnly: !preferences.showPregnancySafeOnly });
+  };
+
   useEffect(() => {
     if (user) {
       fetchPreferences();
@@ -96,5 +104,7 @@ export const useUserPreferences = () => {
     preferences,
     loading,
     updatePreferences,
+    toggleDarkMode,
+    togglePregnancySafeOnly,
   };
 };

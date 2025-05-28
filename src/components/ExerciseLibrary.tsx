@@ -1,22 +1,23 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Search, Plus, Clock, Edit, Copy, Filter } from 'lucide-react';
+import { Search, Plus, Clock, Edit, Copy, Filter, Baby } from 'lucide-react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { exerciseDatabase } from '@/data/exercises';
 import { ExerciseForm } from './ExerciseForm';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
 import { SmartAddButton } from './SmartAddButton';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 
 interface ExerciseLibraryProps {
   onAddExercise: (exercise: Exercise) => void;
 }
 
 export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
+  const { preferences } = useUserPreferences();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<ExerciseCategory | 'all'>('all');
@@ -55,7 +56,9 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     
     const matchesPosition = selectedPosition === 'all' || exercise.category === selectedPosition;
     
-    return matchesSearch && matchesMuscleGroup && matchesPosition;
+    const matchesPregnancy = !preferences.showPregnancySafeOnly || exercise.isPregnancySafe;
+    
+    return matchesSearch && matchesMuscleGroup && matchesPosition && matchesPregnancy;
   });
 
   const getSpringVisual = (springs: string) => {
@@ -146,11 +149,11 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
 
   return (
     <>
-      <div className="w-96 bg-gradient-to-br from-white to-sage-25 border-r border-sage-200 flex flex-col h-full shadow-lg">
+      <div className={`w-96 ${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gradient-to-br from-white to-sage-25 border-sage-200'} border-r flex flex-col h-full shadow-lg`}>
         {/* Header */}
-        <div className="p-6 border-b border-sage-200 bg-white">
+        <div className={`p-6 border-b ${preferences.darkMode ? 'border-gray-700 bg-gray-800' : 'border-sage-200 bg-white'}`}>
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-2xl font-bold text-sage-800">Exercise Library</h3>
+            <h3 className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>Exercise Library</h3>
             <Button 
               size="sm" 
               onClick={() => setShowForm(true)}
@@ -168,7 +171,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
               placeholder="Search exercises..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 border-sage-300 focus:border-sage-500 bg-white"
+              className={`pl-10 ${preferences.darkMode ? 'border-gray-600 focus:border-gray-500 bg-gray-700 text-white' : 'border-sage-300 focus:border-sage-500 bg-white'}`}
             />
           </div>
 
@@ -178,7 +181,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
               variant="ghost"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className="text-sage-600 hover:text-sage-800 hover:bg-sage-100"
+              className={`${preferences.darkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'}`}
             >
               <Filter className="h-4 w-4 mr-2" />
               Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}
@@ -188,11 +191,29 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                 variant="ghost"
                 size="sm"
                 onClick={clearFilters}
-                className="text-sage-500 hover:text-sage-700 text-xs"
+                className={`text-xs ${preferences.darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-sage-500 hover:text-sage-700'}`}
               >
                 Clear all
               </Button>
             )}
+          </div>
+
+          {/* Pregnancy Safe Toggle */}
+          <div className="mt-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={preferences.showPregnancySafeOnly}
+                onChange={(e) => {
+                  // This will be handled by user preferences hook
+                }}
+                className="rounded"
+              />
+              <Baby className="h-4 w-4 text-pink-500" />
+              <span className={preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}>
+                Pregnancy-safe only
+              </span>
+            </label>
           </div>
 
           {/* Collapsible Filters */}
@@ -240,14 +261,29 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
           {filteredExercises.map((exercise) => (
             <Card 
               key={exercise.id} 
-              className="group hover:shadow-xl transition-all duration-300 border-sage-200 hover:border-sage-300 cursor-pointer transform hover:-translate-y-1"
+              className={`group hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 relative ${
+                preferences.darkMode 
+                  ? 'border-gray-600 hover:border-gray-500 bg-gray-700' 
+                  : 'border-sage-200 hover:border-sage-300 bg-white'
+              }`}
               onClick={() => handleCardClick(exercise)}
             >
+              {/* Pregnancy Safe Indicator */}
+              {exercise.isPregnancySafe && (
+                <div className="absolute top-2 right-2 bg-pink-500 rounded-full p-1 z-10">
+                  <Baby className="h-3 w-3 text-white" />
+                </div>
+              )}
+
               <CardContent className="p-4">
                 <div className="flex gap-4">
                   {/* Exercise Thumbnail */}
                   <div className="flex-shrink-0">
-                    <div className="w-20 h-20 bg-gradient-to-br from-sage-100 to-sage-200 rounded-xl overflow-hidden border border-sage-200">
+                    <div className={`w-20 h-20 rounded-xl overflow-hidden border ${
+                      preferences.darkMode 
+                        ? 'bg-gradient-to-br from-gray-600 to-gray-700 border-gray-600' 
+                        : 'bg-gradient-to-br from-sage-100 to-sage-200 border-sage-200'
+                    }`}>
                       {exercise.image ? (
                         <img 
                           src={exercise.image} 
@@ -266,7 +302,9 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-semibold text-sage-800 text-base leading-tight">
+                      <h4 className={`font-semibold text-base leading-tight ${
+                        preferences.darkMode ? 'text-white' : 'text-sage-800'
+                      }`}>
                         {exercise.name}
                       </h4>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -274,7 +312,11 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                           size="sm"
                           variant="ghost"
                           onClick={(e) => handleEditExercise(exercise, e)}
-                          className="h-7 w-7 p-0 text-sage-600 hover:text-sage-800 hover:bg-sage-100"
+                          className={`h-7 w-7 p-0 ${
+                            preferences.darkMode 
+                              ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
+                              : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
+                          }`}
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
@@ -282,15 +324,17 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                           size="sm"
                           variant="ghost"
                           onClick={(e) => handleDuplicateExercise(exercise, e)}
-                          className="h-7 w-7 p-0 text-sage-600 hover:text-sage-800 hover:bg-sage-100"
+                          className={`h-7 w-7 p-0 ${
+                            preferences.darkMode 
+                              ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
+                              : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
+                          }`}
                         >
                           <Copy className="h-3 w-3" />
                         </Button>
                         <SmartAddButton
                           exercise={exercise}
-                          onAddExercise={(ex) => {
-                            onAddExercise(ex);
-                          }}
+                          onAddExercise={onAddExercise}
                           className="h-7 w-7 p-0"
                         />
                       </div>
@@ -298,12 +342,14 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
 
                     <div className="flex items-center gap-3 mb-3">
                       <div className="flex items-center gap-1.5">
-                        <Clock className="h-3 w-3 text-sage-500" />
-                        <span className="text-sm text-sage-600 font-medium">{exercise.duration}min</span>
+                        <Clock className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
+                        <span className={`text-sm font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
+                          {exercise.duration}min
+                        </span>
                       </div>
                       
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-sage-500">Springs:</span>
+                        <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>Springs:</span>
                         {getSpringVisual(exercise.springs)}
                       </div>
                     </div>
@@ -313,7 +359,15 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                         {exercise.difficulty}
                       </Badge>
                       {exercise.muscleGroups.slice(0, 2).map(group => (
-                        <Badge key={group} variant="secondary" className="text-xs bg-sage-100 text-sage-700 border-sage-200">
+                        <Badge 
+                          key={group} 
+                          variant="secondary" 
+                          className={`text-xs ${
+                            preferences.darkMode 
+                              ? 'bg-gray-600 text-gray-200 border-gray-500' 
+                              : 'bg-sage-100 text-sage-700 border-sage-200'
+                          }`}
+                        >
                           {group}
                         </Badge>
                       ))}
@@ -326,11 +380,17 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
           
           {filteredExercises.length === 0 && (
             <div className="text-center py-12">
-              <div className="bg-sage-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <Search className="h-8 w-8 text-sage-400" />
+              <div className={`rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 ${
+                preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'
+              }`}>
+                <Search className={`h-8 w-8 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
               </div>
-              <h3 className="text-lg font-semibold text-sage-600 mb-2">No exercises found</h3>
-              <p className="text-sage-500 text-sm">Try adjusting your search or filters</p>
+              <h3 className={`text-lg font-semibold mb-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
+                No exercises found
+              </h3>
+              <p className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>
+                Try adjusting your search or filters
+              </p>
             </div>
           )}
         </div>

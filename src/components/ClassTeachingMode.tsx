@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Play, Pause, SkipForward, RotateCcw, Clock } from 'lucide-react';
+import { ArrowLeft, Play, Pause, SkipForward, RotateCcw, Clock, Baby } from 'lucide-react';
 import { ClassPlan, Exercise } from '@/types/reformer';
 
 interface ClassTeachingModeProps {
@@ -18,13 +18,12 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [isScreenLocked, setIsScreenLocked] = useState(true);
 
   const currentExercise = classPlan.exercises[currentExerciseIndex];
 
   useEffect(() => {
     if (currentExercise) {
-      setTimeRemaining(currentExercise.duration * 60); // Convert to seconds
+      setTimeRemaining(currentExercise.duration * 60);
     }
   }, [currentExercise, currentExerciseIndex]);
 
@@ -50,6 +49,36 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getSpringVisual = (springs: string) => {
+    const springConfig = {
+      'light': [{ color: 'bg-green-500', count: 1 }],
+      'medium': [{ color: 'bg-yellow-500', count: 1 }],
+      'heavy': [{ color: 'bg-red-500', count: 2 }],
+      'mixed': [
+        { color: 'bg-red-500', count: 1 },
+        { color: 'bg-yellow-500', count: 1 },
+        { color: 'bg-green-500', count: 1 }
+      ]
+    };
+
+    const config = springConfig[springs as keyof typeof springConfig] || springConfig.light;
+    
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-white text-sm">Springs:</span>
+        <div className="flex items-center gap-1">
+          {config.map((spring, index) => (
+            <div key={index} className="flex gap-1">
+              {Array.from({ length: spring.count }).map((_, i) => (
+                <div key={i} className={`w-4 h-4 rounded-full ${spring.color} shadow-lg`} />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const handlePlayPause = () => {
@@ -83,9 +112,9 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
 
   const getTimerColor = () => {
     const percentage = (timeRemaining / (currentExercise?.duration * 60 || 1)) * 100;
-    if (percentage > 50) return 'text-green-600';
-    if (percentage > 25) return 'text-yellow-600';
-    return 'text-red-600';
+    if (percentage > 50) return 'text-green-400';
+    if (percentage > 25) return 'text-yellow-400';
+    return 'text-red-400';
   };
 
   if (!currentExercise) {
@@ -102,9 +131,9 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
   }
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 to-black z-50 text-white overflow-auto">
+    <div className="fixed inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800 z-50 text-white overflow-auto">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-black/50 backdrop-blur-sm">
+      <div className="flex items-center justify-between p-4 bg-black/50 backdrop-blur-sm border-b border-gray-700">
         <Button
           variant="ghost"
           size="sm"
@@ -122,114 +151,174 @@ export const ClassTeachingMode = ({ classPlan, onClose }: ClassTeachingModeProps
           </p>
         </div>
 
-        <div className="w-24" /> {/* Spacer for balance */}
+        <div className="w-32" />
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 p-6 max-w-4xl mx-auto">
-        {/* Timer Display */}
-        <div className="text-center mb-8">
-          <div className={`text-8xl md:text-9xl font-bold mb-4 ${getTimerColor()}`}>
-            {formatTime(timeRemaining)}
-          </div>
-          
-          <Progress 
-            value={progress} 
-            className="w-full max-w-md mx-auto h-3 mb-6 bg-gray-700"
-          />
-
-          {/* Timer Controls */}
-          <div className="flex justify-center gap-4 mb-8">
-            <Button
-              onClick={handlePlayPause}
-              size="lg"
-              className={`${isTimerRunning ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'} text-white`}
-            >
-              {isTimerRunning ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-            </Button>
+      <div className="flex flex-1 h-[calc(100vh-80px)]">
+        {/* Main Exercise Area */}
+        <div className="flex-1 p-6">
+          {/* Timer Display */}
+          <div className="text-center mb-6">
+            <div className={`text-6xl md:text-8xl font-bold mb-4 ${getTimerColor()}`}>
+              {formatTime(timeRemaining)}
+            </div>
             
+            <Progress 
+              value={progress} 
+              className="w-full max-w-md mx-auto h-3 mb-6 bg-gray-700"
+            />
+
+            {/* Timer Controls */}
+            <div className="flex justify-center gap-4 mb-6">
+              <Button
+                onClick={handlePlayPause}
+                size="lg"
+                className={`${isTimerRunning ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-green-600 hover:bg-green-700'} text-white`}
+              >
+                {isTimerRunning ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+              </Button>
+              
+              <Button
+                onClick={handleReset}
+                size="lg"
+                variant="outline"
+                className="border-gray-600 text-white hover:bg-gray-800"
+              >
+                <RotateCcw className="h-6 w-6" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Exercise Info */}
+          <Card className="bg-gray-800/50 border-gray-600 mb-6">
+            <CardContent className="p-6">
+              <div className="text-center mb-6">
+                <div className="flex items-center justify-center gap-4 mb-2">
+                  <h2 className="text-3xl font-bold text-white">{currentExercise.name}</h2>
+                  {currentExercise.isPregnancySafe && (
+                    <div className="bg-pink-500 rounded-full p-2">
+                      <Baby className="h-5 w-5 text-white" />
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex justify-center gap-3 mb-4">
+                  <Badge className="bg-blue-600 text-white">{currentExercise.category}</Badge>
+                  <Badge className="bg-purple-600 text-white">{currentExercise.difficulty}</Badge>
+                  <Badge className="bg-green-600 text-white">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {currentExercise.duration}min
+                  </Badge>
+                </div>
+
+                {/* Springs Display */}
+                <div className="flex justify-center mb-4">
+                  {getSpringVisual(currentExercise.springs)}
+                </div>
+              </div>
+
+              {currentExercise.description && (
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-white mb-2">Description</h3>
+                  <p className="text-gray-300">{currentExercise.description}</p>
+                </div>
+              )}
+
+              {currentExercise.cues && currentExercise.cues.length > 0 && (
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-white mb-2">Teaching Cues</h3>
+                  <ul className="space-y-2">
+                    {currentExercise.cues.map((cue, index) => (
+                      <li key={index} className="text-gray-300 bg-gray-700/50 p-2 rounded">
+                        • {cue}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-400">Muscle Groups:</span>
+                  <span className="text-white ml-2">{currentExercise.muscleGroups.join(', ')}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Equipment:</span>
+                  <span className="text-white ml-2">{currentExercise.equipment.join(', ') || 'None'}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Navigation */}
+          <div className="flex justify-between items-center">
             <Button
-              onClick={handleReset}
-              size="lg"
+              onClick={handlePrevious}
+              disabled={currentExerciseIndex === 0}
               variant="outline"
               className="border-gray-600 text-white hover:bg-gray-800"
             >
-              <RotateCcw className="h-6 w-6" />
+              Previous Exercise
+            </Button>
+
+            <div className="text-center">
+              <p className="text-gray-400 text-sm">
+                {classPlan.exercises.length - currentExerciseIndex - 1} exercises remaining
+              </p>
+            </div>
+
+            <Button
+              onClick={handleNext}
+              disabled={currentExerciseIndex === classPlan.exercises.length - 1}
+              className="bg-sage-600 hover:bg-sage-700"
+            >
+              Next Exercise
+              <SkipForward className="h-4 w-4 ml-2" />
             </Button>
           </div>
         </div>
 
-        {/* Exercise Info */}
-        <Card className="bg-gray-800/50 border-gray-700 mb-6">
-          <CardContent className="p-6">
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-white mb-2">{currentExercise.name}</h2>
-              <div className="flex justify-center gap-3 mb-4">
-                <Badge className="bg-blue-600 text-white">{currentExercise.category}</Badge>
-                <Badge className="bg-purple-600 text-white">{currentExercise.difficulty}</Badge>
-                <Badge className="bg-green-600 text-white">
-                  <Clock className="h-3 w-3 mr-1" />
-                  {currentExercise.duration}min
-                </Badge>
-              </div>
-            </div>
-
-            {currentExercise.description && (
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-white mb-2">Description</h3>
-                <p className="text-gray-300">{currentExercise.description}</p>
+        {/* Exercise Visual/GIF Area */}
+        <div className="w-80 bg-gray-800/30 border-l border-gray-700 p-4">
+          <h3 className="text-lg font-semibold text-white mb-4">Exercise Visual</h3>
+          <div className="bg-gray-700 rounded-lg aspect-square flex items-center justify-center mb-4">
+            {currentExercise.image ? (
+              <img 
+                src={currentExercise.image} 
+                alt={currentExercise.name}
+                className="w-full h-full object-cover rounded-lg"
+              />
+            ) : (
+              <div className="text-center text-gray-400">
+                <img 
+                  src="/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png" 
+                  alt="Default exercise"
+                  className="w-full h-full object-cover rounded-lg opacity-50"
+                />
               </div>
             )}
-
-            {currentExercise.cues && currentExercise.cues.length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold text-white mb-2">Teaching Cues</h3>
-                <ul className="space-y-1">
-                  {currentExercise.cues.map((cue, index) => (
-                    <li key={index} className="text-gray-300">• {cue}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-400">Springs:</span>
-                <span className="text-white ml-2 capitalize">{currentExercise.springs}</span>
-              </div>
-              <div>
-                <span className="text-gray-400">Muscle Groups:</span>
-                <span className="text-white ml-2">{currentExercise.muscleGroups.join(', ')}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Navigation */}
-        <div className="flex justify-between items-center">
-          <Button
-            onClick={handlePrevious}
-            disabled={currentExerciseIndex === 0}
-            variant="outline"
-            className="border-gray-600 text-white hover:bg-gray-800"
-          >
-            Previous Exercise
-          </Button>
-
-          <div className="text-center">
-            <p className="text-gray-400 text-sm">
-              {classPlan.exercises.length - currentExerciseIndex - 1} exercises remaining
-            </p>
           </div>
+          
+          {currentExercise.videoUrl && (
+            <div className="mb-4">
+              <p className="text-sm text-gray-400 mb-2">Exercise Demo:</p>
+              <video 
+                src={currentExercise.videoUrl} 
+                controls 
+                className="w-full rounded-lg"
+                poster={currentExercise.image}
+              >
+                Your browser does not support video playback.
+              </video>
+            </div>
+          )}
 
-          <Button
-            onClick={handleNext}
-            disabled={currentExerciseIndex === classPlan.exercises.length - 1}
-            className="bg-sage-600 hover:bg-sage-700"
-          >
-            Next Exercise
-            <SkipForward className="h-4 w-4 ml-2" />
-          </Button>
+          {currentExercise.notes && (
+            <div className="bg-gray-700/50 p-3 rounded-lg">
+              <h4 className="text-sm font-semibold text-white mb-1">Notes:</h4>
+              <p className="text-xs text-gray-300">{currentExercise.notes}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
