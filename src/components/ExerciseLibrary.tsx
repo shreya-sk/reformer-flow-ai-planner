@@ -245,56 +245,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
               </Button>
             </div>
 
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4 flex-1">
-                {/* Search */}
-                <div className="relative w-80">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 h-4 w-4" />
-                  <input
-                    placeholder="Search exercises..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className={`pl-10 w-full h-10 rounded-md border px-3 py-2 text-sm ${
-                      preferences.darkMode 
-                        ? 'border-gray-600 focus:border-gray-500 bg-gray-700 text-white' 
-                        : 'border-sage-300 focus:border-sage-500 bg-white'
-                    }`}
-                  />
-                </div>
-
-                {/* Show Hidden Toggle */}
-                <Button
-                  variant={showHidden ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowHidden(!showHidden)}
-                  className="gap-2"
-                >
-                  {showHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                  {showHidden ? `Showing Hidden (${hiddenCount})` : `Show Hidden (${hiddenCount})`}
-                </Button>
-
-                {activeFiltersCount > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearFilters}
-                    className={`text-xs ${preferences.darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-sage-500 hover:text-sage-700'}`}
-                  >
-                    Clear filters
-                  </Button>
-                )}
-              </div>
-
-              <Button 
-                onClick={() => setShowForm(true)}
-                size="sm" 
-                className="bg-sage-600 hover:bg-sage-700 shadow-sm"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Add Exercise
-              </Button>
-            </div>
-
             <ExerciseLibraryHeader
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
@@ -307,6 +257,9 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
               onAddExercise={() => setShowForm(true)}
               onClearFilters={clearFilters}
               activeFiltersCount={activeFiltersCount}
+              showHidden={showHidden}
+              onToggleShowHidden={() => setShowHidden(!showHidden)}
+              hiddenCount={hiddenCount}
             />
           </div>
         </div>

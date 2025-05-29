@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Plus, Filter, Baby, Check } from 'lucide-react';
+import { Search, Plus, Filter, Baby, Check, Eye, EyeOff } from 'lucide-react';
 import { MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
@@ -18,6 +18,9 @@ interface ExerciseLibraryHeaderProps {
   onAddExercise: () => void;
   onClearFilters: () => void;
   activeFiltersCount: number;
+  showHidden?: boolean;
+  onToggleShowHidden?: () => void;
+  hiddenCount?: number;
 }
 
 export const ExerciseLibraryHeader = ({
@@ -31,7 +34,10 @@ export const ExerciseLibraryHeader = ({
   onToggleFilters,
   onAddExercise,
   onClearFilters,
-  activeFiltersCount
+  activeFiltersCount,
+  showHidden = false,
+  onToggleShowHidden,
+  hiddenCount = 0
 }: ExerciseLibraryHeaderProps) => {
   const { preferences, togglePregnancySafeOnly } = useUserPreferences();
 
@@ -69,6 +75,19 @@ export const ExerciseLibraryHeader = ({
                 className={`pl-10 ${preferences.darkMode ? 'border-gray-600 focus:border-gray-500 bg-gray-700 text-white' : 'border-sage-300 focus:border-sage-500 bg-white'}`}
               />
             </div>
+
+            {/* Show Hidden Toggle */}
+            {onToggleShowHidden && (
+              <Button
+                variant={showHidden ? "default" : "outline"}
+                size="sm"
+                onClick={onToggleShowHidden}
+                className="gap-2"
+              >
+                {showHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                {showHidden ? `Showing Hidden (${hiddenCount})` : `Show Hidden (${hiddenCount})`}
+              </Button>
+            )}
 
             {/* Filter Toggle */}
             <Button
