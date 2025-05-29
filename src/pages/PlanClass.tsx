@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,6 +23,8 @@ const PlanClass = () => {
     removeExercise,
     updateClassName,
     updateClassDuration,
+    updateClassNotes,
+    updateClassImage,
     addCallout,
     clearClassPlan,
     reorderExercises
@@ -32,6 +33,7 @@ const PlanClass = () => {
   const [activeTab, setActiveTab] = useState('builder');
   const [isTeachingMode, setIsTeachingMode] = useState(false);
   const [shortlistedExercises, setShortlistedExercises] = useState<any[]>([]);
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
   if (!user) {
     return <AuthPage />;
@@ -115,6 +117,18 @@ const PlanClass = () => {
     removeFromShortlist(exercise.id);
   };
 
+  const toggleSectionCollapse = (sectionId: string) => {
+    setCollapsedSections(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionId)) {
+        newSet.delete(sectionId);
+      } else {
+        newSet.add(sectionId);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-50 via-white to-sage-100'} pb-20`}>
       <ClassHeader
@@ -130,12 +144,9 @@ const PlanClass = () => {
 
       <div className="p-3">
         <Tabs defaultValue="builder" value={activeTab} onValueChange={setActiveTab} className="rounded-xl overflow-hidden shadow-md bg-white/80 backdrop-blur-sm">
-          <TabsList className="w-full grid grid-cols-3 bg-sage-50/70 p-1">
+          <TabsList className="w-full grid grid-cols-2 bg-sage-50/70 p-1">
             <TabsTrigger value="builder" className="rounded-lg data-[state=active]:bg-sage-100 data-[state=active]:text-sage-800">
               Builder
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="rounded-lg data-[state=active]:bg-sage-100 data-[state=active]:text-sage-800">
-              Settings
             </TabsTrigger>
             <TabsTrigger value="shortlist" className="rounded-lg data-[state=active]:bg-sage-100 data-[state=active]:text-sage-800">
               Shortlisted
@@ -143,34 +154,27 @@ const PlanClass = () => {
           </TabsList>
           
           <TabsContent value="builder" className="py-2">
-            <TabbedPlanView
+            <ClassBuilder
               currentClass={currentClass}
               onRemoveExercise={removeExercise}
-              onUpdateClassName={updateClassName}
-              onUpdateClassDuration={updateClassDuration}
+              onReorderExercises={reorderExercises}
+              onUpdateExercise={(exercise) => {
+                const updatedExercises = currentClass.exercises.map(ex => 
+                  ex.id === exercise.id ? exercise : ex
+                );
+                reorderExercises(updatedExercises);
+              }}
               onAddExercise={handleAddExercise}
               onAddCallout={handleAddCallout}
               onUpdateCallout={handleUpdateCallout}
               onDeleteCallout={handleDeleteCallout}
-              onReorderExercises={reorderExercises}
               onAddToShortlist={addToShortlist}
-              viewMode="builder"
-            />
-          </TabsContent>
-          
-          <TabsContent value="settings" className="py-2">
-            <TabbedPlanView
-              currentClass={currentClass}
-              onRemoveExercise={removeExercise}
               onUpdateClassName={updateClassName}
               onUpdateClassDuration={updateClassDuration}
-              onAddExercise={handleAddExercise}
-              onAddCallout={handleAddCallout}
-              onUpdateCallout={handleUpdateCallout}
-              onDeleteCallout={handleDeleteCallout}
-              onReorderExercises={reorderExercises}
-              onAddToShortlist={addToShortlist}
-              viewMode="settings"
+              onUpdateClassNotes={updateClassNotes}
+              onUpdateClassImage={updateClassImage}
+              collapsedSections={collapsedSections}
+              onToggleSectionCollapse={toggleSectionCollapse}
             />
           </TabsContent>
           

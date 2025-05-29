@@ -27,6 +27,8 @@ export const usePersistedClassPlan = () => {
           classDuration: parsed.classDuration || 45,
           // Ensure image field exists
           image: parsed.image || '',
+          // Ensure notes field exists
+          notes: parsed.notes || '',
         };
       }
     } catch (error) {
@@ -106,6 +108,10 @@ export const usePersistedClassPlan = () => {
     setCurrentClass(prev => ({ ...prev, image }));
   };
 
+  const updateClassNotes = (notes: string) => {
+    setCurrentClass(prev => ({ ...prev, notes }));
+  };
+
   const reorderExercises = (exercises: Exercise[]) => {
     const totalDuration = exercises
       .filter(ex => ex.category !== 'callout')
@@ -183,6 +189,7 @@ export const usePersistedClassPlan = () => {
     updateClassName,
     updateClassDuration,
     updateClassImage,
+    updateClassNotes,
     reorderExercises,
     updateExercise,
     addCallout,

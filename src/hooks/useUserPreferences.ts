@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 
 interface UserPreferences {
@@ -7,6 +6,7 @@ interface UserPreferences {
   profileImage?: string;
   customCallouts?: string[];
   favoriteExercises?: string[];
+  hiddenExercises?: string[];
 }
 
 const PREFERENCES_KEY = 'user-preferences';
@@ -26,7 +26,8 @@ export const useUserPreferences = () => {
       showPregnancySafeOnly: false,
       profileImage: '',
       customCallouts: [],
-      favoriteExercises: []
+      favoriteExercises: [],
+      hiddenExercises: []
     };
   });
 
@@ -77,6 +78,20 @@ export const useUserPreferences = () => {
     });
   };
 
+  const toggleHiddenExercise = (exerciseId: string) => {
+    setPreferences(prev => {
+      const hidden = prev.hiddenExercises || [];
+      const isAlreadyHidden = hidden.includes(exerciseId);
+      
+      return {
+        ...prev,
+        hiddenExercises: isAlreadyHidden
+          ? hidden.filter(id => id !== exerciseId)
+          : [...hidden, exerciseId]
+      };
+    });
+  };
+
   const togglePregnancySafeOnly = () => {
     setPreferences(prev => ({
       ...prev,
@@ -91,6 +106,7 @@ export const useUserPreferences = () => {
     removeCustomCallout,
     updateCustomCallouts,
     toggleFavoriteExercise,
+    toggleHiddenExercise,
     togglePregnancySafeOnly
   };
 };

@@ -3,7 +3,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Clock, Edit, Copy, Heart, Baby, Check, Search } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Clock, Edit, Copy, Heart, Baby, Check, Search, Trash2, EyeOff, Eye, Plus } from 'lucide-react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { exerciseDatabase } from '@/data/exercises';
 import { ExerciseForm } from './ExerciseForm';
@@ -19,21 +20,28 @@ interface ExerciseLibraryProps {
 }
 
 export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
-  const { preferences, toggleFavoriteExercise } = useUserPreferences();
-  const { customExercises, saveCustomExercise, loading: customLoading } = useCustomExercises();
+  const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
+  const { customExercises, deleteCustomExercise } = useCustomExercises();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<ExerciseCategory | 'all'>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [exercises, setExercises] = useState([...exerciseDatabase, ...customExercises]);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
 
-  // Combine default exercises with custom exercises
+  // Combine default and custom exercises
   const allExercises = [...exerciseDatabase, ...customExercises];
 
   const filteredExercises = allExercises.filter(exercise => {
+    // Filter hidden exercises unless explicitly showing them
+    const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
+    if (!showHidden && isHidden) return false;
+    if (showHidden && !isHidden) return false;
+
     const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          exercise.muscleGroups.some(group => group.toLowerCase().includes(searchTerm.toLowerCase()));
     
@@ -83,25 +91,14 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     }
   };
 
-  const handleSaveExercise = async (exercise: Exercise) => {
-    try {
-      if (exercise.isCustom || editingExercise?.isCustom) {
-        // Save custom exercise to database
-        await saveCustomExercise(exercise);
-        toast({
-          title: "Exercise saved!",
-          description: `"${exercise.name}" has been saved as a custom exercise.`,
-        });
-      }
-      setShowForm(false);
-      setEditingExercise(null);
-    } catch (error) {
-      toast({
-        title: "Error saving exercise",
-        description: "Failed to save the exercise. Please try again.",
-        variant: "destructive",
-      });
+  const handleSaveExercise = (exercise: Exercise) => {
+    if (editingExercise) {
+      setExercises(prev => prev.map(ex => ex.id === exercise.id ? exercise : ex));
+    } else {
+      setExercises(prev => [...prev, exercise]);
     }
+    setShowForm(false);
+    setEditingExercise(null);
   };
 
   const handleEditExercise = (exercise: Exercise, e: React.MouseEvent) => {
@@ -110,34 +107,52 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     setShowForm(true);
   };
 
-  const handleDuplicateExercise = async (exercise: Exercise, e: React.MouseEvent) => {
+  const handleDuplicateExercise = (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const duplicated = {
+      ...exercise,
+      id: `${exercise.id}-copy-${Date.now()}`,
+      name: `${exercise.name} (Copy)`
+    };
+    setEditingExercise(duplicated);
+    setShowForm(true);
+  };
+
+  const handleDeleteExercise = async (exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // Create a new exercise based on the existing one
-    const duplicatedExercise: Exercise = {
-      ...exercise,
-      id: `custom-${Date.now()}`, // New unique ID
-      name: `${exercise.name} (Copy)`,
-      isCustom: true, // Mark as custom exercise
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
-    try {
-      // Save the duplicated exercise as a custom exercise
-      await saveCustomExercise(duplicatedExercise);
-      
+    // Only allow deleting custom exercises
+    if (!exercise.id.startsWith('custom-')) {
       toast({
-        title: "Exercise duplicated!",
-        description: `"${duplicatedExercise.name}" has been created as a custom exercise.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error duplicating exercise",
-        description: "Failed to duplicate the exercise. Please try again.",
+        title: "Cannot delete",
+        description: "Only custom exercises can be deleted.",
         variant: "destructive",
       });
+      return;
     }
+
+    try {
+      await deleteCustomExercise(exercise.id);
+      setExercises(prev => prev.filter(ex => ex.id !== exercise.id));
+      toast({
+        title: "Exercise deleted",
+        description: `"${exercise.name}" has been permanently deleted.`,
+      });
+    } catch (error) {
+      console.error('Error deleting exercise:', error);
+    }
+  };
+
+  const handleToggleHidden = (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleHiddenExercise(exercise.id);
+    const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
+    toast({
+      title: isHidden ? "Exercise unhidden" : "Exercise hidden",
+      description: isHidden 
+        ? `"${exercise.name}" is now visible in your library.`
+        : `"${exercise.name}" has been hidden from your library.`,
+    });
   };
 
   const handleCardClick = (exercise: Exercise) => {
@@ -145,24 +160,9 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     setShowDetailModal(true);
   };
 
-  const handleUpdateExercise = async (updatedExercise: Exercise) => {
-    try {
-      if (updatedExercise.isCustom) {
-        // Update custom exercise in database
-        await saveCustomExercise(updatedExercise);
-        toast({
-          title: "Exercise updated!",
-          description: `"${updatedExercise.name}" has been updated.`,
-        });
-      }
-      setSelectedExercise(updatedExercise);
-    } catch (error) {
-      toast({
-        title: "Error updating exercise",
-        description: "Failed to update the exercise. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleUpdateExercise = (updatedExercise: Exercise) => {
+    setExercises(prev => prev.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    setSelectedExercise(updatedExercise);
   };
 
   const clearFilters = () => {
@@ -172,24 +172,79 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   };
 
   const activeFiltersCount = (selectedMuscleGroup !== 'all' ? 1 : 0) + (selectedPosition !== 'all' ? 1 : 0);
+  const hiddenCount = preferences.hiddenExercises?.length || 0;
 
   return (
     <>
       <div className={`w-full ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-white to-sage-25'} flex flex-col h-full`}>
-        {/* Header */}
-        <ExerciseLibraryHeader
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          selectedMuscleGroup={selectedMuscleGroup}
-          onMuscleGroupChange={setSelectedMuscleGroup}
-          selectedPosition={selectedPosition}
-          onPositionChange={setSelectedPosition}
-          showFilters={showFilters}
-          onToggleFilters={() => setShowFilters(!showFilters)}
-          onAddExercise={() => setShowForm(true)}
-          onClearFilters={clearFilters}
-          activeFiltersCount={activeFiltersCount}
-        />
+        {/* Header with show hidden toggle */}
+        <div className={`p-6 border-b ${preferences.darkMode ? 'border-gray-700 bg-gray-800' : 'border-sage-200 bg-white'}`}>
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4 flex-1">
+                {/* Search */}
+                <div className="relative w-80">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 h-4 w-4" />
+                  <input
+                    placeholder="Search exercises..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className={`pl-10 w-full h-10 rounded-md border px-3 py-2 text-sm ${
+                      preferences.darkMode 
+                        ? 'border-gray-600 focus:border-gray-500 bg-gray-700 text-white' 
+                        : 'border-sage-300 focus:border-sage-500 bg-white'
+                    }`}
+                  />
+                </div>
+
+                {/* Show Hidden Toggle */}
+                <Button
+                  variant={showHidden ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowHidden(!showHidden)}
+                  className="gap-2"
+                >
+                  {showHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                  {showHidden ? `Showing Hidden (${hiddenCount})` : `Show Hidden (${hiddenCount})`}
+                </Button>
+
+                {activeFiltersCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className={`text-xs ${preferences.darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-sage-500 hover:text-sage-700'}`}
+                  >
+                    Clear filters
+                  </Button>
+                )}
+              </div>
+
+              <Button 
+                onClick={() => setShowForm(true)}
+                size="sm" 
+                className="bg-sage-600 hover:bg-sage-700 shadow-sm"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Exercise
+              </Button>
+            </div>
+
+            <ExerciseLibraryHeader
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              selectedMuscleGroup={selectedMuscleGroup}
+              onMuscleGroupChange={setSelectedMuscleGroup}
+              selectedPosition={selectedPosition}
+              onPositionChange={setSelectedPosition}
+              showFilters={showFilters}
+              onToggleFilters={() => setShowFilters(!showFilters)}
+              onAddExercise={() => setShowForm(true)}
+              onClearFilters={clearFilters}
+              activeFiltersCount={activeFiltersCount}
+            />
+          </div>
+        </div>
 
         {/* Exercise Grid */}
         <div className="flex-1 overflow-y-auto p-6">
@@ -197,6 +252,8 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredExercises.map((exercise) => {
                 const isFavorite = preferences.favoriteExercises?.includes(exercise.id) || false;
+                const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
+                const isCustom = exercise.id.startsWith('custom-');
                 
                 return (
                   <Card 
@@ -205,18 +262,9 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                       preferences.darkMode 
                         ? 'border-gray-600 hover:border-gray-500 bg-gray-800' 
                         : 'border-sage-200 hover:border-sage-300 bg-white'
-                    }`}
+                    } ${isHidden ? 'opacity-60' : ''}`}
                     onClick={() => handleCardClick(exercise)}
                   >
-                    {/* Custom Exercise Badge */}
-                    {exercise.isCustom && (
-                      <div className="absolute top-2 left-2 z-10">
-                        <Badge className="text-xs bg-purple-100 text-purple-800 border-purple-200">
-                          Custom
-                        </Badge>
-                      </div>
-                    )}
-
                     {/* Favorite Icon - Top Right */}
                     <Button
                       onClick={(e) => {
@@ -233,6 +281,15 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                     >
                       <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
                     </Button>
+
+                    {/* Hidden indicator */}
+                    {isHidden && (
+                      <div className="absolute top-2 left-2 z-10">
+                        <Badge variant="secondary" className="text-xs bg-gray-500 text-white">
+                          Hidden
+                        </Badge>
+                      </div>
+                    )}
 
                     <CardContent className="p-4">
                       {/* Exercise Thumbnail */}
@@ -273,7 +330,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                                   ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
                                   : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
                               }`}
-                              title="Edit exercise"
                             >
                               <Edit className="h-3 w-3" />
                             </Button>
@@ -281,16 +337,56 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                               size="sm"
                               variant="ghost"
                               onClick={(e) => handleDuplicateExercise(exercise, e)}
-                              disabled={customLoading}
                               className={`h-6 w-6 p-0 ${
                                 preferences.darkMode 
                                   ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
                                   : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
                               }`}
-                              title="Duplicate as custom exercise"
                             >
                               <Copy className="h-3 w-3" />
                             </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => handleToggleHidden(exercise, e)}
+                              className={`h-6 w-6 p-0 ${
+                                preferences.darkMode 
+                                  ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
+                                  : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
+                              }`}
+                            >
+                              {isHidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                            </Button>
+                            {isCustom && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Delete Exercise</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to permanently delete "{exercise.name}"? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={(e) => handleDeleteExercise(exercise, e)}
+                                      className="bg-red-600 hover:bg-red-700"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
                           </div>
                         </div>
 
@@ -322,6 +418,11 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                           <Badge className={`text-xs font-medium ${getDifficultyColor(exercise.difficulty)}`}>
                             {exercise.difficulty}
                           </Badge>
+                          {isCustom && (
+                            <Badge variant="outline" className="text-xs text-blue-600 border-blue-300">
+                              Custom
+                            </Badge>
+                          )}
                           {exercise.muscleGroups.slice(0, 2).map(group => (
                             <Badge 
                               key={group} 
@@ -360,10 +461,13 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                   <Search className={`h-8 w-8 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-400'}`} />
                 </div>
                 <h3 className={`text-lg font-semibold mb-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
-                  No exercises found
+                  {showHidden ? 'No hidden exercises found' : 'No exercises found'}
                 </h3>
                 <p className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>
-                  Try adjusting your search or filters
+                  {showHidden 
+                    ? 'You haven\'t hidden any exercises yet.'
+                    : 'Try adjusting your search or filters'
+                  }
                 </p>
               </div>
             )}
@@ -371,7 +475,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
         </div>
       </div>
 
-      {/* Exercise Form Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="p-0 max-w-lg">
           <ExerciseForm
@@ -385,7 +488,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Exercise Detail Modal */}
       {selectedExercise && (
         <ExerciseDetailModal
           exercise={selectedExercise}
