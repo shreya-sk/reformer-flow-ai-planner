@@ -56,13 +56,24 @@ export const useExercises = () => {
           springs: customization?.custom_springs || exercise.springs as SpringSetting,
           difficulty: customization?.custom_difficulty || exercise.difficulty as DifficultyLevel,
           intensityLevel: 'medium' as const,
-          muscleGroups: (exercise.muscle_groups || []) as MuscleGroup[],
+          muscleGroups: (exercise.muscle_groups || []).filter(group => 
+            ['core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body',
+             'quadriceps', 'hamstrings', 'calves', 'lower-abs', 'upper-abs', 'obliques',
+             'transverse-abdominis', 'traps', 'deltoids', 'biceps', 'triceps', 'lats',
+             'chest', 'rhomboids', 'erector-spinae', 'hip-flexors', 'adductors', 'abductors',
+             'pelvic-floor', 'deep-stabilizers', 'spinal-extensors', 'neck', 'forearms',
+             'wrists', 'ankles', 'feet', 'hip-abductors', 'hip-adductors', 'rotator-cuff',
+             'serratus-anterior', 'psoas', 'iliotibial-band', 'thoracic-spine', 'lumbar-spine',
+             'cervical-spine', 'diaphragm', 'intercostals'].includes(group)
+          ) as MuscleGroup[],
           equipment: (exercise.equipment || []) as Equipment[],
           description: exercise.description || '',
           image: exercise.image_url || '',
           videoUrl: exercise.video_url || '',
           notes: customization?.custom_notes || exercise.notes || '',
           cues: customization?.custom_cues || exercise.cues || [],
+          progressions: exercise.progressions || [],
+          regressions: exercise.regressions || [],
           transitions: [],
           contraindications: exercise.contraindications || [],
           isPregnancySafe: exercise.is_pregnancy_safe || false,
@@ -80,13 +91,24 @@ export const useExercises = () => {
         springs: exercise.springs as SpringSetting,
         difficulty: exercise.difficulty as DifficultyLevel,
         intensityLevel: 'medium' as const,
-        muscleGroups: (exercise.muscle_groups || []) as MuscleGroup[],
+        muscleGroups: (exercise.muscle_groups || []).filter(group => 
+          ['core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body',
+           'quadriceps', 'hamstrings', 'calves', 'lower-abs', 'upper-abs', 'obliques',
+           'transverse-abdominis', 'traps', 'deltoids', 'biceps', 'triceps', 'lats',
+           'chest', 'rhomboids', 'erector-spinae', 'hip-flexors', 'adductors', 'abductors',
+           'pelvic-floor', 'deep-stabilizers', 'spinal-extensors', 'neck', 'forearms',
+           'wrists', 'ankles', 'feet', 'hip-abductors', 'hip-adductors', 'rotator-cuff',
+           'serratus-anterior', 'psoas', 'iliotibial-band', 'thoracic-spine', 'lumbar-spine',
+           'cervical-spine', 'diaphragm', 'intercostals'].includes(group)
+        ) as MuscleGroup[],
         equipment: (exercise.equipment || []) as Equipment[],
         description: exercise.description || '',
         image: exercise.image_url || '',
         videoUrl: exercise.video_url || '',
         notes: exercise.notes || '',
         cues: exercise.cues || [],
+        progressions: exercise.progressions || [],
+        regressions: exercise.regressions || [],
         transitions: [],
         contraindications: exercise.contraindications || [],
         isPregnancySafe: exercise.is_pregnancy_safe || false,
@@ -127,6 +149,8 @@ export const useExercises = () => {
           video_url: exercise.videoUrl,
           notes: exercise.notes,
           cues: exercise.cues,
+          progressions: exercise.progressions,
+          regressions: exercise.regressions,
           contraindications: exercise.contraindications,
           is_pregnancy_safe: exercise.isPregnancySafe || false,
         })
@@ -152,7 +176,13 @@ export const useExercises = () => {
         .upsert({
           user_id: user.id,
           system_exercise_id: systemExerciseId,
-          ...customizations,
+          custom_name: customizations.custom_name,
+          custom_duration: customizations.custom_duration,
+          custom_springs: customizations.custom_springs,
+          custom_cues: customizations.custom_cues,
+          custom_notes: customizations.custom_notes,
+          custom_difficulty: customizations.custom_difficulty,
+          updated_at: new Date().toISOString(),
         })
         .select()
         .single();
@@ -167,6 +197,68 @@ export const useExercises = () => {
     }
   };
 
+  const updateUserExercise = async (exerciseId: string, updates: any) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_exercises')
+        .update({
+          name: updates.name,
+          duration: updates.duration,
+          springs: updates.springs,
+          cues: updates.cues,
+          notes: updates.notes,
+          difficulty: updates.difficulty,
+          progressions: updates.progressions,
+          regressions: updates.regressions,
+          description: updates.description,
+          muscle_groups: updates.muscleGroups,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', exerciseId)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await fetchExercises();
+      return data;
+    } catch (error) {
+      console.error('Error updating user exercise:', error);
+      throw error;
+    }
+  };
+
+  const resetSystemExerciseToOriginal = async (systemExerciseId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_exercise_customizations')
+        .delete()
+        .eq('system_exercise_id', systemExerciseId)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+      
+      await fetchExercises();
+      
+      toast({
+        title: "Reset successful",
+        description: "Exercise has been reset to its original version.",
+      });
+    } catch (error) {
+      console.error('Error resetting exercise:', error);
+      toast({
+        title: "Reset failed",
+        description: "Could not reset exercise to original.",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     fetchExercises();
   }, [user]);
@@ -177,5 +269,7 @@ export const useExercises = () => {
     fetchExercises,
     createUserExercise,
     customizeSystemExercise,
+    updateUserExercise,
+    resetSystemExerciseToOriginal,
   };
 };

@@ -6,11 +6,36 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Clock, Users, Target, AlertTriangle, Baby, Save, X, Plus, Trash2 } from 'lucide-react';
+import { 
+  Edit, 
+  Clock, 
+  Users, 
+  Target, 
+  AlertTriangle, 
+  Baby, 
+  Save, 
+  X, 
+  Plus, 
+  Trash2, 
+  Database,
+  User,
+  RotateCcw
+} from 'lucide-react';
 import { Exercise, MuscleGroup } from '@/types/reformer';
 import { SpringVisual } from './SpringVisual';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { ExerciseForm } from './ExerciseForm';
+import { useExercises } from '@/hooks/useExercises';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface ExerciseDetailModalProps {
   exercise: Exercise;
@@ -21,20 +46,73 @@ interface ExerciseDetailModalProps {
 
 export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: ExerciseDetailModalProps) => {
   const { preferences } = useUserPreferences();
+  const { customizeSystemExercise, updateUserExercise, resetSystemExerciseToOriginal, fetchExercises } = useExercises();
   const [isEditing, setIsEditing] = useState(false);
   const [editedExercise, setEditedExercise] = useState<Exercise>(exercise);
   const [newProgression, setNewProgression] = useState('');
   const [newRegression, setNewRegression] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setEditedExercise(exercise);
   }, [exercise]);
 
-  const handleSave = () => {
-    if (onUpdate) {
-      onUpdate(editedExercise);
+  const getExerciseTypeBadge = () => {
+    if ((exercise as any).isCustom) {
+      return (
+        <Badge className="text-xs bg-purple-100 text-purple-800 border-purple-200 flex items-center gap-1">
+          <User className="h-3 w-3" />
+          Custom
+        </Badge>
+      );
     }
-    setIsEditing(false);
+    
+    if ((exercise as any).isCustomized) {
+      return (
+        <Badge className="text-xs bg-yellow-100 text-yellow-800 border-yellow-200 flex items-center gap-1">
+          <Edit className="h-3 w-3" />
+          Modified
+        </Badge>
+      );
+    }
+    
+    return (
+      <Badge className="text-xs bg-blue-100 text-blue-800 border-blue-200 flex items-center gap-1">
+        <Database className="h-3 w-3" />
+        System
+      </Badge>
+    );
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      if ((exercise as any).isCustom) {
+        // Update user exercise
+        await updateUserExercise(exercise.id, editedExercise);
+      } else if ((exercise as any).isSystemExercise) {
+        // Create or update customization
+        const customizations = {
+          custom_name: editedExercise.name !== exercise.name ? editedExercise.name : null,
+          custom_duration: editedExercise.duration !== exercise.duration ? editedExercise.duration : null,
+          custom_springs: editedExercise.springs !== exercise.springs ? editedExercise.springs : null,
+          custom_cues: JSON.stringify(editedExercise.cues) !== JSON.stringify(exercise.cues) ? editedExercise.cues : null,
+          custom_notes: editedExercise.notes !== exercise.notes ? editedExercise.notes : null,
+          custom_difficulty: editedExercise.difficulty !== exercise.difficulty ? editedExercise.difficulty : null,
+        };
+        
+        await customizeSystemExercise(exercise.id, customizations);
+      }
+      
+      if (onUpdate) {
+        onUpdate(editedExercise);
+      }
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving exercise:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -45,6 +123,16 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
   const handleClose = () => {
     setIsEditing(false);
     onClose();
+  };
+
+  const handleReset = async () => {
+    try {
+      await resetSystemExerciseToOriginal(exercise.id);
+      await fetchExercises();
+      handleClose();
+    } catch (error) {
+      console.error('Error resetting exercise:', error);
+    }
   };
 
   const addProgression = () => {
@@ -143,7 +231,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
             <div>
               <label className="text-sm font-medium text-sage-700 mb-1 block">Target Muscles (comma separated)</label>
               <Input
-                value={editedExercise.muscleGroups.join(', ')}
+                value={(editedExercise.muscleGroups || []).join(', ')}
                 onChange={(e) => {
                   const groups = e.target.value.split(',').map(m => m.trim()).filter(m => m);
                   const validGroups = groups.filter(isValidMuscleGroup);
@@ -247,9 +335,13 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
-              <Button onClick={handleSave} className="bg-sage-600 hover:bg-sage-700 text-white">
+              <Button 
+                onClick={handleSave} 
+                disabled={isSaving}
+                className="bg-sage-600 hover:bg-sage-700 text-white"
+              >
                 <Save className="h-4 w-4 mr-2" />
-                Save Changes
+                {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
               <Button onClick={handleCancel} variant="outline" className="border-sage-300 text-sage-700">
                 <X className="h-4 w-4 mr-2" />
@@ -269,11 +361,14 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
       }`}>
         <DialogHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
           <div className="space-y-2">
-            <DialogTitle className={`text-xl font-semibold ${
-              preferences.darkMode ? 'text-white' : 'text-sage-800'
-            }`}>
-              {exercise.name}
-            </DialogTitle>
+            <div className="flex items-center gap-2">
+              <DialogTitle className={`text-xl font-semibold ${
+                preferences.darkMode ? 'text-white' : 'text-sage-800'
+              }`}>
+                {exercise.name}
+              </DialogTitle>
+              {getExerciseTypeBadge()}
+            </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline" className="text-xs">
                 {exercise.repsOrDuration || `${exercise.duration}min`}
@@ -308,15 +403,41 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
               )}
             </div>
           </div>
-          <Button
-            onClick={() => setIsEditing(true)}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <Edit className="h-4 w-4" />
-            Edit
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setIsEditing(true)}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              Edit
+            </Button>
+            {(exercise as any).isCustomized && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" className="gap-2">
+                    <RotateCcw className="h-4 w-4" />
+                    Reset
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reset to original system version?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will remove all your customizations and restore the exercise to its original system version. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleReset} className="bg-red-600 hover:bg-red-700">
+                      Reset to Original
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="space-y-6">
