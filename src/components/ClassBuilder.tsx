@@ -87,10 +87,7 @@ export const ClassBuilder = ({
   const [editingCallout, setEditingCallout] = useState<string | null>(null);
   const [editCalloutValue, setEditCalloutValue] = useState('');
 
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
-  };
+
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -98,16 +95,23 @@ export const ClassBuilder = ({
   };
 
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === dropIndex) return;
+  e.preventDefault();
+  e.stopPropagation(); // Add this
+  if (draggedIndex === null || draggedIndex === dropIndex) return;
 
-    const exercises = [...currentClass.exercises];
-    const draggedExercise = exercises[draggedIndex];
-    exercises.splice(draggedIndex, 1);
-    exercises.splice(dropIndex, 0, draggedExercise);
-    
-    onReorderExercises(exercises);
-    setDraggedIndex(null);
+  const exercises = [...currentClass.exercises];
+  const draggedExercise = exercises[draggedIndex];
+  exercises.splice(draggedIndex, 1);
+  exercises.splice(dropIndex, 0, draggedExercise);
+  
+  onReorderExercises(exercises);
+  setDraggedIndex(null);
+};
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    e.stopPropagation(); // Add this
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
   };
 
   const getMuscleGroupCoverage = () => {
@@ -164,23 +168,26 @@ export const ClassBuilder = ({
 
   // Group exercises by sections (callouts)
   const groupedExercises = () => {
-    const groups: { callout: Exercise | null; exercises: Exercise[] }[] = [];
+    const groups: { callout: Exercise | null; exercises: Exercise[]; startIndex: number }[] = [];
     let currentGroup: Exercise[] = [];
+    let startIndex = 0;
     
-    currentClass.exercises.forEach((exercise) => {
+    currentClass.exercises.forEach((exercise, index) => {
       if (exercise.category === 'callout') {
         if (currentGroup.length > 0) {
-          groups.push({ callout: null, exercises: currentGroup });
+          groups.push({ callout: null, exercises: currentGroup, startIndex });
+          startIndex = index + 1;
           currentGroup = [];
         }
-        groups.push({ callout: exercise, exercises: [] });
+        groups.push({ callout: exercise, exercises: [], startIndex: index });
+        startIndex = index + 1;
       } else {
         currentGroup.push(exercise);
       }
     });
     
     if (currentGroup.length > 0) {
-      groups.push({ callout: null, exercises: currentGroup });
+      groups.push({ callout: null, exercises: currentGroup, startIndex });
     }
     
     return groups;
@@ -192,6 +199,8 @@ export const ClassBuilder = ({
         draggable
         onDragStart={(e) => handleDragStart(e, index)}
         onDragOver={handleDragOver}
+        // In ExerciseCard component
+        onDragEnd={() => setDraggedIndex(null)}
         onDrop={(e) => handleDrop(e, index)}
         className={`group mb-3 transition-all duration-300 cursor-pointer ${
           draggedIndex === index ? 'opacity-50 scale-95' : ''
@@ -388,24 +397,7 @@ export const ClassBuilder = ({
             </Card>
 
             {/* Muscle Groups */}
-            <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base text-sage-800 font-medium">Muscle Groups</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-1.5">
-                  {getMuscleGroupCoverage().length === 0 ? (
-                    <span className="text-sm text-sage-500">No exercises added</span>
-                  ) : (
-                    getMuscleGroupCoverage().map(group => (
-                      <Badge key={group} className="text-xs bg-sage-100 text-sage-700 border-sage-300 rounded-full">
-                        {group}
-                      </Badge>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            
           </div>
 
           {/* Class Timeline */}
@@ -567,9 +559,9 @@ export const ClassBuilder = ({
                                 <ExerciseCard 
                                   key={exercise.id} 
                                   exercise={exercise} 
-                                  index={currentClass.exercises.indexOf(exercise)} 
+                                  index={group.startIndex + exerciseIndex} // Use correct index
                                 />
-                              ))}
+))}
                             </CollapsibleContent>
                           </Collapsible>
                         )}
