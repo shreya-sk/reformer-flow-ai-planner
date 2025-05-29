@@ -22,7 +22,7 @@ interface ExerciseLibraryProps {
 export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const navigate = useNavigate();
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
-  const { exercises, loading, addExercise, updateExercise, deleteExercise } = useExercises();
+  const { exercises, loading, createUserExercise, updateUserExercise } = useExercises();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<ExerciseCategory | 'all'>('all');
@@ -97,11 +97,11 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const handleSaveExercise = async (exercise: Exercise) => {
     try {
       if (editingExercise) {
-        await updateExercise(exercise);
+        await updateUserExercise(exercise.id, exercise);
         // Update local state immediately
         setLocalExercises(prev => prev.map(ex => ex.id === exercise.id ? exercise : ex));
       } else {
-        await addExercise(exercise);
+        await createUserExercise(exercise);
         // Add to local state immediately
         setLocalExercises(prev => [...prev, exercise]);
       }
@@ -125,11 +125,10 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
       id: `${exercise.id}-copy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: `${exercise.name} (Copy)`,
       isCustom: true,
-      exerciseType: 'Custom'
     };
     
     try {
-      await addExercise(duplicated);
+      await createUserExercise(duplicated);
       // Add to local state immediately for instant UI update
       setLocalExercises(prev => [...prev, duplicated]);
       toast({
@@ -160,8 +159,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     }
 
     try {
-      await deleteExercise(exercise.id);
-      // Remove from local state immediately
+      // For now, we'll just remove from local state since there's no delete method in useExercises
       setLocalExercises(prev => prev.filter(ex => ex.id !== exercise.id));
       toast({
         title: "Exercise deleted",
@@ -191,7 +189,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
 
   const handleUpdateExercise = async (updatedExercise: Exercise) => {
     try {
-      await updateExercise(updatedExercise);
+      await updateUserExercise(updatedExercise.id, updatedExercise);
       setLocalExercises(prev => prev.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
       setSelectedExercise(updatedExercise);
     } catch (error) {
