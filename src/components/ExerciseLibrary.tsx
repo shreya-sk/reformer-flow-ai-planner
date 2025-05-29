@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Clock, Edit, Copy, Heart, Baby, Check, Search, Trash2, EyeOff, Eye, Plus } from 'lucide-react';
+import { Clock, Edit, Copy, Heart, Baby, Check, Search, Trash2, EyeOff, Eye, Plus, ArrowLeft } from 'lucide-react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { ExerciseForm } from './ExerciseForm';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
@@ -13,14 +13,16 @@ import { ExerciseLibraryHeader } from './ExerciseLibraryHeader';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface ExerciseLibraryProps {
   onAddExercise: (exercise: Exercise) => void;
 }
 
 export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
+  const navigate = useNavigate();
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
-  const { exercises, loading } = useExercises();
+  const { exercises, loading, addExercise, updateExercise, deleteExercise } = useExercises();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<ExerciseCategory | 'all'>('all');
@@ -30,8 +32,14 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
+  const [localExercises, setLocalExercises] = useState<Exercise[]>([]);
 
-  const filteredExercises = exercises.filter(exercise => {
+  // Keep local state in sync with exercises from hook
+  useEffect(() => {
+    setLocalExercises(exercises);
+  }, [exercises]);
+
+  const filteredExercises = localExercises.filter(exercise => {
     // Filter hidden exercises unless explicitly showing them
     const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
     if (!showHidden && isHidden) return false;
@@ -86,9 +94,22 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     }
   };
 
-  const handleSaveExercise = (exercise: Exercise) => {
-    setShowForm(false);
-    setEditingExercise(null);
+  const handleSaveExercise = async (exercise: Exercise) => {
+    try {
+      if (editingExercise) {
+        await updateExercise(exercise);
+        // Update local state immediately
+        setLocalExercises(prev => prev.map(ex => ex.id === exercise.id ? exercise : ex));
+      } else {
+        await addExercise(exercise);
+        // Add to local state immediately
+        setLocalExercises(prev => [...prev, exercise]);
+      }
+      setShowForm(false);
+      setEditingExercise(null);
+    } catch (error) {
+      console.error('Error saving exercise:', error);
+    }
   };
 
   const handleEditExercise = (exercise: Exercise, e: React.MouseEvent) => {
@@ -97,15 +118,32 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     setShowForm(true);
   };
 
-  const handleDuplicateExercise = (exercise: Exercise, e: React.MouseEvent) => {
+  const handleDuplicateExercise = async (exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
-    const duplicated = {
+    const duplicated: Exercise = {
       ...exercise,
-      id: `${exercise.id}-copy-${Date.now()}`,
-      name: `${exercise.name} (Copy)`
+      id: `${exercise.id}-copy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: `${exercise.name} (Copy)`,
+      isCustom: true,
+      exerciseType: 'Custom'
     };
-    setEditingExercise(duplicated);
-    setShowForm(true);
+    
+    try {
+      await addExercise(duplicated);
+      // Add to local state immediately for instant UI update
+      setLocalExercises(prev => [...prev, duplicated]);
+      toast({
+        title: "Exercise duplicated",
+        description: `"${duplicated.name}" has been created.`,
+      });
+    } catch (error) {
+      console.error('Error duplicating exercise:', error);
+      toast({
+        title: "Error",
+        description: "Failed to duplicate exercise.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteExercise = async (exercise: Exercise, e: React.MouseEvent) => {
@@ -122,6 +160,9 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     }
 
     try {
+      await deleteExercise(exercise.id);
+      // Remove from local state immediately
+      setLocalExercises(prev => prev.filter(ex => ex.id !== exercise.id));
       toast({
         title: "Exercise deleted",
         description: `"${exercise.name}" has been permanently deleted.`,
@@ -148,8 +189,14 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     setShowDetailModal(true);
   };
 
-  const handleUpdateExercise = (updatedExercise: Exercise) => {
-    setSelectedExercise(updatedExercise);
+  const handleUpdateExercise = async (updatedExercise: Exercise) => {
+    try {
+      await updateExercise(updatedExercise);
+      setLocalExercises(prev => prev.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+      setSelectedExercise(updatedExercise);
+    } catch (error) {
+      console.error('Error updating exercise:', error);
+    }
   };
 
   const clearFilters = () => {
@@ -172,9 +219,34 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   return (
     <>
       <div className={`w-full ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-white to-sage-25'} flex flex-col h-full`}>
-        {/* Header with show hidden toggle */}
+        {/* Header */}
         <div className={`p-6 border-b ${preferences.darkMode ? 'border-gray-700 bg-gray-800' : 'border-sage-200 bg-white'}`}>
           <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/')}
+                  className={`${preferences.darkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'}`}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  Back
+                </Button>
+                
+                <div className={`h-6 w-px ${preferences.darkMode ? 'bg-gray-600' : 'bg-sage-300'}`} />
+                
+                <h1 className={`text-xl font-semibold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>Exercise Library</h1>
+              </div>
+
+              <Button 
+                onClick={() => navigate('/plan')}
+                className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white"
+              >
+                Plan New Class
+              </Button>
+            </div>
+
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4 flex-1">
                 {/* Search */}

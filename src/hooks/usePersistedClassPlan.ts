@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { ClassPlan, Exercise } from '@/types/reformer';
 
 const STORAGE_KEY = 'current-class-plan';
@@ -46,14 +47,23 @@ export const usePersistedClassPlan = () => {
     }
   }, [currentClass]);
 
-  const addExercise = (exercise: Exercise) => {
-    console.log('Adding exercise to class plan:', exercise.name);
+  const addExercise = useCallback((exercise: Exercise) => {
+    console.log('Adding exercise to class plan:', exercise.name, 'ID:', exercise.id);
     
     setCurrentClass(prev => {
+      // Ensure unique ID - double check uniqueness
+      const existingIds = prev.exercises.map(ex => ex.id);
+      let finalId = exercise.id;
+      
+      // If ID already exists, generate a new one
+      if (existingIds.includes(finalId)) {
+        finalId = `${exercise.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      }
+      
       // Create a complete copy of the exercise with all attributes
       const exerciseCopy: Exercise = {
         ...exercise,
-        id: `${exercise.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: finalId,
         // Ensure all arrays are properly copied
         muscleGroups: [...exercise.muscleGroups],
         equipment: [...exercise.equipment],
@@ -71,7 +81,7 @@ export const usePersistedClassPlan = () => {
         .filter(ex => ex.category !== 'callout')
         .reduce((sum, ex) => sum + (ex.duration || 0), 0);
       
-      console.log('Updated class plan with exercises:', newExercises.length);
+      console.log('Updated class plan with exercises:', newExercises.length, 'Total duration:', totalDuration);
       
       return {
         ...prev,
@@ -79,9 +89,9 @@ export const usePersistedClassPlan = () => {
         totalDuration,
       };
     });
-  };
+  }, []);
 
-  const removeExercise = (exerciseId: string) => {
+  const removeExercise = useCallback((exerciseId: string) => {
     setCurrentClass(prev => {
       const newExercises = prev.exercises.filter(ex => ex.id !== exerciseId);
       const totalDuration = newExercises
@@ -94,25 +104,25 @@ export const usePersistedClassPlan = () => {
         totalDuration,
       };
     });
-  };
+  }, []);
 
-  const updateClassName = (name: string) => {
+  const updateClassName = useCallback((name: string) => {
     setCurrentClass(prev => ({ ...prev, name }));
-  };
+  }, []);
 
-  const updateClassDuration = (duration: number) => {
+  const updateClassDuration = useCallback((duration: number) => {
     setCurrentClass(prev => ({ ...prev, classDuration: duration }));
-  };
+  }, []);
 
-  const updateClassImage = (image: string) => {
+  const updateClassImage = useCallback((image: string) => {
     setCurrentClass(prev => ({ ...prev, image }));
-  };
+  }, []);
 
-  const updateClassNotes = (notes: string) => {
+  const updateClassNotes = useCallback((notes: string) => {
     setCurrentClass(prev => ({ ...prev, notes }));
-  };
+  }, []);
 
-  const reorderExercises = (exercises: Exercise[]) => {
+  const reorderExercises = useCallback((exercises: Exercise[]) => {
     const totalDuration = exercises
       .filter(ex => ex.category !== 'callout')
       .reduce((sum, ex) => sum + (ex.duration || 0), 0);
@@ -122,9 +132,9 @@ export const usePersistedClassPlan = () => {
       exercises,
       totalDuration,
     }));
-  };
+  }, []);
 
-  const updateExercise = (updatedExercise: Exercise) => {
+  const updateExercise = useCallback((updatedExercise: Exercise) => {
     setCurrentClass(prev => {
       const newExercises = prev.exercises.map(ex => 
         ex.id === updatedExercise.id ? updatedExercise : ex
@@ -139,9 +149,9 @@ export const usePersistedClassPlan = () => {
         totalDuration,
       };
     });
-  };
+  }, []);
 
-  const addCallout = (name: string, insertIndex?: number) => {
+  const addCallout = useCallback((name: string, insertIndex?: number) => {
     const calloutExercise: Exercise = {
       id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name,
@@ -171,16 +181,16 @@ export const usePersistedClassPlan = () => {
         exercises: newExercises,
       };
     });
-  };
+  }, []);
 
-  const clearClassPlan = () => {
+  const clearClassPlan = useCallback(() => {
     setCurrentClass(createEmptyClassPlan());
     localStorage.removeItem(STORAGE_KEY);
-  };
+  }, []);
 
-  const loadClassPlan = (classPlan: ClassPlan) => {
+  const loadClassPlan = useCallback((classPlan: ClassPlan) => {
     setCurrentClass(classPlan);
-  };
+  }, []);
 
   return {
     currentClass,

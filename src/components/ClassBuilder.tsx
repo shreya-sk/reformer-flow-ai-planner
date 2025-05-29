@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -386,34 +387,6 @@ export const ClassBuilder = ({
               </CardContent>
             </Card>
 
-            {/* Class Stats */}
-            <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden bg-gradient-to-br from-sage-50/70 to-white">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base text-sage-800 font-medium">Class Overview</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="bg-white rounded-lg p-3 shadow-sm border border-sage-100">
-                    <div className="flex flex-col items-center">
-                      <Clock className="h-5 w-5 text-sage-600 mb-1" />
-                      <span className="font-bold text-xl text-sage-800">{currentClass.totalDuration}</span>
-                      <span className="text-xs text-sage-600">Minutes</span>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg p-3 shadow-sm border border-sage-100">
-                    <div className="flex flex-col items-center">
-                      <BookOpen className="h-5 w-5 text-sage-600 mb-1" />
-                      <span className="font-bold text-xl text-sage-800">
-                        {currentClass.exercises.filter(ex => ex.category !== 'callout').length}
-                      </span>
-                      <span className="text-xs text-sage-600">Exercises</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Muscle Groups */}
             <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden">
               <CardHeader className="pb-2">
@@ -440,7 +413,32 @@ export const ClassBuilder = ({
             <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden">
               <CardHeader className="border-b border-sage-100 bg-gradient-to-r from-sage-50 to-white p-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg text-sage-800">Class Timeline</CardTitle>
+                  <div className="flex items-center gap-3">
+                    <CardTitle className="text-lg text-sage-800">Class Timeline</CardTitle>
+                    
+                    {/* Inline Class Stats */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 bg-sage-100 px-2 py-1 rounded-full">
+                        <Clock className="h-3 w-3 text-sage-600" />
+                        <span className="text-xs font-medium text-sage-700">{currentClass.totalDuration}min</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-1 bg-sage-100 px-2 py-1 rounded-full">
+                        <BookOpen className="h-3 w-3 text-sage-600" />
+                        <span className="text-xs font-medium text-sage-700">
+                          {currentClass.exercises.filter(ex => ex.category !== 'callout').length}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-1 bg-sage-100 px-2 py-1 rounded-full">
+                        <Target className="h-3 w-3 text-sage-600" />
+                        <span className="text-xs font-medium text-sage-700">
+                          {getMuscleGroupCoverage().length} groups
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <Button 
                     onClick={onAddExercise}
                     variant="outline"
@@ -454,7 +452,7 @@ export const ClassBuilder = ({
                 
                 {currentClass.exercises.length > 0 && (
                   <p className="text-xs text-sage-600 mt-1">
-                    {currentClass.exercises.filter(ex => ex.category !== 'callout').length} exercises • {currentClass.totalDuration} minutes • Drag to reorder
+                    Drag to reorder exercises
                   </p>
                 )}
               </CardHeader>

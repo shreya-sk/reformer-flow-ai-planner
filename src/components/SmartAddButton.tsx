@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Check } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
@@ -20,33 +20,48 @@ export const SmartAddButton = ({
 }: SmartAddButtonProps) => {
   const [isAdded, setIsAdded] = useState(false);
   const { addExercise } = usePersistedClassPlan();
+  const isAddingRef = useRef(false);
 
-  const handleAdd = (e: React.MouseEvent) => {
+  const handleAdd = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
-    // Create a unique copy of the exercise with a new ID that includes timestamp and random number
-    const uniqueId = `${exercise.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const exerciseToAdd = {
-      ...exercise,
-      id: uniqueId,
-    };
+    // Prevent multiple rapid clicks
+    if (isAddingRef.current) return;
+    isAddingRef.current = true;
     
-    console.log('Adding exercise to persisted class plan:', exerciseToAdd.name, 'with ID:', uniqueId);
-    addExercise(exerciseToAdd);
-    
-    if (showFeedback) {
-      setIsAdded(true);
+    try {
+      // Create a unique copy of the exercise with a timestamp and random string for uniqueness
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substr(2, 9);
+      const uniqueId = `${exercise.id}-${timestamp}-${randomId}`;
+      
+      const exerciseToAdd = {
+        ...exercise,
+        id: uniqueId,
+      };
+      
+      console.log('Adding exercise to persisted class plan:', exerciseToAdd.name, 'with ID:', uniqueId);
+      addExercise(exerciseToAdd);
+      
+      if (showFeedback) {
+        setIsAdded(true);
+        setTimeout(() => {
+          setIsAdded(false);
+        }, 1500);
+      }
+    } finally {
+      // Allow next click after a brief delay
       setTimeout(() => {
-        setIsAdded(false);
-      }, 1500); // Shorter feedback duration
+        isAddingRef.current = false;
+      }, 200);
     }
   };
 
   return (
     <Button
       onClick={handleAdd}
-      disabled={isAdded}
+      disabled={isAdded || isAddingRef.current}
       size={size}
       className={`transition-all duration-500 ${
         isAdded 

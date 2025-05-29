@@ -1,7 +1,9 @@
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Home, BookOpen, Plus, Timer, User } from 'lucide-react';
+import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 
 interface BottomNavigationProps {
   onPlanClass?: () => void;
@@ -10,14 +12,18 @@ interface BottomNavigationProps {
 export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { currentClass } = usePersistedClassPlan();
   
   const isActive = (path: string) => location.pathname === path;
+  
+  // Count non-callout exercises for the badge
+  const exerciseCount = currentClass.exercises.filter(ex => ex.category !== 'callout').length;
   
   // Define navigation items
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/library', label: 'Library', icon: BookOpen },
-    { path: '/plan', label: 'Plan', icon: Plus, special: true },
+    { path: '/plan', label: 'Plan', icon: Plus, special: true, count: exerciseCount },
     { path: '/timer', label: 'Timer', icon: Timer },
     { path: '/profile', label: 'Profile', icon: User },
   ];
@@ -36,13 +42,21 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
         <div className="relative flex items-center justify-around px-6 py-3 max-w-lg mx-auto">
           {navItems.map((item) => (
             item.special ? (
-              <Button
-                key={item.path}
-                onClick={onPlanClass ? onPlanClass : () => navigate(item.path)}
-                className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 hover:rotate-12"
-              >
-                <item.icon className="h-7 w-7" />
-              </Button>
+              <div key={item.path} className="relative">
+                <Button
+                  onClick={onPlanClass ? onPlanClass : () => navigate(item.path)}
+                  className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 hover:rotate-12"
+                >
+                  <item.icon className="h-7 w-7" />
+                </Button>
+                {item.count && item.count > 0 && (
+                  <Badge 
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs font-bold border border-white animate-pulse"
+                  >
+                    {item.count > 99 ? '99+' : item.count}
+                  </Badge>
+                )}
+              </div>
             ) : (
               <Button
                 key={item.path}
