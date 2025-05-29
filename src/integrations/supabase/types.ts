@@ -156,6 +156,7 @@ export type Database = {
       }
       system_exercises: {
         Row: {
+          breathing_cues: string[] | null
           category: string
           contraindications: string[] | null
           created_at: string | null
@@ -168,17 +169,24 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           is_pregnancy_safe: boolean | null
+          modifications: string[] | null
           muscle_groups: string[]
           name: string
           notes: string | null
           progressions: string[] | null
           regressions: string[] | null
+          reps_or_duration: string | null
+          setup: string | null
           springs: string
+          target_areas: string[] | null
+          teaching_focus: string[] | null
+          tempo: string | null
           updated_at: string | null
           version: number | null
           video_url: string | null
         }
         Insert: {
+          breathing_cues?: string[] | null
           category: string
           contraindications?: string[] | null
           created_at?: string | null
@@ -191,17 +199,24 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_pregnancy_safe?: boolean | null
+          modifications?: string[] | null
           muscle_groups: string[]
           name: string
           notes?: string | null
           progressions?: string[] | null
           regressions?: string[] | null
+          reps_or_duration?: string | null
+          setup?: string | null
           springs: string
+          target_areas?: string[] | null
+          teaching_focus?: string[] | null
+          tempo?: string | null
           updated_at?: string | null
           version?: number | null
           video_url?: string | null
         }
         Update: {
+          breathing_cues?: string[] | null
           category?: string
           contraindications?: string[] | null
           created_at?: string | null
@@ -214,12 +229,18 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_pregnancy_safe?: boolean | null
+          modifications?: string[] | null
           muscle_groups?: string[]
           name?: string
           notes?: string | null
           progressions?: string[] | null
           regressions?: string[] | null
+          reps_or_duration?: string | null
+          setup?: string | null
           springs?: string
+          target_areas?: string[] | null
+          teaching_focus?: string[] | null
+          tempo?: string | null
           updated_at?: string | null
           version?: number | null
           video_url?: string | null
@@ -229,12 +250,19 @@ export type Database = {
       user_exercise_customizations: {
         Row: {
           created_at: string | null
+          custom_breathing_cues: string[] | null
           custom_cues: string[] | null
           custom_difficulty: string | null
           custom_duration: number | null
+          custom_modifications: string[] | null
           custom_name: string | null
           custom_notes: string | null
+          custom_reps_or_duration: string | null
+          custom_setup: string | null
           custom_springs: string | null
+          custom_target_areas: string[] | null
+          custom_teaching_focus: string[] | null
+          custom_tempo: string | null
           id: string
           is_favorite: boolean | null
           is_hidden: boolean | null
@@ -246,12 +274,19 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          custom_breathing_cues?: string[] | null
           custom_cues?: string[] | null
           custom_difficulty?: string | null
           custom_duration?: number | null
+          custom_modifications?: string[] | null
           custom_name?: string | null
           custom_notes?: string | null
+          custom_reps_or_duration?: string | null
+          custom_setup?: string | null
           custom_springs?: string | null
+          custom_target_areas?: string[] | null
+          custom_teaching_focus?: string[] | null
+          custom_tempo?: string | null
           id?: string
           is_favorite?: boolean | null
           is_hidden?: boolean | null
@@ -263,12 +298,19 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          custom_breathing_cues?: string[] | null
           custom_cues?: string[] | null
           custom_difficulty?: string | null
           custom_duration?: number | null
+          custom_modifications?: string[] | null
           custom_name?: string | null
           custom_notes?: string | null
+          custom_reps_or_duration?: string | null
+          custom_setup?: string | null
           custom_springs?: string | null
+          custom_target_areas?: string[] | null
+          custom_teaching_focus?: string[] | null
+          custom_tempo?: string | null
           id?: string
           is_favorite?: boolean | null
           is_hidden?: boolean | null
@@ -292,6 +334,7 @@ export type Database = {
         Row: {
           ai_generation_cost: number | null
           ai_prompt: string | null
+          breathing_cues: string[] | null
           category: string
           contraindications: string[] | null
           created_at: string | null
@@ -304,12 +347,18 @@ export type Database = {
           image_url: string | null
           is_ai_generated: boolean | null
           is_pregnancy_safe: boolean | null
+          modifications: string[] | null
           muscle_groups: string[]
           name: string
           notes: string | null
           progressions: string[] | null
           regressions: string[] | null
+          reps_or_duration: string | null
+          setup: string | null
           springs: string
+          target_areas: string[] | null
+          teaching_focus: string[] | null
+          tempo: string | null
           updated_at: string | null
           user_id: string
           video_url: string | null
@@ -317,6 +366,7 @@ export type Database = {
         Insert: {
           ai_generation_cost?: number | null
           ai_prompt?: string | null
+          breathing_cues?: string[] | null
           category: string
           contraindications?: string[] | null
           created_at?: string | null
@@ -329,12 +379,18 @@ export type Database = {
           image_url?: string | null
           is_ai_generated?: boolean | null
           is_pregnancy_safe?: boolean | null
+          modifications?: string[] | null
           muscle_groups: string[]
           name: string
           notes?: string | null
           progressions?: string[] | null
           regressions?: string[] | null
+          reps_or_duration?: string | null
+          setup?: string | null
           springs: string
+          target_areas?: string[] | null
+          teaching_focus?: string[] | null
+          tempo?: string | null
           updated_at?: string | null
           user_id: string
           video_url?: string | null
@@ -342,6 +398,7 @@ export type Database = {
         Update: {
           ai_generation_cost?: number | null
           ai_prompt?: string | null
+          breathing_cues?: string[] | null
           category?: string
           contraindications?: string[] | null
           created_at?: string | null
@@ -354,12 +411,18 @@ export type Database = {
           image_url?: string | null
           is_ai_generated?: boolean | null
           is_pregnancy_safe?: boolean | null
+          modifications?: string[] | null
           muscle_groups?: string[]
           name?: string
           notes?: string | null
           progressions?: string[] | null
           regressions?: string[] | null
+          reps_or_duration?: string | null
+          setup?: string | null
           springs?: string
+          target_areas?: string[] | null
+          teaching_focus?: string[] | null
+          tempo?: string | null
           updated_at?: string | null
           user_id?: string
           video_url?: string | null
