@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { ClassPlan, Exercise } from '@/types/reformer';
+import { ClassPlan, Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment } from '@/types/reformer';
 import { toast } from '@/hooks/use-toast';
 
 export const useClassPlans = () => {
@@ -38,13 +38,13 @@ export const useClassPlans = () => {
                   return {
                     id: planExercise.id,
                     name: planExercise.section_name || 'Section',
-                    category: 'callout' as const,
+                    category: 'callout' as ExerciseCategory,
                     duration: 0,
-                    springs: 'none' as const,
-                    difficulty: 'beginner' as const,
+                    springs: 'none' as SpringSetting,
+                    difficulty: 'beginner' as DifficultyLevel,
                     intensityLevel: 'low' as const,
-                    muscleGroups: [],
-                    equipment: [],
+                    muscleGroups: [] as MuscleGroup[],
+                    equipment: [] as Equipment[],
                     description: '',
                     image: '',
                     videoUrl: '',
@@ -71,13 +71,13 @@ export const useClassPlans = () => {
                 return {
                   id: planExercise.id,
                   name: exercise.name,
-                  category: exercise.category,
+                  category: exercise.category as ExerciseCategory,
                   duration: planExercise.duration_override || exercise.duration,
-                  springs: exercise.springs,
-                  difficulty: exercise.difficulty,
+                  springs: exercise.springs as SpringSetting,
+                  difficulty: exercise.difficulty as DifficultyLevel,
                   intensityLevel: 'medium' as const,
-                  muscleGroups: exercise.muscle_groups || [],
-                  equipment: exercise.equipment || [],
+                  muscleGroups: (exercise.muscle_groups || []) as MuscleGroup[],
+                  equipment: (exercise.equipment || []) as Equipment[],
                   description: exercise.description || '',
                   image: exercise.image_url || '',
                   videoUrl: exercise.video_url || '',
@@ -89,14 +89,14 @@ export const useClassPlans = () => {
                   repsOrDuration: planExercise.reps_override,
                   isCustom: planExercise.exercise_type === 'user',
                   originalExerciseId: planExercise.exercise_id,
-                };
+                } as Exercise;
               })
           );
 
           return {
             id: plan.id,
             name: plan.name,
-            exercises: exercises.filter(Boolean),
+            exercises: exercises.filter(Boolean) as Exercise[],
             totalDuration: exercises
               .filter(ex => ex && ex.category !== 'callout')
               .reduce((sum, ex) => sum + (ex?.duration || 0), 0),
@@ -104,7 +104,7 @@ export const useClassPlans = () => {
             createdAt: new Date(plan.created_at),
             notes: plan.notes || '',
             image: plan.image_url,
-          };
+          } as ClassPlan;
         })
       );
       
@@ -188,6 +188,42 @@ export const useClassPlans = () => {
     }
   };
 
+  const deleteClassPlan = async (classPlanId: string) => {
+    if (!user) return;
+
+    try {
+      // First delete all exercises for this class plan
+      const { error: exerciseError } = await supabase
+        .from('class_plan_exercises')
+        .delete()
+        .eq('class_plan_id', classPlanId);
+
+      if (exerciseError) throw exerciseError;
+
+      // Then delete the class plan itself
+      const { error: planError } = await supabase
+        .from('class_plans')
+        .delete()
+        .eq('id', classPlanId)
+        .eq('user_id', user.id);
+
+      if (planError) throw planError;
+
+      setSavedClasses(prev => prev.filter(plan => plan.id !== classPlanId));
+      toast({
+        title: "Class deleted",
+        description: "Class plan has been removed.",
+      });
+    } catch (error) {
+      console.error('Error deleting class plan:', error);
+      toast({
+        title: "Error deleting class",
+        description: "Failed to delete the class plan.",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchClassPlans();
@@ -198,6 +234,7 @@ export const useClassPlans = () => {
     savedClasses,
     loading,
     saveClassPlan,
+    deleteClassPlan,
     fetchClassPlans,
   };
 };

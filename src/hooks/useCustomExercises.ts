@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Exercise } from '@/types/reformer';
+import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment } from '@/types/reformer';
 import { toast } from '@/hooks/use-toast';
 
 export const useCustomExercises = () => {
@@ -29,13 +29,13 @@ export const useCustomExercises = () => {
       const transformedData: Exercise[] = data.map(item => ({
         id: item.id,
         name: item.name,
-        category: item.category as any,
+        category: item.category as ExerciseCategory,
         duration: item.duration,
-        springs: item.springs as any,
-        difficulty: item.difficulty as any,
+        springs: item.springs as SpringSetting,
+        difficulty: item.difficulty as DifficultyLevel,
         intensityLevel: 'medium' as const,
-        muscleGroups: item.muscle_groups as any[],
-        equipment: item.equipment as any[],
+        muscleGroups: (item.muscle_groups as MuscleGroup[]) || [],
+        equipment: (item.equipment as Equipment[]) || [],
         description: item.description || '',
         image: item.image_url || '',
         videoUrl: item.video_url || '',

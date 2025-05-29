@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Exercise } from '@/types/reformer';
+import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment } from '@/types/reformer';
 import { toast } from '@/hooks/use-toast';
 
 export const useExercises = () => {
@@ -51,13 +51,13 @@ export const useExercises = () => {
         return {
           id: exercise.id,
           name: customization?.custom_name || exercise.name,
-          category: exercise.category as any,
+          category: exercise.category as ExerciseCategory,
           duration: customization?.custom_duration || exercise.duration,
-          springs: customization?.custom_springs || exercise.springs,
-          difficulty: customization?.custom_difficulty || exercise.difficulty,
+          springs: customization?.custom_springs || exercise.springs as SpringSetting,
+          difficulty: customization?.custom_difficulty || exercise.difficulty as DifficultyLevel,
           intensityLevel: 'medium' as const,
-          muscleGroups: exercise.muscle_groups || [],
-          equipment: exercise.equipment || [],
+          muscleGroups: (exercise.muscle_groups || []) as MuscleGroup[],
+          equipment: (exercise.equipment || []) as Equipment[],
           description: exercise.description || '',
           image: exercise.image_url || '',
           videoUrl: exercise.video_url || '',
@@ -75,13 +75,13 @@ export const useExercises = () => {
       const transformedUserExercises: Exercise[] = userExercises.map(exercise => ({
         id: exercise.id,
         name: exercise.name,
-        category: exercise.category as any,
+        category: exercise.category as ExerciseCategory,
         duration: exercise.duration,
-        springs: exercise.springs,
-        difficulty: exercise.difficulty,
+        springs: exercise.springs as SpringSetting,
+        difficulty: exercise.difficulty as DifficultyLevel,
         intensityLevel: 'medium' as const,
-        muscleGroups: exercise.muscle_groups || [],
-        equipment: exercise.equipment || [],
+        muscleGroups: (exercise.muscle_groups || []) as MuscleGroup[],
+        equipment: (exercise.equipment || []) as Equipment[],
         description: exercise.description || '',
         image: exercise.image_url || '',
         videoUrl: exercise.video_url || '',

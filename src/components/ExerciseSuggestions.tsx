@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Lightbulb, Plus, Clock } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
-import { exerciseDatabase } from '@/data/exercises';
+import { useExercises } from '@/hooks/useExercises';
 
 interface ExerciseSuggestionsProps {
   currentClass: ClassPlan;
@@ -12,10 +12,12 @@ interface ExerciseSuggestionsProps {
 }
 
 export const ExerciseSuggestions = ({ currentClass, onAddExercise }: ExerciseSuggestionsProps) => {
+  const { exercises } = useExercises();
+
   const getSuggestions = (): Exercise[] => {
     if (currentClass.exercises.length === 0) {
       // First exercise suggestions
-      return exerciseDatabase
+      return exercises
         .filter(ex => ex.category === 'warm-up')
         .slice(0, 3);
     }
@@ -25,7 +27,7 @@ export const ExerciseSuggestions = ({ currentClass, onAddExercise }: ExerciseSug
     const totalDuration = currentClass.totalDuration;
     
     // Find complementary exercises
-    let suggestions = exerciseDatabase.filter(exercise => {
+    let suggestions = exercises.filter(exercise => {
       // Don't suggest the same exercise
       if (currentClass.exercises.some(ex => ex.name === exercise.name)) return false;
       
