@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { ClassPlan, Exercise } from '@/types/reformer';
-
-const STORAGE_KEY = 'current-class-plan';
 
 const createEmptyClassPlan = (): ClassPlan => ({
   id: '',
@@ -15,6 +14,11 @@ const createEmptyClassPlan = (): ClassPlan => ({
 });
 
 export const usePersistedClassPlan = () => {
+  const { user } = useAuth();
+  
+  // Make storage key user-specific
+  const STORAGE_KEY = user ? `current-class-plan-${user.id}` : 'current-class-plan';
+
   const [currentClass, setCurrentClass] = useState<ClassPlan>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -37,14 +41,36 @@ export const usePersistedClassPlan = () => {
     return createEmptyClassPlan();
   });
 
-  // Save to localStorage whenever currentClass changes
+  // Save to localStorage whenever currentClass changes or user changes
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(currentClass));
     } catch (error) {
       console.error('Failed to save class plan:', error);
     }
-  }, [currentClass]);
+  }, [currentClass, STORAGE_KEY]);
+
+  // When user changes, reload the class plan from storage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setCurrentClass({
+          ...parsed,
+          createdAt: new Date(parsed.createdAt),
+          classDuration: parsed.classDuration || 45,
+          image: parsed.image || '',
+          notes: parsed.notes || '',
+        });
+      } else {
+        setCurrentClass(createEmptyClassPlan());
+      }
+    } catch (error) {
+      console.error('Failed to load saved class plan:', error);
+      setCurrentClass(createEmptyClassPlan());
+    }
+  }, [STORAGE_KEY]);
 
   const addExercise = useCallback((exercise: Exercise) => {
     console.log('Adding exercise to class plan:', exercise.name, 'ID:', exercise.id);
@@ -175,7 +201,7 @@ export const usePersistedClassPlan = () => {
   const clearClassPlan = useCallback(() => {
     setCurrentClass(createEmptyClassPlan());
     localStorage.removeItem(STORAGE_KEY);
-  }, []);
+  }, [STORAGE_KEY]);
 
   const loadClassPlan = useCallback((classPlan: ClassPlan) => {
     setCurrentClass(classPlan);

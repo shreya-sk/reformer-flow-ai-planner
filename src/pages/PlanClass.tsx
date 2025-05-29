@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
 import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { useExercises } from '@/hooks/useExercises';
 import { ClassHeader } from '@/components/plan-class/ClassHeader';
 import { TabbedPlanView } from '@/components/plan-class/TabbedPlanView';
 import { BottomNavigation } from '@/components/BottomNavigation';
@@ -17,7 +18,8 @@ const PlanClass = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { saveClassPlan, savedClasses } = useClassPlans();
-  const { preferences } = useUserPreferences();
+  const { preferences, toggleFavoriteExercise } = useUserPreferences();
+  const { exercises } = useExercises();
   const {
     currentClass,
     removeExercise,
@@ -32,8 +34,12 @@ const PlanClass = () => {
   
   const [activeTab, setActiveTab] = useState('builder');
   const [isTeachingMode, setIsTeachingMode] = useState(false);
-  const [shortlistedExercises, setShortlistedExercises] = useState<any[]>([]);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+
+  // Connect shortlist to favorites from user preferences
+  const shortlistedExercises = exercises.filter(ex => 
+    preferences.favoriteExercises?.includes(ex.id)
+  );
 
   if (!user) {
     return <AuthPage />;
@@ -104,17 +110,16 @@ const PlanClass = () => {
   };
 
   const addToShortlist = (exercise: any) => {
-    setShortlistedExercises(prev => [...prev, exercise]);
+    toggleFavoriteExercise(exercise.id);
   };
 
   const removeFromShortlist = (exerciseId: string) => {
-    setShortlistedExercises(prev => prev.filter(ex => ex.id !== exerciseId));
+    toggleFavoriteExercise(exerciseId);
   };
 
   const addShortlistedToClass = (exercise: any) => {
     const updatedExercises = [...currentClass.exercises, exercise];
     reorderExercises(updatedExercises);
-    removeFromShortlist(exercise.id);
   };
 
   const toggleSectionCollapse = (sectionId: string) => {
@@ -149,7 +154,7 @@ const PlanClass = () => {
               Builder
             </TabsTrigger>
             <TabsTrigger value="shortlist" className="rounded-lg data-[state=active]:bg-sage-100 data-[state=active]:text-sage-800">
-              Shortlisted
+              Favorites ({shortlistedExercises.length})
             </TabsTrigger>
           </TabsList>
           
@@ -180,12 +185,12 @@ const PlanClass = () => {
           
           <TabsContent value="shortlist" className="py-2">
             <div className="p-3">
-              <h2 className="text-lg font-medium text-sage-800 mb-3">Shortlisted Exercises</h2>
+              <h2 className="text-lg font-medium text-sage-800 mb-3">Favorite Exercises</h2>
               {shortlistedExercises.length === 0 ? (
                 <div className="text-center py-6 bg-sage-50 rounded-xl">
-                  <p className="text-sage-600">No exercises shortlisted yet.</p>
+                  <p className="text-sage-600">No favorite exercises yet.</p>
                   <p className="text-sm text-sage-500 mt-2">
-                    Add exercises to your shortlist from the exercise library.
+                    Add exercises to your favorites from the exercise library.
                   </p>
                 </div>
               ) : (

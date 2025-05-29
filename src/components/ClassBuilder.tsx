@@ -486,14 +486,15 @@ export const ClassBuilder = ({
                       onAddExercise={onAddExercise}
                     />
                     
-                    {/* Grouped exercises with collapsible sections */}
+                    {/* Fixed grouped exercises with collapsible sections */}
                     {groupedExercises().map((group, groupIndex) => (
                       <div key={groupIndex}>
-                        {group.callout && (
+                        {group.callout ? (
                           <Collapsible
                             open={!collapsedSections.has(group.callout.id)}
                             onOpenChange={() => onToggleSectionCollapse(group.callout.id)}
                           >
+                            {/* Callout header */}
                             <div className="relative mb-2 px-4">
                               <div className="border-l-4 border-amber-400 pl-3 py-2 bg-amber-50 rounded-r-lg">
                                 <div className="flex items-center justify-between">
@@ -554,25 +555,35 @@ export const ClassBuilder = ({
                               </div>
                             </div>
                             
+                            {/* Move exercises INSIDE CollapsibleContent */}
                             <CollapsibleContent>
-                              {group.exercises?.map((exercise, exerciseIndex) => (
-                                <ExerciseCard 
-                                  key={exercise.id} 
-                                  exercise={exercise} 
-                                  index={group.startIndex + exerciseIndex} // Use correct index
-                                />
-))}
+                              <div className="ml-4 border-l-2 border-amber-200 pl-4">
+                                {group.exercises?.map((exercise, exerciseIndex) => {
+                                  const actualIndex = currentClass.exercises.findIndex(ex => ex.id === exercise.id);
+                                  return (
+                                    <ExerciseCard 
+                                      key={exercise.id} 
+                                      exercise={exercise} 
+                                      index={actualIndex}
+                                    />
+                                  );
+                                })}
+                              </div>
                             </CollapsibleContent>
                           </Collapsible>
+                        ) : (
+                          // Ungrouped exercises
+                          group.exercises.map((exercise) => {
+                            const actualIndex = currentClass.exercises.findIndex(ex => ex.id === exercise.id);
+                            return (
+                              <ExerciseCard 
+                                key={exercise.id} 
+                                exercise={exercise} 
+                                index={actualIndex} 
+                              />
+                            );
+                          })
                         )}
-                        
-                        {!group.callout && group.exercises.map((exercise, exerciseIndex) => (
-                          <ExerciseCard 
-                            key={exercise.id} 
-                            exercise={exercise} 
-                            index={currentClass.exercises.indexOf(exercise)} 
-                          />
-                        ))}
                       </div>
                     ))}
                   </div>
