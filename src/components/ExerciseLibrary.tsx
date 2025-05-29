@@ -5,12 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, Edit, Copy, Heart, Baby, Check, Search } from 'lucide-react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
-import { exerciseDatabase } from '@/data/exercises';
+import { useExercises } from '@/hooks/useExercises';
 import { ExerciseForm } from './ExerciseForm';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
 import { SmartAddButton } from './SmartAddButton';
 import { ExerciseLibraryHeader } from './ExerciseLibraryHeader';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { toast } from '@/hooks/use-toast';
 
 interface ExerciseLibraryProps {
   onAddExercise: (exercise: Exercise) => void;
@@ -18,12 +19,13 @@ interface ExerciseLibraryProps {
 
 export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const { preferences, toggleFavoriteExercise } = useUserPreferences();
+  const { exercises, loading, createUserExercise, customizeSystemExercise } = useExercises();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<ExerciseCategory | 'all'>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
-  const [exercises, setExercises] = useState(exerciseDatabase);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
@@ -78,14 +80,43 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     }
   };
 
-  const handleSaveExercise = (exercise: Exercise) => {
-    if (editingExercise) {
-      setExercises(prev => prev.map(ex => ex.id === exercise.id ? exercise : ex));
-    } else {
-      setExercises(prev => [...prev, exercise]);
+  const handleSaveExercise = async (exercise: Exercise) => {
+    try {
+      if (editingExercise && (editingExercise as any).isSystemExercise) {
+        // Customizing a system exercise
+        await customizeSystemExercise(editingExercise.id, {
+          custom_name: exercise.name !== editingExercise.name ? exercise.name : null,
+          custom_duration: exercise.duration !== editingExercise.duration ? exercise.duration : null,
+          custom_springs: exercise.springs !== editingExercise.springs ? exercise.springs : null,
+          custom_cues: exercise.cues !== editingExercise.cues ? exercise.cues : null,
+          custom_notes: exercise.notes !== editingExercise.notes ? exercise.notes : null,
+          custom_difficulty: exercise.difficulty !== editingExercise.difficulty ? exercise.difficulty : null,
+        });
+        
+        toast({
+          title: "Exercise customized!",
+          description: `Your customization of "${exercise.name}" has been saved.`,
+        });
+      } else {
+        // Creating new user exercise
+        await createUserExercise(exercise);
+        
+        toast({
+          title: "Exercise created!",
+          description: `"${exercise.name}" has been added to your library.`,
+        });
+      }
+      
+      setShowForm(false);
+      setEditingExercise(null);
+    } catch (error) {
+      console.error('Error saving exercise:', error);
+      toast({
+        title: "Error saving exercise",
+        description: "Failed to save the exercise.",
+        variant: "destructive",
+      });
     }
-    setShowForm(false);
-    setEditingExercise(null);
   };
 
   const handleEditExercise = (exercise: Exercise, e: React.MouseEvent) => {
@@ -99,7 +130,9 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     const duplicated = {
       ...exercise,
       id: `${exercise.id}-copy-${Date.now()}`,
-      name: `${exercise.name} (Copy)`
+      name: `${exercise.name} (Copy)`,
+      isCustom: true,
+      isSystemExercise: false,
     };
     setEditingExercise(duplicated);
     setShowForm(true);
@@ -111,7 +144,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   };
 
   const handleUpdateExercise = (updatedExercise: Exercise) => {
-    setExercises(prev => prev.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+    // This will be handled by the useExercises hook when we add update functionality
     setSelectedExercise(updatedExercise);
   };
 
@@ -122,6 +155,19 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   };
 
   const activeFiltersCount = (selectedMuscleGroup !== 'all' ? 1 : 0) + (selectedPosition !== 'all' ? 1 : 0);
+
+  if (loading) {
+    return (
+      <div className={`w-full ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-white to-sage-25'} flex flex-col h-full`}>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sage-600 mx-auto mb-4"></div>
+            <p className={preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}>Loading exercises...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -147,6 +193,8 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredExercises.map((exercise) => {
                 const isFavorite = preferences.favoriteExercises?.includes(exercise.id) || false;
+                const isCustomized = (exercise as any).isCustomized;
+                const isUserCreated = (exercise as any).isCustom;
                 
                 return (
                   <Card 
@@ -155,9 +203,23 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                       preferences.darkMode 
                         ? 'border-gray-600 hover:border-gray-500 bg-gray-800' 
                         : 'border-sage-200 hover:border-sage-300 bg-white'
-                    }`}
+                    } ${isCustomized ? 'ring-2 ring-blue-200' : ''}`}
                     onClick={() => handleCardClick(exercise)}
                   >
+                    {/* Status Indicators */}
+                    <div className="absolute top-2 left-2 z-10 flex gap-1">
+                      {isUserCreated && (
+                        <Badge className="text-xs bg-purple-100 text-purple-800 border-purple-200">
+                          Custom
+                        </Badge>
+                      )}
+                      {isCustomized && !isUserCreated && (
+                        <Badge className="text-xs bg-blue-100 text-blue-800 border-blue-200">
+                          Modified
+                        </Badge>
+                      )}
+                    </div>
+
                     {/* Favorite Icon - Top Right */}
                     <Button
                       onClick={(e) => {
