@@ -53,8 +53,8 @@ export const useExercises = () => {
           name: customization?.custom_name || exercise.name,
           category: exercise.category as ExerciseCategory,
           duration: customization?.custom_duration || exercise.duration,
-          springs: customization?.custom_springs || exercise.springs as SpringSetting,
-          difficulty: customization?.custom_difficulty || exercise.difficulty as DifficultyLevel,
+          springs: (customization?.custom_springs || exercise.springs) as SpringSetting,
+          difficulty: (customization?.custom_difficulty || exercise.difficulty) as DifficultyLevel,
           intensityLevel: 'medium' as const,
           muscleGroups: (exercise.muscle_groups || []).filter(group => 
             ['core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body',

@@ -5,10 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Clock, Users, Target, AlertTriangle, Baby, Save, X, Plus, Trash2 } from 'lucide-react';
+import { Edit, Clock, Users, Target, AlertTriangle, Baby, Save, X, Plus, Trash2, Database, User, RotateCcw } from 'lucide-react';
 import { Exercise, MuscleGroup } from '@/types/reformer';
 import { SpringVisual } from './SpringVisual';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { useExercises } from '@/hooks/useExercises';
 import { toast } from '@/hooks/use-toast';
 
 interface ExerciseDetailModalProps {
@@ -32,39 +33,104 @@ const availableMuscleGroups: MuscleGroup[] = [
 
 export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: ExerciseDetailModalProps) => {
   const { preferences } = useUserPreferences();
+  const { customizeSystemExercise, updateUserExercise, resetSystemExerciseToOriginal } = useExercises();
   const [isEditing, setIsEditing] = useState(false);
   const [editedExercise, setEditedExercise] = useState<Exercise>(exercise);
   const [newProgression, setNewProgression] = useState('');
   const [newRegression, setNewRegression] = useState('');
   const [showMuscleGroupSelector, setShowMuscleGroupSelector] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     setEditedExercise(exercise);
   }, [exercise]);
 
+  const getExerciseTypeBadge = () => {
+    if (exercise.isCustom) {
+      return (
+        <Badge className="bg-purple-100 text-purple-700 text-xs gap-1">
+          <User className="h-3 w-3" />
+          Custom
+        </Badge>
+      );
+    } else if (exercise.isSystemExercise && exercise.isCustomized) {
+      return (
+        <Badge className="bg-yellow-100 text-yellow-700 text-xs gap-1">
+          <Edit className="h-3 w-3" />
+          Modified
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge className="bg-blue-100 text-blue-700 text-xs gap-1">
+          <Database className="h-3 w-3" />
+          System
+        </Badge>
+      );
+    }
+  };
+
   const handleSave = async () => {
     try {
-      if (onUpdate) {
-        // Ensure the exercise is marked as custom if it's being edited
-        const updatedExercise = {
-          ...editedExercise,
-          isCustom: true,
-          updatedAt: new Date(),
-        };
-        await onUpdate(updatedExercise);
-        toast({
-          title: "Exercise updated",
-          description: `"${updatedExercise.name}" has been updated successfully.`,
+      if (exercise.isCustom) {
+        // Update user exercise
+        await updateUserExercise(exercise.id, {
+          name: editedExercise.name,
+          duration: editedExercise.duration,
+          springs: editedExercise.springs,
+          cues: editedExercise.cues,
+          notes: editedExercise.notes,
+          difficulty: editedExercise.difficulty,
+          progressions: editedExercise.progressions,
+          regressions: editedExercise.regressions,
+          description: editedExercise.description,
+          muscleGroups: editedExercise.muscleGroups,
+        });
+      } else if (exercise.isSystemExercise) {
+        // Customize system exercise
+        await customizeSystemExercise(exercise.id, {
+          custom_name: editedExercise.name !== exercise.name ? editedExercise.name : null,
+          custom_duration: editedExercise.duration !== exercise.duration ? editedExercise.duration : null,
+          custom_springs: editedExercise.springs !== exercise.springs ? editedExercise.springs : null,
+          custom_cues: JSON.stringify(editedExercise.cues) !== JSON.stringify(exercise.cues) ? editedExercise.cues : null,
+          custom_notes: editedExercise.notes !== exercise.notes ? editedExercise.notes : null,
+          custom_difficulty: editedExercise.difficulty !== exercise.difficulty ? editedExercise.difficulty : null,
         });
       }
+
+      toast({
+        title: "Exercise updated",
+        description: `"${editedExercise.name}" has been updated successfully.`,
+      });
+      
       setIsEditing(false);
       setShowMuscleGroupSelector(false);
+      
+      if (onUpdate) {
+        onUpdate(editedExercise);
+      }
     } catch (error) {
       toast({
         title: "Error updating exercise",
         description: "Failed to update the exercise. Please try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleReset = async () => {
+    if (!exercise.isSystemExercise || !exercise.isCustomized) return;
+    
+    setIsResetting(true);
+    try {
+      await resetSystemExerciseToOriginal(exercise.id);
+      setShowResetConfirm(false);
+      onClose();
+    } catch (error) {
+      console.error('Error resetting exercise:', error);
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -77,6 +143,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
   const handleClose = () => {
     setIsEditing(false);
     setShowMuscleGroupSelector(false);
+    setShowResetConfirm(false);
     onClose();
   };
 
@@ -93,7 +160,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
   const removeProgression = (index: number) => {
     setEditedExercise(prev => ({
       ...prev,
-      progressions: prev.progressions?.filter((_, i) => i !== index) || []
+      progressions: (prev.progressions || []).filter((_, i) => i !== index)
     }));
   };
 
@@ -110,7 +177,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
   const removeRegression = (index: number) => {
     setEditedExercise(prev => ({
       ...prev,
-      regressions: prev.regressions?.filter((_, i) => i !== index) || []
+      regressions: (prev.regressions || []).filter((_, i) => i !== index)
     }));
   };
 
@@ -120,13 +187,11 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
       const isSelected = currentGroups.includes(muscleGroup);
       
       if (isSelected) {
-        // Remove muscle group
         return {
           ...prev,
           muscleGroups: currentGroups.filter(group => group !== muscleGroup)
         };
       } else {
-        // Add muscle group
         return {
           ...prev,
           muscleGroups: [...currentGroups, muscleGroup]
@@ -138,9 +203,43 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
   const removeMuscleGroup = (muscleGroup: MuscleGroup) => {
     setEditedExercise(prev => ({
       ...prev,
-      muscleGroups: prev.muscleGroups.filter(group => group !== muscleGroup)
+      muscleGroups: (prev.muscleGroups || []).filter(group => group !== muscleGroup)
     }));
   };
+
+  // Reset confirmation dialog
+  if (showResetConfirm) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset to Original</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Reset to original system version? This will remove all your customizations.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowResetConfirm(false)}
+                disabled={isResetting}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleReset}
+                disabled={isResetting}
+              >
+                {isResetting ? 'Resetting...' : 'Reset'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   if (isEditing) {
     return (
@@ -185,7 +284,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
               />
             </div>
 
-            {/* Muscle Groups - Fixed Implementation */}
+            {/* Muscle Groups */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <label className="text-sm font-medium text-sage-700">Target Muscles</label>
@@ -201,7 +300,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
               
               {/* Current Muscle Groups */}
               <div className="flex flex-wrap gap-2 mb-3">
-                {editedExercise.muscleGroups.map((group) => (
+                {(editedExercise.muscleGroups || []).map((group) => (
                   <Badge 
                     key={group}
                     variant="secondary" 
@@ -227,7 +326,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
                     <div className="max-h-48 overflow-y-auto">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                         {availableMuscleGroups.map((muscleGroup) => {
-                          const isSelected = editedExercise.muscleGroups.includes(muscleGroup);
+                          const isSelected = (editedExercise.muscleGroups || []).includes(muscleGroup);
                           return (
                             <Button
                               key={muscleGroup}
@@ -263,7 +362,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
             <div>
               <label className="text-sm font-medium text-sage-700 mb-2 block">Progressions</label>
               <div className="space-y-2">
-                {editedExercise.progressions?.map((progression, index) => (
+                {(editedExercise.progressions || []).map((progression, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <Input
                       value={progression}
@@ -307,7 +406,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
             <div>
               <label className="text-sm font-medium text-sage-700 mb-2 block">Regressions</label>
               <div className="space-y-2">
-                {editedExercise.regressions?.map((regression, index) => (
+                {(editedExercise.regressions || []).map((regression, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <Input
                       value={regression}
@@ -371,11 +470,14 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
       }`}>
         <DialogHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
           <div className="space-y-2">
-            <DialogTitle className={`text-xl font-semibold ${
-              preferences.darkMode ? 'text-white' : 'text-sage-800'
-            }`}>
-              {exercise.name}
-            </DialogTitle>
+            <div className="flex items-center gap-2">
+              <DialogTitle className={`text-xl font-semibold ${
+                preferences.darkMode ? 'text-white' : 'text-sage-800'
+              }`}>
+                {exercise.name}
+              </DialogTitle>
+              {getExerciseTypeBadge()}
+            </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline" className="text-xs">
                 {exercise.repsOrDuration || `${exercise.duration}min`}
@@ -400,22 +502,30 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
                   Pregnancy Safe
                 </Badge>
               )}
-              {exercise.isCustom && (
-                <Badge className="text-xs bg-purple-100 text-purple-700">
-                  Custom Exercise
-                </Badge>
-              )}
             </div>
           </div>
-          <Button
-            onClick={() => setIsEditing(true)}
-            variant="outline"
-            size="sm"
-            className="gap-2"
-          >
-            <Edit className="h-4 w-4" />
-            Edit
-          </Button>
+          <div className="flex gap-2">
+            {exercise.isSystemExercise && exercise.isCustomized && (
+              <Button
+                onClick={() => setShowResetConfirm(true)}
+                variant="destructive"
+                size="sm"
+                className="gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Reset
+              </Button>
+            )}
+            <Button
+              onClick={() => setIsEditing(true)}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              Edit
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -492,7 +602,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
               <div className={`text-xs ${
                 preferences.darkMode ? 'text-gray-400' : 'text-sage-600'
               }`}>
-                {exercise.muscleGroups[0]}
+                {(exercise.muscleGroups || [])[0] || 'N/A'}
               </div>
             </div>
           </div>
@@ -560,7 +670,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-1">
-                  {exercise.muscleGroups.map(group => (
+                  {(exercise.muscleGroups || []).map(group => (
                     <Badge 
                       key={group} 
                       variant="secondary" 
@@ -612,9 +722,9 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
           </div>
 
           {/* Progressions & Contraindications */}
-          {(exercise.progressions && exercise.progressions.length > 0) || 
+          {((exercise.progressions && exercise.progressions.length > 0) || 
            (exercise.regressions && exercise.regressions.length > 0) || 
-           (exercise.contraindications && exercise.contraindications.length > 0) && (
+           (exercise.contraindications && exercise.contraindications.length > 0)) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Progressions & Regressions */}
               {((exercise.progressions && exercise.progressions.length > 0) || 
