@@ -9,12 +9,16 @@ interface TabbedPlanViewProps {
   onRemoveExercise: (exerciseId: string) => void;
   onUpdateClassName: (name: string) => void;
   onUpdateClassDuration: (duration: number) => void;
+  onUpdateClassNotes: (notes: string) => void;
+  onUpdateClassImage: (image: string) => void;
   onAddExercise: () => void;
   onAddCallout: (position: number) => void;
   onUpdateCallout: (calloutId: string, newName: string) => void;
   onDeleteCallout: (calloutId: string) => void;
   onReorderExercises: (exercises: Exercise[]) => void;
   onAddToShortlist?: (exercise: Exercise) => void;
+  collapsedSections: Set<string>;
+  onToggleSectionCollapse: (sectionId: string) => void;
   viewMode?: 'builder' | 'settings';
 }
 
@@ -23,12 +27,16 @@ export const TabbedPlanView = ({
   onRemoveExercise,
   onUpdateClassName,
   onUpdateClassDuration,
+  onUpdateClassNotes,
+  onUpdateClassImage,
   onAddExercise,
   onAddCallout,
   onUpdateCallout,
   onDeleteCallout,
   onReorderExercises,
   onAddToShortlist,
+  collapsedSections,
+  onToggleSectionCollapse,
   viewMode = 'builder'
 }: TabbedPlanViewProps) => {
   const updateExercise = (updatedExercise: Exercise) => {
@@ -59,6 +67,12 @@ export const TabbedPlanView = ({
       onUpdateCallout={onUpdateCallout}
       onDeleteCallout={onDeleteCallout}
       onAddToShortlist={onAddToShortlist}
+      onUpdateClassName={onUpdateClassName}
+      onUpdateClassDuration={onUpdateClassDuration}
+      onUpdateClassNotes={onUpdateClassNotes}
+      onUpdateClassImage={onUpdateClassImage}
+      collapsedSections={collapsedSections}
+      onToggleSectionCollapse={onToggleSectionCollapse}
     />
   );
 };
