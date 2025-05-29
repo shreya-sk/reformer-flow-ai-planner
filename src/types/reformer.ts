@@ -34,6 +34,9 @@ export interface Exercise {
   setOrder?: number;
   setName?: string;
   
+  // Callout specific properties
+  calloutColor?: 'amber' | 'blue' | 'green' | 'purple' | 'red';
+  
   // Auto-generated insights
   usageFrequency?: number;
   lastUsed?: Date;
@@ -174,3 +177,10 @@ export type TeachingFocus =
   | 'strength'
   | 'mobility'
   | 'coordination';
+
+export interface CustomCallout {
+  id: string;
+  name: string;
+  color: 'amber' | 'blue' | 'green' | 'purple' | 'red';
+  createdAt: Date;
+}

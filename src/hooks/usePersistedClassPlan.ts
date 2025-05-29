@@ -166,7 +166,7 @@ export const usePersistedClassPlan = () => {
     });
   }, []);
 
-  const addCallout = useCallback((name: string, insertIndex?: number) => {
+  const addCallout = useCallback((name: string, insertIndex?: number, color: 'amber' | 'blue' | 'green' | 'purple' | 'red' = 'amber') => {
     const calloutExercise: Exercise = {
       id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name,
@@ -179,6 +179,7 @@ export const usePersistedClassPlan = () => {
       springs: 'none',
       isPregnancySafe: true,
       description: `${name} section divider`,
+      calloutColor: color,
       cues: [],
       notes: ''
     };

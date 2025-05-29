@@ -17,16 +17,15 @@ import {
   BookOpen, 
   Plus, 
   Heart, 
-  Star,
   ChevronDown,
   ChevronRight,
   Settings2,
   Image as ImageIcon,
   Edit3,
-  Calendar,
-  Target
+  Target,
+  Palette
 } from 'lucide-react';
-import { ClassPlan, Exercise } from '@/types/reformer';
+import { ClassPlan, Exercise, CustomCallout } from '@/types/reformer';
 import { ExerciseSuggestions } from './ExerciseSuggestions';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
 import { SpringVisual } from '@/components/SpringVisual';
@@ -48,7 +47,6 @@ interface ClassBuilderProps {
   onUpdateClassImage: (image: string) => void;
   collapsedSections: Set<string>;
   onToggleSectionCollapse: (sectionId: string) => void;
-  savedClasses?: ClassPlan[];
 }
 
 // Default images for class plans
@@ -60,6 +58,17 @@ const defaultImages = [
   '/lovable-uploads/52923e3d-1669-4ae1-9710-9e1c18d8820d.png',
   '/lovable-uploads/52c9b506-ac25-4335-8a26-0c2b10d2c954.png'
 ];
+
+const getCalloutColorClasses = (color: CustomCallout['color'] = 'amber') => {
+  const colorMap = {
+    amber: { border: 'border-amber-400', bg: 'bg-amber-50', text: 'text-amber-700', leftBorder: 'border-amber-200' },
+    blue: { border: 'border-blue-400', bg: 'bg-blue-50', text: 'text-blue-700', leftBorder: 'border-blue-200' },
+    green: { border: 'border-green-400', bg: 'bg-green-50', text: 'text-green-700', leftBorder: 'border-green-200' },
+    purple: { border: 'border-purple-400', bg: 'bg-purple-50', text: 'text-purple-700', leftBorder: 'border-purple-200' },
+    red: { border: 'border-red-400', bg: 'bg-red-50', text: 'text-red-700', leftBorder: 'border-red-200' },
+  };
+  return colorMap[color] || colorMap.amber;
+};
 
 export const ClassBuilder = ({ 
   currentClass, 
@@ -80,47 +89,68 @@ export const ClassBuilder = ({
 }: ClassBuilderProps) => {
   const { preferences } = useUserPreferences();
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [hoveredExercise, setHoveredExercise] = useState<string | null>(null);
   const [showImageSelector, setShowImageSelector] = useState(false);
+  const [showCalloutSelector, setShowCalloutSelector] = useState(false);
+  const [calloutInsertPosition, setCalloutInsertPosition] = useState(0);
   const [editingCallout, setEditingCallout] = useState<string | null>(null);
   const [editCalloutValue, setEditCalloutValue] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
 
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    setIsDragging(true);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
 
-
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
   };
 
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-  e.preventDefault();
-  e.stopPropagation(); // Add this
-  if (draggedIndex === null || draggedIndex === dropIndex) return;
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      setIsDragging(false);
+      return;
+    }
 
-  const exercises = [...currentClass.exercises];
-  const draggedExercise = exercises[draggedIndex];
-  exercises.splice(draggedIndex, 1);
-  exercises.splice(dropIndex, 0, draggedExercise);
-  
-  onReorderExercises(exercises);
-  setDraggedIndex(null);
-};
+    const exercises = [...currentClass.exercises];
+    const draggedExercise = exercises[draggedIndex];
+    exercises.splice(draggedIndex, 1);
+    exercises.splice(dropIndex, 0, draggedExercise);
+    
+    onReorderExercises(exercises);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    setIsDragging(false);
+  };
 
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    e.stopPropagation(); // Add this
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    setIsDragging(false);
   };
 
   const getMuscleGroupCoverage = () => {
-    const allGroups = currentClass.exercises.flatMap(ex => ex.muscleGroups);
+    const allGroups = currentClass.exercises
+      .filter(ex => ex.category !== 'callout')
+      .flatMap(ex => ex.muscleGroups);
     return Array.from(new Set(allGroups));
   };
 
   const handleExerciseClick = (exercise: Exercise) => {
-    if (exercise.category === 'callout') return;
+    if (exercise.category === 'callout' || isDragging) return;
     setSelectedExercise(exercise);
     setShowDetailModal(true);
   };
@@ -130,10 +160,61 @@ export const ClassBuilder = ({
     onRemoveExercise(exerciseId);
   };
 
-  const handleAddCallout = (position: number) => {
+  const handleAddCustomCallout = (callout: CustomCallout, position: number) => {
     if (onAddCallout) {
-      onAddCallout(position);
+      const calloutExercise: Exercise = {
+        id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: callout.name,
+        category: 'callout',
+        difficulty: 'beginner',
+        intensityLevel: 'low',
+        duration: 0,
+        muscleGroups: [],
+        equipment: [],
+        springs: 'none',
+        isPregnancySafe: true,
+        description: `${callout.name} section divider`,
+        calloutColor: callout.color,
+        cues: [],
+        notes: ''
+      };
+
+      const newExercises = [...currentClass.exercises];
+      newExercises.splice(position, 0, calloutExercise);
+      onReorderExercises(newExercises);
     }
+    setShowCalloutSelector(false);
+  };
+
+  const handleAddDefaultCallout = (position: number) => {
+    if (onAddCallout) {
+      const calloutExercise: Exercise = {
+        id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: `Note ${Date.now()}`,
+        category: 'callout',
+        difficulty: 'beginner',
+        intensityLevel: 'low',
+        duration: 0,
+        muscleGroups: [],
+        equipment: [],
+        springs: 'none',
+        isPregnancySafe: true,
+        description: 'Section divider',
+        calloutColor: 'amber',
+        cues: [],
+        notes: ''
+      };
+
+      const newExercises = [...currentClass.exercises];
+      newExercises.splice(position, 0, calloutExercise);
+      onReorderExercises(newExercises);
+    }
+    setShowCalloutSelector(false);
+  };
+
+  const openCalloutSelector = (position: number) => {
+    setCalloutInsertPosition(position);
+    setShowCalloutSelector(true);
   };
 
   const handleShortlistExercise = (exercise: Exercise, e: React.MouseEvent) => {
@@ -166,7 +247,7 @@ export const ClassBuilder = ({
     setEditCalloutValue('');
   };
 
-  // Group exercises by sections (callouts)
+  // Improved grouping function
   const groupedExercises = () => {
     const groups: { callout: Exercise | null; exercises: Exercise[]; startIndex: number }[] = [];
     let currentGroup: Exercise[] = [];
@@ -174,18 +255,36 @@ export const ClassBuilder = ({
     
     currentClass.exercises.forEach((exercise, index) => {
       if (exercise.category === 'callout') {
+        // If we have accumulated exercises, add them as an ungrouped section
         if (currentGroup.length > 0) {
           groups.push({ callout: null, exercises: currentGroup, startIndex });
-          startIndex = index + 1;
           currentGroup = [];
         }
-        groups.push({ callout: exercise, exercises: [], startIndex: index });
-        startIndex = index + 1;
-      } else {
+        
+        // Start a new callout section
+        const calloutExercises: Exercise[] = [];
+        let nextIndex = index + 1;
+        
+        // Collect exercises until next callout or end of list
+        while (nextIndex < currentClass.exercises.length && currentClass.exercises[nextIndex].category !== 'callout') {
+          calloutExercises.push(currentClass.exercises[nextIndex]);
+          nextIndex++;
+        }
+        
+        groups.push({ callout: exercise, exercises: calloutExercises, startIndex: index + 1 });
+        startIndex = nextIndex;
+        
+        // Skip the exercises we just processed
+        for (let i = index + 1; i < nextIndex; i++) {
+          // These are handled in the callout group
+        }
+      } else if (!groups.some(g => g.exercises.includes(exercise))) {
+        // Only add if not already in a callout group
         currentGroup.push(exercise);
       }
     });
     
+    // Add any remaining ungrouped exercises
     if (currentGroup.length > 0) {
       groups.push({ callout: null, exercises: currentGroup, startIndex });
     }
@@ -193,91 +292,111 @@ export const ClassBuilder = ({
     return groups;
   };
 
+  const DropZone = ({ index, className = "" }: { index: number; className?: string }) => (
+    <div
+      onDragOver={(e) => handleDragOver(e, index)}
+      onDragLeave={handleDragLeave}
+      onDrop={(e) => handleDrop(e, index)}
+      className={`transition-all duration-200 ${className} ${
+        dragOverIndex === index ? 'bg-sage-100 border-2 border-dashed border-sage-400 rounded-lg py-2' : ''
+      }`}
+    >
+      {dragOverIndex === index && (
+        <div className="text-center text-sage-600 text-sm py-1">
+          Drop here
+        </div>
+      )}
+    </div>
+  );
+
   const ExerciseCard = ({ exercise, index }: { exercise: Exercise; index: number }) => {
     return (
-      <div
-        draggable
-        onDragStart={(e) => handleDragStart(e, index)}
-        onDragOver={handleDragOver}
-        // In ExerciseCard component
-        onDragEnd={() => setDraggedIndex(null)}
-        onDrop={(e) => handleDrop(e, index)}
-        className={`group mb-3 transition-all duration-300 cursor-pointer ${
-          draggedIndex === index ? 'opacity-50 scale-95' : ''
-        } ${hoveredExercise === exercise.id ? 'scale-[1.02]' : ''}`}
-        onClick={() => handleExerciseClick(exercise)}
-        onMouseEnter={() => setHoveredExercise(exercise.id)}
-        onMouseLeave={() => setHoveredExercise(null)}
-      >
-        <Card className="border-sage-200 hover:shadow-lg hover:border-sage-300 transition-all duration-300 overflow-hidden rounded-xl ml-6">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-3">
-              <div className="flex-shrink-0 cursor-grab active:cursor-grabbing opacity-40 group-hover:opacity-100 transition-opacity">
-                <GripVertical className="h-5 w-5 text-sage-500" />
-              </div>
-
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-gradient-to-br from-sage-100 to-sage-200 rounded-full flex items-center justify-center shadow-inner">
-                  <span className="text-sm font-bold text-sage-600">{index + 1}</span>
+      <>
+        <DropZone index={index} />
+        <div
+          draggable
+          onDragStart={(e) => handleDragStart(e, index)}
+          onDragEnd={handleDragEnd}
+          className={`group mb-3 transition-all duration-300 ${
+            !isDragging || draggedIndex !== index ? 'cursor-pointer' : 'cursor-grabbing'
+          } ${
+            draggedIndex === index ? 'opacity-50 scale-95' : ''
+          }`}
+          onClick={() => handleExerciseClick(exercise)}
+        >
+          <Card className="border-sage-200 hover:shadow-lg hover:border-sage-300 transition-all duration-300 overflow-hidden rounded-xl ml-6">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-3">
+                <div 
+                  className="flex-shrink-0 cursor-grab active:cursor-grabbing opacity-40 group-hover:opacity-100 transition-opacity"
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
+                  <GripVertical className="h-5 w-5 text-sage-500" />
                 </div>
-              </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-medium text-sage-800 text-sm">
-                    {exercise.name}
-                  </h3>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {onAddToShortlist && (
+                <div className="flex-shrink-0">
+                  <div className="w-8 h-8 bg-gradient-to-br from-sage-100 to-sage-200 rounded-full flex items-center justify-center shadow-inner">
+                    <span className="text-sm font-bold text-sage-600">{index + 1}</span>
+                  </div>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="font-medium text-sage-800 text-sm">
+                      {exercise.name}
+                    </h3>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {onAddToShortlist && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => handleShortlistExercise(exercise, e)}
+                          className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-6 w-6 p-0"
+                        >
+                          <Heart className="h-3 w-3" />
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={(e) => handleShortlistExercise(exercise, e)}
-                        className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-6 w-6 p-0"
+                        onClick={(e) => handleRemoveExercise(exercise.id, e)}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
                       >
-                        <Heart className="h-3 w-3" />
+                        <Trash2 className="h-3 w-3" />
                       </Button>
-                    )}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={(e) => handleRemoveExercise(exercise.id, e)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="h-3 w-3 text-sage-500" />
-                    <span className="text-xs text-sage-600 font-medium">{exercise.duration}min</span>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-3 w-3 text-sage-500" />
+                      <span className="text-xs text-sage-600 font-medium">{exercise.duration}min</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-sage-500">Springs:</span>
+                      <SpringVisual springs={exercise.springs} />
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center gap-1">
-                    <span className="text-xs text-sage-500">Springs:</span>
-                    <SpringVisual springs={exercise.springs} />
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs border-sage-300 text-sage-700 rounded-full">
-                    {exercise.category}
-                  </Badge>
-                  <div className="flex gap-1">
-                    {exercise.muscleGroups.slice(0, 2).map(group => (
-                      <Badge key={group} variant="secondary" className="text-xs bg-sage-100 text-sage-700 rounded-full">
-                        {group}
-                      </Badge>
-                    ))}
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs border-sage-300 text-sage-700 rounded-full">
+                      {exercise.category}
+                    </Badge>
+                    <div className="flex gap-1">
+                      {exercise.muscleGroups.slice(0, 2).map(group => (
+                        <Badge key={group} variant="secondary" className="text-xs bg-sage-100 text-sage-700 rounded-full">
+                          {group}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
+      </>
     );
   };
 
@@ -395,9 +514,6 @@ export const ClassBuilder = ({
                 </div>
               </CardContent>
             </Card>
-
-            {/* Muscle Groups */}
-            
           </div>
 
           {/* Class Timeline */}
@@ -467,26 +583,24 @@ export const ClassBuilder = ({
                 ) : (
                   <div className="space-y-1">
                     {/* Add initial callout button */}
-                    {onAddCallout && (
-                      <div className="flex justify-center py-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleAddCallout(0)}
-                          className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add Section
-                        </Button>
-                      </div>
-                    )}
+                    <div className="flex justify-center py-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openCalloutSelector(0)}
+                        className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Section
+                      </Button>
+                    </div>
                     
                     <ExerciseSuggestions 
                       currentClass={currentClass} 
                       onAddExercise={onAddExercise}
                     />
                     
-                    {/* Fixed grouped exercises with collapsible sections */}
+                    {/* Improved grouped exercises with proper collapsible sections */}
                     {groupedExercises().map((group, groupIndex) => (
                       <div key={groupIndex}>
                         {group.callout ? (
@@ -496,10 +610,10 @@ export const ClassBuilder = ({
                           >
                             {/* Callout header */}
                             <div className="relative mb-2 px-4">
-                              <div className="border-l-4 border-amber-400 pl-3 py-2 bg-amber-50 rounded-r-lg">
+                              <div className={`border-l-4 pl-3 py-2 rounded-r-lg ${getCalloutColorClasses(group.callout.calloutColor).border} ${getCalloutColorClasses(group.callout.calloutColor).bg}`}>
                                 <div className="flex items-center justify-between">
                                   <CollapsibleTrigger asChild>
-                                    <Button variant="ghost" className="flex items-center gap-2 p-0 h-auto text-amber-700 hover:text-amber-800">
+                                    <Button variant="ghost" className={`flex items-center gap-2 p-0 h-auto hover:bg-transparent ${getCalloutColorClasses(group.callout.calloutColor).text}`}>
                                       {collapsedSections.has(group.callout.id) ? (
                                         <ChevronRight className="h-4 w-4" />
                                       ) : (
@@ -521,7 +635,7 @@ export const ClassBuilder = ({
                                       ) : (
                                         <span className="font-medium">{group.callout.name}</span>
                                       )}
-                                      <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 ml-2">
+                                      <Badge variant="secondary" className={`text-xs ml-2 ${getCalloutColorClasses(group.callout.calloutColor).bg} ${getCalloutColorClasses(group.callout.calloutColor).text}`}>
                                         {group.exercises?.length || 0}
                                       </Badge>
                                     </Button>
@@ -535,7 +649,7 @@ export const ClassBuilder = ({
                                         e.stopPropagation();
                                         startEditingCallout(group.callout);
                                       }}
-                                      className="h-6 w-6 p-0 text-amber-600 hover:text-amber-700"
+                                      className={`h-6 w-6 p-0 ${getCalloutColorClasses(group.callout.calloutColor).text}`}
                                     >
                                       <Edit3 className="h-3 w-3" />
                                     </Button>
@@ -555,10 +669,10 @@ export const ClassBuilder = ({
                               </div>
                             </div>
                             
-                            {/* Move exercises INSIDE CollapsibleContent */}
+                            {/* Exercises inside CollapsibleContent */}
                             <CollapsibleContent>
-                              <div className="ml-4 border-l-2 border-amber-200 pl-4">
-                                {group.exercises?.map((exercise, exerciseIndex) => {
+                              <div className={`ml-4 border-l-2 pl-4 ${getCalloutColorClasses(group.callout.calloutColor).leftBorder}`}>
+                                {group.exercises?.map((exercise) => {
                                   const actualIndex = currentClass.exercises.findIndex(ex => ex.id === exercise.id);
                                   return (
                                     <ExerciseCard 
@@ -568,24 +682,55 @@ export const ClassBuilder = ({
                                     />
                                   );
                                 })}
+                                
+                                {/* Add section button at end of callout */}
+                                <div className="flex justify-center py-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => openCalloutSelector(group.startIndex + group.exercises.length)}
+                                    className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
+                                  >
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    Add Section
+                                  </Button>
+                                </div>
                               </div>
                             </CollapsibleContent>
                           </Collapsible>
                         ) : (
                           // Ungrouped exercises
-                          group.exercises.map((exercise) => {
-                            const actualIndex = currentClass.exercises.findIndex(ex => ex.id === exercise.id);
-                            return (
-                              <ExerciseCard 
-                                key={exercise.id} 
-                                exercise={exercise} 
-                                index={actualIndex} 
-                              />
-                            );
-                          })
+                          <>
+                            {group.exercises.map((exercise) => {
+                              const actualIndex = currentClass.exercises.findIndex(ex => ex.id === exercise.id);
+                              return (
+                                <ExerciseCard 
+                                  key={exercise.id} 
+                                  exercise={exercise} 
+                                  index={actualIndex} 
+                                />
+                              );
+                            })}
+                            
+                            {/* Add section button after ungrouped exercises */}
+                            <div className="flex justify-center py-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openCalloutSelector(group.startIndex + group.exercises.length)}
+                                className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Add Section
+                              </Button>
+                            </div>
+                          </>
                         )}
                       </div>
                     ))}
+
+                    {/* Final drop zone */}
+                    <DropZone index={currentClass.exercises.length} className="mt-4" />
                   </div>
                 )}
               </ScrollArea>
@@ -593,6 +738,53 @@ export const ClassBuilder = ({
           </div>
         </div>
       </div>
+
+      {/* Custom Callout Selector Dialog */}
+      <Dialog open={showCalloutSelector} onOpenChange={setShowCalloutSelector}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Add Section Divider
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Default callout option */}
+            <Button
+              variant="outline"
+              className="w-full justify-start h-auto p-3"
+              onClick={() => handleAddDefaultCallout(calloutInsertPosition)}
+            >
+              <div className="border-l-4 border-amber-400 pl-3 py-2 bg-amber-50 rounded-r flex-1 text-left">
+                <span className="font-medium text-amber-700">Default Note</span>
+              </div>
+            </Button>
+
+            {/* Custom callouts */}
+            {(preferences.customCallouts || []).map((callout) => {
+              const colorClasses = getCalloutColorClasses(callout.color);
+              return (
+                <Button
+                  key={callout.id}
+                  variant="outline"
+                  className="w-full justify-start h-auto p-3"
+                  onClick={() => handleAddCustomCallout(callout, calloutInsertPosition)}
+                >
+                  <div className={`border-l-4 pl-3 py-2 rounded-r flex-1 text-left ${colorClasses.border} ${colorClasses.bg}`}>
+                    <span className={`font-medium ${colorClasses.text}`}>{callout.name}</span>
+                  </div>
+                </Button>
+              );
+            })}
+
+            {(preferences.customCallouts || []).length === 0 && (
+              <div className="text-center py-4 text-gray-500 text-sm">
+                No custom callouts yet. Create some in your profile settings.
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {selectedExercise && (
         <ExerciseDetailModal

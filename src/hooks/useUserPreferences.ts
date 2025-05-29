@@ -1,10 +1,12 @@
+
 import { useState, useEffect } from 'react';
+import { CustomCallout } from '@/types/reformer';
 
 interface UserPreferences {
   darkMode: boolean;
   showPregnancySafeOnly?: boolean;
   profileImage?: string;
-  customCallouts?: string[];
+  customCallouts?: CustomCallout[];
   favoriteExercises?: string[];
   hiddenExercises?: string[];
 }
@@ -16,7 +18,14 @@ export const useUserPreferences = () => {
     try {
       const saved = localStorage.getItem(PREFERENCES_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        return {
+          ...parsed,
+          customCallouts: (parsed.customCallouts || []).map((callout: any) => ({
+            ...callout,
+            createdAt: new Date(callout.createdAt)
+          }))
+        };
       }
     } catch (error) {
       console.error('Failed to load user preferences:', error);
@@ -43,24 +52,35 @@ export const useUserPreferences = () => {
     setPreferences(prev => ({ ...prev, ...updates }));
   };
 
-  const addCustomCallout = (callout: string) => {
+  const addCustomCallout = (name: string, color: CustomCallout['color'] = 'amber') => {
+    const newCallout: CustomCallout = {
+      id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name,
+      color,
+      createdAt: new Date()
+    };
+    
     setPreferences(prev => ({
       ...prev,
-      customCallouts: [...(prev.customCallouts || []), callout]
+      customCallouts: [...(prev.customCallouts || []), newCallout]
+    }));
+    
+    return newCallout;
+  };
+
+  const updateCustomCallout = (id: string, updates: Partial<Pick<CustomCallout, 'name' | 'color'>>) => {
+    setPreferences(prev => ({
+      ...prev,
+      customCallouts: (prev.customCallouts || []).map(callout =>
+        callout.id === id ? { ...callout, ...updates } : callout
+      )
     }));
   };
 
-  const removeCustomCallout = (callout: string) => {
+  const deleteCustomCallout = (id: string) => {
     setPreferences(prev => ({
       ...prev,
-      customCallouts: (prev.customCallouts || []).filter(c => c !== callout)
-    }));
-  };
-
-  const updateCustomCallouts = (callouts: string[]) => {
-    setPreferences(prev => ({
-      ...prev,
-      customCallouts: callouts
+      customCallouts: (prev.customCallouts || []).filter(callout => callout.id !== id)
     }));
   };
 
@@ -103,8 +123,8 @@ export const useUserPreferences = () => {
     preferences,
     updatePreferences,
     addCustomCallout,
-    removeCustomCallout,
-    updateCustomCallouts,
+    updateCustomCallout,
+    deleteCustomCallout,
     toggleFavoriteExercise,
     toggleHiddenExercise,
     togglePregnancySafeOnly
