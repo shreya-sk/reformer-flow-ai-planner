@@ -161,7 +161,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
             <div>
               <label className="text-sm font-medium text-sage-700 mb-2 block">Progressions</label>
               <div className="space-y-2">
-                {editedExercise.progressions?.map((progression, index) => (
+                {(editedExercise.progressions || []).map((progression, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <Input
                       value={progression}
@@ -205,7 +205,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
             <div>
               <label className="text-sm font-medium text-sage-700 mb-2 block">Regressions</label>
               <div className="space-y-2">
-                {editedExercise.regressions?.map((regression, index) => (
+                {(editedExercise.regressions || []).map((regression, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <Input
                       value={regression}
@@ -393,18 +393,11 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
               <div className={`text-xs ${
                 preferences.darkMode ? 'text-gray-400' : 'text-sage-600'
               }`}>
-                
-                
-                {exercise.muscleGroups.map(group => (
+                {(exercise.muscleGroups || []).map(group => (
                   <span key={group} className="inline-block mr-1">
                     {group} 
                   </span>
                 ))}
-                    
-                      
-                      
-               
-              
               </div>
             </div>
           </div>
@@ -445,7 +438,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {exercise.cues.map((cue, index) => (
+                  {(exercise.cues || []).map((cue, index) => (
                     <li key={index} className={`text-sm flex items-start gap-2 ${
                       preferences.darkMode ? 'text-gray-300' : 'text-sage-700'
                     }`}>
@@ -458,123 +451,55 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
             </Card>
           )}
 
-          {/* Muscle Groups & Equipment */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className={`${
-              preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-sage-50 border-sage-200'
-            }`}>
-              <CardHeader className="pb-2">
-                <CardTitle className={`text-sm ${
-                  preferences.darkMode ? 'text-white' : 'text-sage-800'
-                }`}>
-                  Progressions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {exercise.progressions.map((cue, index) => (
-                    <li key={index} className={`text-sm flex items-start gap-2 ${
-                      preferences.darkMode ? 'text-gray-300' : 'text-sage-700'
-                    }`}>
-                      <span className="text-sage-500 font-bold text-xs mt-1">•</span>
-                      <span>{cue}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className={`${
-              preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-sage-50 border-sage-200'
-            }`}>
-              <CardHeader className="pb-2">
-                <CardTitle className={`text-sm ${
-                  preferences.darkMode ? 'text-white' : 'text-sage-800'
-                }`}>
-                  Regressions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {exercise.regressions.map((cue, index) => (
-                    <li key={index} className={`text-sm flex items-start gap-2 ${
-                      preferences.darkMode ? 'text-gray-300' : 'text-sage-700'
-                    }`}>
-                      <span className="text-sage-500 font-bold text-xs mt-1">•</span>
-                      <span>{cue}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Progressions & Contraindications */}
-          {(exercise.progressions && exercise.progressions.length > 0) || 
-           (exercise.regressions && exercise.regressions.length > 0) || 
-           (exercise.contraindications && exercise.contraindications.length > 0) && (
+          {/* Progressions & Regressions */}
+          {((exercise.progressions && exercise.progressions.length > 0) || 
+            (exercise.regressions && exercise.regressions.length > 0)) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Progressions & Regressions */}
-              {((exercise.progressions && exercise.progressions.length > 0) || 
-                (exercise.regressions && exercise.regressions.length > 0)) && (
+              {exercise.progressions && exercise.progressions.length > 0 && (
                 <Card className={`${
-                  preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-green-50 border-green-200'
+                  preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-sage-50 border-sage-200'
                 }`}>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-green-600">
-                      Modifications
+                    <CardTitle className={`text-sm ${
+                      preferences.darkMode ? 'text-white' : 'text-sage-800'
+                    }`}>
+                      Progressions
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    {exercise.progressions && exercise.progressions.length > 0 && (
-                      <div>
-                        <h5 className="text-xs font-semibold text-green-600 mb-1">Progressions:</h5>
-                        <ul className="space-y-1">
-                          {exercise.progressions.map((progression, index) => (
-                            <li key={index} className={`text-xs ${
-                              preferences.darkMode ? 'text-gray-300' : 'text-green-700'
-                            }`}>
-                              ▲ {progression}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {exercise.regressions && exercise.regressions.length > 0 && (
-                      <div>
-                        <h5 className="text-xs font-semibold text-blue-600 mb-1">Regressions:</h5>
-                        <ul className="space-y-1">
-                          {exercise.regressions.map((regression, index) => (
-                            <li key={index} className={`text-xs ${
-                              preferences.darkMode ? 'text-gray-300' : 'text-blue-700'
-                            }`}>
-                              ▼ {regression}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {exercise.progressions.map((progression, index) => (
+                        <li key={index} className={`text-sm flex items-start gap-2 ${
+                          preferences.darkMode ? 'text-gray-300' : 'text-sage-700'
+                        }`}>
+                          <span className="text-sage-500 font-bold text-xs mt-1">•</span>
+                          <span>{progression}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </CardContent>
                 </Card>
               )}
 
-              {exercise.contraindications && exercise.contraindications.length > 0 && (
+              {exercise.regressions && exercise.regressions.length > 0 && (
                 <Card className={`${
-                  preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-amber-50 border-amber-200'
+                  preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-sage-50 border-sage-200'
                 }`}>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-amber-600 flex items-center gap-1">
-                      <AlertTriangle className="h-3 w-3" />
-                      Contraindications
+                    <CardTitle className={`text-sm ${
+                      preferences.darkMode ? 'text-white' : 'text-sage-800'
+                    }`}>
+                      Regressions
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ul className="space-y-1">
-                      {exercise.contraindications.map((item, index) => (
-                        <li key={index} className={`text-xs ${
-                          preferences.darkMode ? 'text-gray-300' : 'text-amber-700'
+                    <ul className="space-y-2">
+                      {exercise.regressions.map((regression, index) => (
+                        <li key={index} className={`text-sm flex items-start gap-2 ${
+                          preferences.darkMode ? 'text-gray-300' : 'text-sage-700'
                         }`}>
-                          • {item}
+                          <span className="text-sage-500 font-bold text-xs mt-1">•</span>
+                          <span>{regression}</span>
                         </li>
                       ))}
                     </ul>
@@ -582,6 +507,31 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
                 </Card>
               )}
             </div>
+          )}
+
+          {/* Contraindications */}
+          {exercise.contraindications && exercise.contraindications.length > 0 && (
+            <Card className={`${
+              preferences.darkMode ? 'bg-gray-700 border-gray-600' : 'bg-amber-50 border-amber-200'
+            }`}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-amber-600 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  Contraindications
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-1">
+                  {exercise.contraindications.map((item, index) => (
+                    <li key={index} className={`text-xs ${
+                      preferences.darkMode ? 'text-gray-300' : 'text-amber-700'
+                    }`}>
+                      • {item}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
           )}
         </div>
       </DialogContent>
