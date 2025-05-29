@@ -6,13 +6,12 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Clock, Edit, Copy, Heart, Baby, Check, Search, Trash2, EyeOff, Eye, Plus } from 'lucide-react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
-import { exerciseDatabase } from '@/data/exercises';
 import { ExerciseForm } from './ExerciseForm';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
 import { SmartAddButton } from './SmartAddButton';
 import { ExerciseLibraryHeader } from './ExerciseLibraryHeader';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { useCustomExercises } from '@/hooks/useCustomExercises';
+import { useExercises } from '@/hooks/useExercises';
 import { toast } from '@/hooks/use-toast';
 
 interface ExerciseLibraryProps {
@@ -21,22 +20,18 @@ interface ExerciseLibraryProps {
 
 export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
-  const { customExercises, deleteCustomExercise } = useCustomExercises();
+  const { exercises, loading } = useExercises();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<ExerciseCategory | 'all'>('all');
   const [showForm, setShowForm] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
-  const [exercises, setExercises] = useState([...exerciseDatabase, ...customExercises]);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
 
-  // Combine default and custom exercises
-  const allExercises = [...exerciseDatabase, ...customExercises];
-
-  const filteredExercises = allExercises.filter(exercise => {
+  const filteredExercises = exercises.filter(exercise => {
     // Filter hidden exercises unless explicitly showing them
     const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
     if (!showHidden && isHidden) return false;
@@ -92,11 +87,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   };
 
   const handleSaveExercise = (exercise: Exercise) => {
-    if (editingExercise) {
-      setExercises(prev => prev.map(ex => ex.id === exercise.id ? exercise : ex));
-    } else {
-      setExercises(prev => [...prev, exercise]);
-    }
     setShowForm(false);
     setEditingExercise(null);
   };
@@ -122,7 +112,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     e.stopPropagation();
     
     // Only allow deleting custom exercises
-    if (!exercise.id.startsWith('custom-')) {
+    if (!exercise.isCustom) {
       toast({
         title: "Cannot delete",
         description: "Only custom exercises can be deleted.",
@@ -132,8 +122,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     }
 
     try {
-      await deleteCustomExercise(exercise.id);
-      setExercises(prev => prev.filter(ex => ex.id !== exercise.id));
       toast({
         title: "Exercise deleted",
         description: `"${exercise.name}" has been permanently deleted.`,
@@ -161,7 +149,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   };
 
   const handleUpdateExercise = (updatedExercise: Exercise) => {
-    setExercises(prev => prev.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
     setSelectedExercise(updatedExercise);
   };
 
@@ -173,6 +160,14 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
 
   const activeFiltersCount = (selectedMuscleGroup !== 'all' ? 1 : 0) + (selectedPosition !== 'all' ? 1 : 0);
   const hiddenCount = preferences.hiddenExercises?.length || 0;
+
+  if (loading) {
+    return (
+      <div className={`w-full ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-white to-sage-25'} flex items-center justify-center h-full`}>
+        <div className={preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}>Loading exercises...</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -253,7 +248,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
               {filteredExercises.map((exercise) => {
                 const isFavorite = preferences.favoriteExercises?.includes(exercise.id) || false;
                 const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
-                const isCustom = exercise.id.startsWith('custom-');
+                const isCustom = exercise.isCustom || false;
                 
                 return (
                   <Card 

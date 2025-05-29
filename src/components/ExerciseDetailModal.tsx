@@ -47,6 +47,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
   }, [exercise]);
 
   const getExerciseTypeBadge = () => {
+    // Check if exercise is custom (user-created)
     if (exercise.isCustom) {
       return (
         <Badge className="bg-purple-100 text-purple-700 text-xs gap-1">
@@ -54,14 +55,18 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
           Custom
         </Badge>
       );
-    } else if (exercise.isSystemExercise && exercise.isCustomized) {
+    } 
+    // Check if it's a system exercise that has been modified
+    else if (!exercise.isCustom && exercise.id.includes('customized')) {
       return (
         <Badge className="bg-yellow-100 text-yellow-700 text-xs gap-1">
           <Edit className="h-3 w-3" />
           Modified
         </Badge>
       );
-    } else {
+    } 
+    // Default system exercise
+    else {
       return (
         <Badge className="bg-blue-100 text-blue-700 text-xs gap-1">
           <Database className="h-3 w-3" />
@@ -71,6 +76,9 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
     }
   };
 
+  const isSystemExercise = !exercise.isCustom;
+  const isModified = !exercise.isCustom && exercise.id.includes('customized');
+
   const handleSave = async () => {
     try {
       if (exercise.isCustom) {
@@ -79,21 +87,21 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
           name: editedExercise.name,
           duration: editedExercise.duration,
           springs: editedExercise.springs,
-          cues: editedExercise.cues,
+          cues: editedExercise.cues || [],
           notes: editedExercise.notes,
           difficulty: editedExercise.difficulty,
-          progressions: editedExercise.progressions,
-          regressions: editedExercise.regressions,
+          progressions: editedExercise.progressions || [],
+          regressions: editedExercise.regressions || [],
           description: editedExercise.description,
-          muscleGroups: editedExercise.muscleGroups,
+          muscleGroups: editedExercise.muscleGroups || [],
         });
-      } else if (exercise.isSystemExercise) {
+      } else {
         // Customize system exercise
         await customizeSystemExercise(exercise.id, {
           custom_name: editedExercise.name !== exercise.name ? editedExercise.name : null,
           custom_duration: editedExercise.duration !== exercise.duration ? editedExercise.duration : null,
           custom_springs: editedExercise.springs !== exercise.springs ? editedExercise.springs : null,
-          custom_cues: JSON.stringify(editedExercise.cues) !== JSON.stringify(exercise.cues) ? editedExercise.cues : null,
+          custom_cues: JSON.stringify(editedExercise.cues || []) !== JSON.stringify(exercise.cues || []) ? editedExercise.cues : null,
           custom_notes: editedExercise.notes !== exercise.notes ? editedExercise.notes : null,
           custom_difficulty: editedExercise.difficulty !== exercise.difficulty ? editedExercise.difficulty : null,
         });
@@ -120,7 +128,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
   };
 
   const handleReset = async () => {
-    if (!exercise.isSystemExercise || !exercise.isCustomized) return;
+    if (!isSystemExercise || !isModified) return;
     
     setIsResetting(true);
     try {
@@ -480,7 +488,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline" className="text-xs">
-                {exercise.repsOrDuration || `${exercise.duration}min`}
+                {`${exercise.duration}min`}
               </Badge>
               <Badge className={`text-xs ${
                 exercise.difficulty === 'beginner' 
@@ -505,7 +513,7 @@ export const ExerciseDetailModal = ({ exercise, isOpen, onClose, onUpdate }: Exe
             </div>
           </div>
           <div className="flex gap-2">
-            {exercise.isSystemExercise && exercise.isCustomized && (
+            {isSystemExercise && isModified && (
               <Button
                 onClick={() => setShowResetConfirm(true)}
                 variant="destructive"
