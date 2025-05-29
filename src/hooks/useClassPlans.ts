@@ -14,174 +14,162 @@ export const useClassPlans = () => {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data: classPlans, error } = await supabase
         .from('class_plans')
-        .select('*')
+        .select(`
+          *,
+          class_plan_exercises (
+            *
+          )
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching class plans:', error);
-        toast({
-          title: "Error loading classes",
-          description: "Failed to load your saved classes.",
-          variant: "destructive",
-        });
-      } else {
-        // Transform Supabase data to match our ClassPlan interface
-        const transformedData: ClassPlan[] = data.map(item => {
-          // Ensure exercises is an array and properly typed
-          const exercises = Array.isArray(item.exercises) ? (item.exercises as unknown) as Exercise[] : [];
-          
+      if (error) throw error;
+
+      // Now we need to fetch the actual exercises
+      const transformedPlans = await Promise.all(
+        classPlans.map(async (plan) => {
+          const exercises = await Promise.all(
+            plan.class_plan_exercises
+              .sort((a, b) => a.position - b.position)
+              .map(async (planExercise) => {
+                if (planExercise.is_section_divider) {
+                  // Handle section dividers
+                  return {
+                    id: planExercise.id,
+                    name: planExercise.section_name || 'Section',
+                    category: 'callout' as const,
+                    duration: 0,
+                    springs: 'none',
+                    difficulty: 'beginner' as const,
+                    intensityLevel: 'low' as const,
+                    muscleGroups: [],
+                    equipment: [],
+                  };
+                }
+
+                // Fetch the actual exercise
+                const table = planExercise.exercise_type === 'system' 
+                  ? 'system_exercises' 
+                  : 'user_exercises';
+                
+                const { data: exercise } = await supabase
+                  .from(table)
+                  .select('*')
+                  .eq('id', planExercise.exercise_id)
+                  .single();
+
+                if (!exercise) return null;
+
+                return {
+                  ...exercise,
+                  id: planExercise.id, // Use the plan exercise ID for uniqueness
+                  duration: planExercise.duration_override || exercise.duration,
+                  repsOrDuration: planExercise.reps_override,
+                  notes: planExercise.notes,
+                };
+              })
+          );
+
           return {
-            id: item.id,
-            name: item.class_name,
-            exercises,
-            totalDuration: exercises.reduce((sum: number, ex: Exercise) => sum + (ex.duration || 0), 0),
-            classDuration: 45, // Default class duration for existing saved classes
-            createdAt: new Date(item.created_at),
-            notes: '',
+            id: plan.id,
+            name: plan.name,
+            exercises: exercises.filter(Boolean),
+            totalDuration: exercises
+              .filter(ex => ex && ex.category !== 'callout')
+              .reduce((sum, ex) => sum + (ex?.duration || 0), 0),
+            classDuration: plan.duration_minutes,
+            createdAt: new Date(plan.created_at),
+            notes: plan.notes || '',
+            image: plan.image_url,
           };
-        });
-        
-        setSavedClasses(transformedData);
-      }
+        })
+      );
+      
+      setSavedClasses(transformedPlans);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching class plans:', error);
+      toast({
+        title: "Error loading classes",
+        description: "Failed to load your saved classes.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const saveClassPlan = async (classPlan: ClassPlan) => {
-    if (!user) {
-      toast({
-        title: "Please sign in",
-        description: "You need to be signed in to save classes.",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!user) return;
 
     try {
-      // Convert exercises to JSON-compatible format
-      const exercisesJson = JSON.parse(JSON.stringify(classPlan.exercises));
-      
-      const { data, error } = await supabase
+      // First, create the class plan
+      const { data: newPlan, error: planError } = await supabase
         .from('class_plans')
         .insert({
-          class_name: classPlan.name,
-          exercises: exercisesJson,
-          user_id: user.id
+          name: classPlan.name,
+          user_id: user.id,
+          duration_minutes: classPlan.classDuration,
+          notes: classPlan.notes,
+          image_url: classPlan.image,
         })
         .select()
         .single();
 
-      if (error) {
-        console.error('Error saving class plan:', error);
-        toast({
-          title: "Error saving class",
-          description: "Failed to save your class plan.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Class saved successfully!",
-          description: `"${classPlan.name}" has been added to your library.`,
-        });
+      if (planError) throw planError;
+
+      // Then, add all exercises
+      const exerciseInserts = classPlan.exercises.map((exercise, index) => {
+        if (exercise.category === 'callout') {
+          return {
+            class_plan_id: newPlan.id,
+            exercise_id: crypto.randomUUID(),
+            exercise_type: 'system' as const,
+            position: index,
+            is_section_divider: true,
+            section_name: exercise.name,
+          };
+        }
+
+        // Determine if this is a system or user exercise
+        const isSystemExercise = !exercise.isCustom;
         
-        // Add the new class to our local state
-        const newClass: ClassPlan = {
-          id: data.id,
-          name: data.class_name,
-          exercises: Array.isArray(data.exercises) ? (data.exercises as unknown) as Exercise[] : [],
-          totalDuration: classPlan.totalDuration,
-          classDuration: classPlan.classDuration, // Include the classDuration from the saved plan
-          createdAt: new Date(data.created_at),
-          notes: '',
+        return {
+          class_plan_id: newPlan.id,
+          exercise_id: exercise.id.replace(/-\d+-\w+$/, ''), // Remove unique suffixes
+          exercise_type: isSystemExercise ? 'system' : 'user',
+          position: index,
+          duration_override: exercise.duration,
+          notes: exercise.notes,
         };
-        
-        setSavedClasses(prev => [newClass, ...prev]);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
+      });
 
-  const deleteClassPlan = async (classId: string) => {
-    if (!user) return;
+      const { error: exerciseError } = await supabase
+        .from('class_plan_exercises')
+        .insert(exerciseInserts);
 
-    try {
-      const { error } = await supabase
-        .from('class_plans')
-        .delete()
-        .eq('id', classId)
-        .eq('user_id', user.id);
+      if (exerciseError) throw exerciseError;
 
-      if (error) {
-        console.error('Error deleting class plan:', error);
-        toast({
-          title: "Error deleting class",
-          description: "Failed to delete the class plan.",
-          variant: "destructive",
-        });
-      } else {
-        setSavedClasses(prev => prev.filter(c => c.id !== classId));
-        toast({
-          title: "Class deleted",
-          description: "Class plan has been removed from your library.",
-        });
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  const updateClassPlan = async (updatedClass: ClassPlan) => {
-    if (!user) return;
-
-    try {
-      // Convert exercises to JSON-compatible format
-      const exercisesJson = JSON.parse(JSON.stringify(updatedClass.exercises));
+      toast({
+        title: "Class saved successfully!",
+        description: `"${classPlan.name}" has been added to your library.`,
+      });
       
-      const { error } = await supabase
-        .from('class_plans')
-        .update({
-          class_name: updatedClass.name,
-          exercises: exercisesJson
-        })
-        .eq('id', updatedClass.id)
-        .eq('user_id', user.id);
-
-      if (error) {
-        console.error('Error updating class plan:', error);
-        toast({
-          title: "Error updating class",
-          description: "Failed to update the class plan.",
-          variant: "destructive",
-        });
-        return false;
-      } else {
-        setSavedClasses(prev => prev.map(c => 
-          c.id === updatedClass.id ? updatedClass : c
-        ));
-        toast({
-          title: "Class updated",
-          description: "Class plan has been updated successfully.",
-        });
-        return true;
-      }
+      await fetchClassPlans(); // Refresh the list
     } catch (error) {
-      console.error('Error:', error);
-      return false;
+      console.error('Error saving class plan:', error);
+      toast({
+        title: "Error saving class",
+        description: "Failed to save your class plan.",
+        variant: "destructive",
+      });
     }
   };
 
   useEffect(() => {
     if (user) {
       fetchClassPlans();
-    } else {
-      setSavedClasses([]);
     }
   }, [user]);
 
@@ -189,8 +177,6 @@ export const useClassPlans = () => {
     savedClasses,
     loading,
     saveClassPlan,
-    deleteClassPlan,
-    updateClassPlan,
-    fetchClassPlans
+    fetchClassPlans,
   };
 };

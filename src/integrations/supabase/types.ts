@@ -9,221 +9,398 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      class_plans: {
+      class_plan_exercises: {
         Row: {
-          class_name: string | null
+          class_plan_id: string
           created_at: string | null
-          exercises: Json | null
+          duration_override: number | null
+          exercise_id: string
+          exercise_type: string
           id: string
-          sections: Json | null
-          user_id: string | null
+          is_section_divider: boolean | null
+          notes: string | null
+          position: number
+          reps_override: string | null
+          section_name: string | null
         }
         Insert: {
-          class_name?: string | null
+          class_plan_id: string
           created_at?: string | null
-          exercises?: Json | null
+          duration_override?: number | null
+          exercise_id: string
+          exercise_type: string
           id?: string
-          sections?: Json | null
-          user_id?: string | null
+          is_section_divider?: boolean | null
+          notes?: string | null
+          position: number
+          reps_override?: string | null
+          section_name?: string | null
         }
         Update: {
-          class_name?: string | null
+          class_plan_id?: string
           created_at?: string | null
-          exercises?: Json | null
+          duration_override?: number | null
+          exercise_id?: string
+          exercise_type?: string
           id?: string
-          sections?: Json | null
-          user_id?: string | null
+          is_section_divider?: boolean | null
+          notes?: string | null
+          position?: number
+          reps_override?: string | null
+          section_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_plan_exercises_class_plan_id_fkey"
+            columns: ["class_plan_id"]
+            isOneToOne: false
+            referencedRelation: "class_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_plans: {
+        Row: {
+          copy_count: number | null
+          created_at: string | null
+          description: string | null
+          difficulty_level: string | null
+          duration_minutes: number | null
+          id: string
+          image_url: string | null
+          is_public: boolean | null
+          name: string
+          notes: string | null
+          share_token: string | null
+          tags: string[] | null
+          updated_at: string | null
+          user_id: string
+          view_count: number | null
+        }
+        Insert: {
+          copy_count?: number | null
+          created_at?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          duration_minutes?: number | null
+          id?: string
+          image_url?: string | null
+          is_public?: boolean | null
+          name: string
+          notes?: string | null
+          share_token?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+          user_id: string
+          view_count?: number | null
+        }
+        Update: {
+          copy_count?: number | null
+          created_at?: string | null
+          description?: string | null
+          difficulty_level?: string | null
+          duration_minutes?: number | null
+          id?: string
+          image_url?: string | null
+          is_public?: boolean | null
+          name?: string
+          notes?: string | null
+          share_token?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+          view_count?: number | null
         }
         Relationships: []
       }
-      custom_exercises: {
+      exercise_analytics: {
+        Row: {
+          action: string
+          class_plan_id: string | null
+          created_at: string | null
+          exercise_id: string
+          exercise_type: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          class_plan_id?: string | null
+          created_at?: string | null
+          exercise_id: string
+          exercise_type: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          class_plan_id?: string | null
+          created_at?: string | null
+          exercise_id?: string
+          exercise_type?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_analytics_class_plan_id_fkey"
+            columns: ["class_plan_id"]
+            isOneToOne: false
+            referencedRelation: "class_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_exercises: {
         Row: {
           category: string
           contraindications: string[] | null
-          created_at: string
+          created_at: string | null
           cues: string[] | null
           description: string | null
           difficulty: string
-          duration: number
-          equipment: string[]
+          duration: number | null
+          equipment: string[] | null
           id: string
           image_url: string | null
-          is_pregnancy_safe: boolean
+          is_active: boolean | null
+          is_pregnancy_safe: boolean | null
           muscle_groups: string[]
           name: string
           notes: string | null
+          progressions: string[] | null
+          regressions: string[] | null
           springs: string
-          transitions: string[] | null
-          updated_at: string
-          user_id: string
+          updated_at: string | null
+          version: number | null
           video_url: string | null
         }
         Insert: {
           category: string
           contraindications?: string[] | null
-          created_at?: string
+          created_at?: string | null
           cues?: string[] | null
           description?: string | null
-          difficulty?: string
-          duration?: number
-          equipment?: string[]
+          difficulty: string
+          duration?: number | null
+          equipment?: string[] | null
           id?: string
           image_url?: string | null
-          is_pregnancy_safe?: boolean
-          muscle_groups?: string[]
+          is_active?: boolean | null
+          is_pregnancy_safe?: boolean | null
+          muscle_groups: string[]
           name: string
           notes?: string | null
-          springs?: string
-          transitions?: string[] | null
-          updated_at?: string
-          user_id: string
+          progressions?: string[] | null
+          regressions?: string[] | null
+          springs: string
+          updated_at?: string | null
+          version?: number | null
           video_url?: string | null
         }
         Update: {
           category?: string
           contraindications?: string[] | null
-          created_at?: string
+          created_at?: string | null
           cues?: string[] | null
           description?: string | null
           difficulty?: string
-          duration?: number
-          equipment?: string[]
+          duration?: number | null
+          equipment?: string[] | null
           id?: string
           image_url?: string | null
-          is_pregnancy_safe?: boolean
+          is_active?: boolean | null
+          is_pregnancy_safe?: boolean | null
           muscle_groups?: string[]
           name?: string
           notes?: string | null
+          progressions?: string[] | null
+          regressions?: string[] | null
           springs?: string
-          transitions?: string[] | null
-          updated_at?: string
+          updated_at?: string | null
+          version?: number | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      user_exercise_customizations: {
+        Row: {
+          created_at: string | null
+          custom_cues: string[] | null
+          custom_difficulty: string | null
+          custom_duration: number | null
+          custom_name: string | null
+          custom_notes: string | null
+          custom_springs: string | null
+          id: string
+          is_favorite: boolean | null
+          is_hidden: boolean | null
+          last_used_at: string | null
+          system_exercise_id: string
+          updated_at: string | null
+          usage_count: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          custom_cues?: string[] | null
+          custom_difficulty?: string | null
+          custom_duration?: number | null
+          custom_name?: string | null
+          custom_notes?: string | null
+          custom_springs?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          is_hidden?: boolean | null
+          last_used_at?: string | null
+          system_exercise_id: string
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          custom_cues?: string[] | null
+          custom_difficulty?: string | null
+          custom_duration?: number | null
+          custom_name?: string | null
+          custom_notes?: string | null
+          custom_springs?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          is_hidden?: boolean | null
+          last_used_at?: string | null
+          system_exercise_id?: string
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_exercise_customizations_system_exercise_id_fkey"
+            columns: ["system_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "system_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_exercises: {
+        Row: {
+          ai_generation_cost: number | null
+          ai_prompt: string | null
+          category: string
+          contraindications: string[] | null
+          created_at: string | null
+          cues: string[] | null
+          description: string | null
+          difficulty: string
+          duration: number | null
+          equipment: string[] | null
+          id: string
+          image_url: string | null
+          is_ai_generated: boolean | null
+          is_pregnancy_safe: boolean | null
+          muscle_groups: string[]
+          name: string
+          notes: string | null
+          progressions: string[] | null
+          regressions: string[] | null
+          springs: string
+          updated_at: string | null
+          user_id: string
+          video_url: string | null
+        }
+        Insert: {
+          ai_generation_cost?: number | null
+          ai_prompt?: string | null
+          category: string
+          contraindications?: string[] | null
+          created_at?: string | null
+          cues?: string[] | null
+          description?: string | null
+          difficulty: string
+          duration?: number | null
+          equipment?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_ai_generated?: boolean | null
+          is_pregnancy_safe?: boolean | null
+          muscle_groups: string[]
+          name: string
+          notes?: string | null
+          progressions?: string[] | null
+          regressions?: string[] | null
+          springs: string
+          updated_at?: string | null
+          user_id: string
+          video_url?: string | null
+        }
+        Update: {
+          ai_generation_cost?: number | null
+          ai_prompt?: string | null
+          category?: string
+          contraindications?: string[] | null
+          created_at?: string | null
+          cues?: string[] | null
+          description?: string | null
+          difficulty?: string
+          duration?: number | null
+          equipment?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_ai_generated?: boolean | null
+          is_pregnancy_safe?: boolean | null
+          muscle_groups?: string[]
+          name?: string
+          notes?: string | null
+          progressions?: string[] | null
+          regressions?: string[] | null
+          springs?: string
+          updated_at?: string | null
           user_id?: string
           video_url?: string | null
         }
         Relationships: []
       }
-      exercise_sets: {
-        Row: {
-          category: string
-          created_at: string
-          description: string | null
-          exercises: Json
-          id: string
-          name: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          category?: string
-          created_at?: string
-          description?: string | null
-          exercises?: Json
-          id?: string
-          name: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          description?: string | null
-          exercises?: Json
-          id?: string
-          name?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      exercises: {
-        Row: {
-          category: string | null
-          created_at: string | null
-          cues: string | null
-          difficulty: string | null
-          id: string
-          muscles: string[] | null
-          name: string
-          pregnancy_safe: boolean | null
-          props: string[] | null
-          springs: string[] | null
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string | null
-          cues?: string | null
-          difficulty?: string | null
-          id?: string
-          muscles?: string[] | null
-          name: string
-          pregnancy_safe?: boolean | null
-          props?: string[] | null
-          springs?: string[] | null
-        }
-        Update: {
-          category?: string | null
-          created_at?: string | null
-          cues?: string | null
-          difficulty?: string | null
-          id?: string
-          muscles?: string[] | null
-          name?: string
-          pregnancy_safe?: boolean | null
-          props?: string[] | null
-          springs?: string[] | null
-        }
-        Relationships: []
-      }
-      flows: {
-        Row: {
-          content: Json | null
-          created_at: string | null
-          id: string
-          title: string | null
-          user_id: string | null
-        }
-        Insert: {
-          content?: Json | null
-          created_at?: string | null
-          id?: string
-          title?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          content?: Json | null
-          created_at?: string | null
-          id?: string
-          title?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       user_preferences: {
         Row: {
-          created_at: string
+          bio: string | null
+          created_at: string | null
           dark_mode: boolean | null
-          favorite_exercises: Json | null
+          default_class_duration: number | null
+          favorite_equipment: string[] | null
           id: string
+          profile_image_url: string | null
           show_pregnancy_safe_only: boolean | null
-          updated_at: string
+          updated_at: string | null
           user_id: string
         }
         Insert: {
-          created_at?: string
+          bio?: string | null
+          created_at?: string | null
           dark_mode?: boolean | null
-          favorite_exercises?: Json | null
+          default_class_duration?: number | null
+          favorite_equipment?: string[] | null
           id?: string
+          profile_image_url?: string | null
           show_pregnancy_safe_only?: boolean | null
-          updated_at?: string
+          updated_at?: string | null
           user_id: string
         }
         Update: {
-          created_at?: string
+          bio?: string | null
+          created_at?: string | null
           dark_mode?: boolean | null
-          favorite_exercises?: Json | null
+          default_class_duration?: number | null
+          favorite_equipment?: string[] | null
           id?: string
+          profile_image_url?: string | null
           show_pregnancy_safe_only?: boolean | null
-          updated_at?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
