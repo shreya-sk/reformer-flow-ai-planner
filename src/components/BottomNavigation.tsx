@@ -49,13 +49,15 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
                 >
                   <item.icon className="h-7 w-7" />
                 </Button>
-                {item.count && item.count > 0 && (
-                  <Badge 
-                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-white text-xs font-bold border border-white animate-pulse"
-                  >
-                    {item.count > 99 ? '99+' : item.count}
-                  </Badge>
-                )}
+                <Badge 
+                  className={`absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 border border-white text-xs font-bold ${
+                    item.count && item.count > 0 
+                      ? 'bg-red-500 text-white animate-pulse' 
+                      : 'bg-gray-400 text-white'
+                  }`}
+                >
+                  {item.count && item.count > 99 ? '99+' : (item.count || 0)}
+                </Badge>
               </div>
             ) : (
               <Button
