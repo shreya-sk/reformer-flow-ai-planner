@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment } from '@/types/reformer';
+import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment, TeachingFocus } from '@/types/reformer';
 import { toast } from '@/hooks/use-toast';
 
 export const useExercises = () => {
@@ -72,6 +72,13 @@ export const useExercises = () => {
           videoUrl: exercise.video_url || '',
           notes: customization?.custom_notes || exercise.notes || '',
           cues: customization?.custom_cues || exercise.cues || [],
+          setup: exercise.setup || '',
+          repsOrDuration: exercise.reps_or_duration || '',
+          tempo: exercise.tempo || '',
+          targetAreas: exercise.target_areas || [],
+          breathingCues: exercise.breathing_cues || [],
+          teachingFocus: (exercise.teaching_focus || []) as TeachingFocus[],
+          modifications: exercise.modifications || [],
           progressions: exercise.progressions || [],
           regressions: exercise.regressions || [],
           transitions: [],
@@ -107,6 +114,13 @@ export const useExercises = () => {
         videoUrl: exercise.video_url || '',
         notes: exercise.notes || '',
         cues: exercise.cues || [],
+        setup: exercise.setup || '',
+        repsOrDuration: exercise.reps_or_duration || '',
+        tempo: exercise.tempo || '',
+        targetAreas: exercise.target_areas || [],
+        breathingCues: exercise.breathing_cues || [],
+        teachingFocus: (exercise.teaching_focus || []) as TeachingFocus[],
+        modifications: exercise.modifications || [],
         progressions: exercise.progressions || [],
         regressions: exercise.regressions || [],
         transitions: [],
@@ -149,6 +163,13 @@ export const useExercises = () => {
           video_url: exercise.videoUrl,
           notes: exercise.notes,
           cues: exercise.cues,
+          setup: exercise.setup,
+          reps_or_duration: exercise.repsOrDuration,
+          tempo: exercise.tempo,
+          target_areas: exercise.targetAreas,
+          breathing_cues: exercise.breathingCues,
+          teaching_focus: exercise.teachingFocus,
+          modifications: exercise.modifications,
           progressions: exercise.progressions,
           regressions: exercise.regressions,
           contraindications: exercise.contraindications,
@@ -210,10 +231,20 @@ export const useExercises = () => {
           cues: updates.cues,
           notes: updates.notes,
           difficulty: updates.difficulty,
+          setup: updates.setup,
+          reps_or_duration: updates.repsOrDuration,
+          tempo: updates.tempo,
+          target_areas: updates.targetAreas,
+          breathing_cues: updates.breathingCues,
+          teaching_focus: updates.teachingFocus,
+          modifications: updates.modifications,
           progressions: updates.progressions,
           regressions: updates.regressions,
+          contraindications: updates.contraindications,
           description: updates.description,
           muscle_groups: updates.muscleGroups,
+          equipment: updates.equipment,
+          is_pregnancy_safe: updates.isPregnancySafe,
           updated_at: new Date().toISOString(),
         })
         .eq('id', exerciseId)

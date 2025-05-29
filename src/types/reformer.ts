@@ -24,6 +24,8 @@ export interface Exercise {
   regressions?: string[]; // easier/assisted versions
   isPregnancySafe?: boolean;
   teachingFocus?: TeachingFocus[]; // alignment, breath, flow, etc.
+  breathingCues?: string[]; // breathing instructions
+  modifications?: string[]; // general modifications
   
   // Custom exercise metadata
   isCustom?: boolean;

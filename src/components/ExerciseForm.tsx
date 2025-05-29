@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { X, Plus, Sparkles } from 'lucide-react';
-import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment } from '@/types/reformer';
+import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment, TeachingFocus } from '@/types/reformer';
 
 interface ExerciseFormProps {
   exercise?: Exercise;
@@ -26,21 +25,30 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
     difficulty: exercise?.difficulty || 'beginner' as DifficultyLevel,
     intensityLevel: exercise?.intensityLevel || 'medium' as IntensityLevel,
     muscleGroups: exercise?.muscleGroups || [] as MuscleGroup[],
+    targetAreas: exercise?.targetAreas || [] as string[],
     equipment: exercise?.equipment || [] as Equipment[],
     description: exercise?.description || '',
     image: exercise?.image || '',
     videoUrl: exercise?.videoUrl || '',
     notes: exercise?.notes || '',
     cues: exercise?.cues || [] as string[],
-    isPregnancySafe: exercise?.isPregnancySafe || false,
+    setup: exercise?.setup || '',
     repsOrDuration: exercise?.repsOrDuration || '',
     tempo: exercise?.tempo || '',
     contraindications: exercise?.contraindications || [] as string[],
+    breathingCues: exercise?.breathingCues || [] as string[],
+    teachingFocus: exercise?.teachingFocus || [] as TeachingFocus[],
+    modifications: exercise?.modifications || [] as string[],
     progressions: exercise?.progressions || [] as string[],
     regressions: exercise?.regressions || [] as string[],
+    isPregnancySafe: exercise?.isPregnancySafe || false,
   });
 
   const [newCue, setNewCue] = useState('');
+  const [newContraindication, setNewContraindication] = useState('');
+  const [newBreathingCue, setNewBreathingCue] = useState('');
+  const [newModification, setNewModification] = useState('');
+  const [newTargetArea, setNewTargetArea] = useState('');
   const [activeTab, setActiveTab] = useState<'basic' | 'details' | 'teaching'>('basic');
 
   const muscleGroupOptions: MuscleGroup[] = [
@@ -54,6 +62,10 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
     'straps', 'weights', 'magic-circle', 'theraband', 'soft-ball', 
     'short-box', 'long-box', 'jump-board', 'platform-extender', 
     'tower', 'pole', 'none'
+  ];
+
+  const teachingFocusOptions: TeachingFocus[] = [
+    'alignment', 'breath', 'flow', 'stability', 'balance', 'strength', 'mobility', 'coordination'
   ];
 
   const toggleMuscleGroup = (group: MuscleGroup) => {
@@ -74,6 +86,15 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
     }));
   };
 
+  const toggleTeachingFocus = (focus: TeachingFocus) => {
+    setFormData(prev => ({
+      ...prev,
+      teachingFocus: prev.teachingFocus.includes(focus)
+        ? prev.teachingFocus.filter(f => f !== focus)
+        : [...prev.teachingFocus, focus]
+    }));
+  };
+
   const addCue = () => {
     if (newCue.trim()) {
       setFormData(prev => ({
@@ -88,6 +109,74 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
     setFormData(prev => ({
       ...prev,
       cues: prev.cues.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addContraindication = () => {
+    if (newContraindication.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        contraindications: [...prev.contraindications, newContraindication.trim()]
+      }));
+      setNewContraindication('');
+    }
+  };
+
+  const removeContraindication = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      contraindications: prev.contraindications.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addBreathingCue = () => {
+    if (newBreathingCue.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        breathingCues: [...prev.breathingCues, newBreathingCue.trim()]
+      }));
+      setNewBreathingCue('');
+    }
+  };
+
+  const removeBreathingCue = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      breathingCues: prev.breathingCues.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addModification = () => {
+    if (newModification.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        modifications: [...prev.modifications, newModification.trim()]
+      }));
+      setNewModification('');
+    }
+  };
+
+  const removeModification = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      modifications: prev.modifications.filter((_, i) => i !== index)
+    }));
+  };
+
+  const addTargetArea = () => {
+    if (newTargetArea.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        targetAreas: [...prev.targetAreas, newTargetArea.trim()]
+      }));
+      setNewTargetArea('');
+    }
+  };
+
+  const removeTargetArea = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      targetAreas: prev.targetAreas.filter((_, i) => i !== index)
     }));
   };
 
@@ -302,6 +391,17 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
           {activeTab === 'details' && (
             <>
               <div>
+                <Label htmlFor="setup">Setup Instructions</Label>
+                <Textarea
+                  id="setup"
+                  value={formData.setup}
+                  onChange={(e) => setFormData(prev => ({ ...prev, setup: e.target.value }))}
+                  placeholder="Detailed setup instructions for this exercise..."
+                  rows={3}
+                />
+              </div>
+
+              <div>
                 <Label htmlFor="repsOrDuration">Reps or Duration</Label>
                 <Input
                   id="repsOrDuration"
@@ -309,6 +409,57 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
                   onChange={(e) => setFormData(prev => ({ ...prev, repsOrDuration: e.target.value }))}
                   placeholder="e.g., 10 reps or 30 sec"
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="tempo">Tempo</Label>
+                <Input
+                  id="tempo"
+                  value={formData.tempo}
+                  onChange={(e) => setFormData(prev => ({ ...prev, tempo: e.target.value }))}
+                  placeholder="e.g., slow and controlled"
+                />
+              </div>
+
+              <div>
+                <Label>Target Areas</Label>
+                <div className="space-y-2">
+                  {formData.targetAreas.map((area, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={area}
+                        onChange={(e) => {
+                          const newAreas = [...formData.targetAreas];
+                          newAreas[index] = e.target.value;
+                          setFormData(prev => ({ ...prev, targetAreas: newAreas }));
+                        }}
+                        placeholder="Target area..."
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeTargetArea(index)}
+                        className="text-red-600 hover:text-red-800 h-9 w-9 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  
+                  <div className="flex gap-2">
+                    <Input
+                      value={newTargetArea}
+                      onChange={(e) => setNewTargetArea(e.target.value)}
+                      placeholder="Add target area..."
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTargetArea())}
+                    />
+                    <Button type="button" onClick={addTargetArea} size="sm" className="h-9 w-9 p-0">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -412,13 +563,144 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
               </div>
 
               <div>
-                <Label htmlFor="tempo">Tempo</Label>
-                <Input
-                  id="tempo"
-                  value={formData.tempo}
-                  onChange={(e) => setFormData(prev => ({ ...prev, tempo: e.target.value }))}
-                  placeholder="e.g., slow and controlled"
-                />
+                <Label>Safety Notes / Contraindications</Label>
+                <div className="space-y-2">
+                  {formData.contraindications.map((item, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={item}
+                        onChange={(e) => {
+                          const newItems = [...formData.contraindications];
+                          newItems[index] = e.target.value;
+                          setFormData(prev => ({ ...prev, contraindications: newItems }));
+                        }}
+                        placeholder="Safety note or contraindication..."
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeContraindication(index)}
+                        className="text-red-600 hover:text-red-800 h-9 w-9 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  
+                  <div className="flex gap-2">
+                    <Input
+                      value={newContraindication}
+                      onChange={(e) => setNewContraindication(e.target.value)}
+                      placeholder="Add safety note..."
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addContraindication())}
+                    />
+                    <Button type="button" onClick={addContraindication} size="sm" className="h-9 w-9 p-0">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label>Breathing Cues</Label>
+                <div className="space-y-2">
+                  {formData.breathingCues.map((cue, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={cue}
+                        onChange={(e) => {
+                          const newCues = [...formData.breathingCues];
+                          newCues[index] = e.target.value;
+                          setFormData(prev => ({ ...prev, breathingCues: newCues }));
+                        }}
+                        placeholder="Breathing cue..."
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeBreathingCue(index)}
+                        className="text-red-600 hover:text-red-800 h-9 w-9 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  
+                  <div className="flex gap-2">
+                    <Input
+                      value={newBreathingCue}
+                      onChange={(e) => setNewBreathingCue(e.target.value)}
+                      placeholder="Add breathing cue..."
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addBreathingCue())}
+                    />
+                    <Button type="button" onClick={addBreathingCue} size="sm" className="h-9 w-9 p-0">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label>Teaching Focus</Label>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {teachingFocusOptions.map(focus => (
+                    <Button
+                      key={focus}
+                      type="button"
+                      variant={formData.teachingFocus.includes(focus) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => toggleTeachingFocus(focus)}
+                      className="text-xs h-7"
+                    >
+                      {focus}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label>Modifications</Label>
+                <div className="space-y-2">
+                  {formData.modifications.map((mod, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={mod}
+                        onChange={(e) => {
+                          const newMods = [...formData.modifications];
+                          newMods[index] = e.target.value;
+                          setFormData(prev => ({ ...prev, modifications: newMods }));
+                        }}
+                        placeholder="Modification..."
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeModification(index)}
+                        className="text-red-600 hover:text-red-800 h-9 w-9 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  
+                  <div className="flex gap-2">
+                    <Input
+                      value={newModification}
+                      onChange={(e) => setNewModification(e.target.value)}
+                      placeholder="Add modification..."
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addModification())}
+                    />
+                    <Button type="button" onClick={addModification} size="sm" className="h-9 w-9 p-0">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             </>
           )}
