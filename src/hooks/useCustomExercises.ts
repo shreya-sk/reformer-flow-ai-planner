@@ -16,7 +16,7 @@ export const useCustomExercises = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('custom_exercises')
+        .from('user_exercises')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
@@ -33,7 +33,7 @@ export const useCustomExercises = () => {
         duration: item.duration,
         springs: item.springs as any,
         difficulty: item.difficulty as any,
-        intensityLevel: 'medium', // Default value for missing intensityLevel
+        intensityLevel: 'medium' as const,
         muscleGroups: item.muscle_groups as any[],
         equipment: item.equipment as any[],
         description: item.description || '',
@@ -41,9 +41,10 @@ export const useCustomExercises = () => {
         videoUrl: item.video_url || '',
         notes: item.notes || '',
         cues: item.cues || [],
-        transitions: item.transitions || [],
+        transitions: [],
         contraindications: item.contraindications || [],
         isPregnancySafe: item.is_pregnancy_safe,
+        isCustom: true,
       }));
       
       setCustomExercises(transformedData);
@@ -59,7 +60,7 @@ export const useCustomExercises = () => {
 
     try {
       const { data, error } = await supabase
-        .from('custom_exercises')
+        .from('user_exercises')
         .insert({
           user_id: user.id,
           name: exercise.name,
@@ -74,7 +75,6 @@ export const useCustomExercises = () => {
           video_url: exercise.videoUrl,
           notes: exercise.notes,
           cues: exercise.cues,
-          transitions: exercise.transitions,
           contraindications: exercise.contraindications,
           is_pregnancy_safe: exercise.isPregnancySafe || false,
         })
@@ -107,7 +107,7 @@ export const useCustomExercises = () => {
 
     try {
       const { error } = await supabase
-        .from('custom_exercises')
+        .from('user_exercises')
         .delete()
         .eq('id', exerciseId)
         .eq('user_id', user.id);

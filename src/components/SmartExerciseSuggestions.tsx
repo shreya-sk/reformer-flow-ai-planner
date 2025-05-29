@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Lightbulb, Plus, Clock, Brain } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
-import { exerciseDatabase } from '@/data/exercises';
+import { useExercises } from '@/hooks/useExercises';
 import { SpringVisual } from './SpringVisual';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
@@ -16,38 +16,32 @@ interface SmartExerciseSuggestionsProps {
 
 export const SmartExerciseSuggestions = ({ currentClass, onAddExercise }: SmartExerciseSuggestionsProps) => {
   const { preferences } = useUserPreferences();
+  const { exercises } = useExercises();
   const [suggestions, setSuggestions] = useState<Exercise[]>([]);
   const [addedExercises, setAddedExercises] = useState<Set<string>>(new Set());
 
   const generateSuggestions = () => {
-    const exercises = currentClass.exercises.filter(ex => ex.category !== 'callout');
+    const classExercises = currentClass.exercises.filter(ex => ex.category !== 'callout');
     
-    if (exercises.length === 0) {
-      // First exercise suggestions - warm-up exercises
-      const warmUpSuggestions = exerciseDatabase
+    if (classExercises.length === 0) {
+      const warmUpSuggestions = exercises
         .filter(ex => ex.category === 'warm-up')
         .slice(0, 3);
       setSuggestions(warmUpSuggestions);
       return;
     }
 
-    const lastExercise = exercises[exercises.length - 1];
-    const usedMuscleGroups = new Set(exercises.flatMap(ex => ex.muscleGroups));
+    const lastExercise = classExercises[classExercises.length - 1];
+    const usedMuscleGroups = new Set(classExercises.flatMap(ex => ex.muscleGroups));
     const totalDuration = currentClass.totalDuration;
     const targetDuration = currentClass.classDuration || 45;
     
-    // AI-powered suggestions based on class flow
-    let candidates = exerciseDatabase.filter(exercise => {
-      // Don't suggest the same exercise
-      if (exercises.some(ex => ex.name === exercise.name)) return false;
-      
-      // Filter by pregnancy safety if enabled
+    let candidates = exercises.filter(exercise => {
+      if (classExercises.some(ex => ex.name === exercise.name)) return false;
       if (preferences.showPregnancySafeOnly && !exercise.isPregnancySafe) return false;
-      
       return true;
     });
 
-    // Score and sort suggestions
     candidates = candidates
       .map(exercise => ({
         exercise,
@@ -69,16 +63,13 @@ export const SmartExerciseSuggestions = ({ currentClass, onAddExercise }: SmartE
   ): number => {
     let score = 0;
     
-    // Time-based intelligent suggestions
     const remainingTime = targetDuration - duration;
     if (remainingTime <= 10 && exercise.category === 'cool-down') score += 10;
     if (remainingTime > 30 && exercise.category !== 'cool-down') score += 5;
     
-    // Muscle group diversity
     const unusedCount = exercise.muscleGroups.filter(group => !usedGroups.has(group)).length;
     score += unusedCount * 3;
     
-    // Smart position transitions for better flow
     const positionFlow = {
       'warm-up': ['supine', 'prone', 'sitting'],
       'supine': ['sitting', 'prone', 'side-lying'],
@@ -93,16 +84,13 @@ export const SmartExerciseSuggestions = ({ currentClass, onAddExercise }: SmartE
     const goodTransition = positionFlow[lastExercise.category]?.includes(exercise.category);
     if (goodTransition) score += 4;
     
-    // Difficulty progression (avoid jumping too high)
     const difficultyMap = { beginner: 1, intermediate: 2, advanced: 3 };
     const lastDiff = difficultyMap[lastExercise.difficulty];
     const currentDiff = difficultyMap[exercise.difficulty];
     if (Math.abs(currentDiff - lastDiff) <= 1) score += 2;
     
-    // Spring consistency (minimize setup changes)
     if (exercise.springs === lastExercise.springs) score += 3;
     
-    // Intensity variation (avoid fatigue)
     const intensityMap = { low: 1, medium: 2, high: 3 };
     const lastIntensity = intensityMap[lastExercise.intensityLevel];
     const currentIntensity = intensityMap[exercise.intensityLevel];
@@ -114,7 +102,6 @@ export const SmartExerciseSuggestions = ({ currentClass, onAddExercise }: SmartE
   const handleAddExercise = (exercise: Exercise) => {
     console.log('Adding suggested exercise:', exercise.name);
     
-    // Create a unique copy of the exercise
     const uniqueId = `${exercise.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const exerciseToAdd = {
       ...exercise,
@@ -123,10 +110,8 @@ export const SmartExerciseSuggestions = ({ currentClass, onAddExercise }: SmartE
     
     onAddExercise(exerciseToAdd);
     
-    // Track added exercises for visual feedback
     setAddedExercises(prev => new Set([...prev, exercise.id]));
     
-    // Remove feedback after 2 seconds
     setTimeout(() => {
       setAddedExercises(prev => {
         const newSet = new Set(prev);
@@ -137,8 +122,10 @@ export const SmartExerciseSuggestions = ({ currentClass, onAddExercise }: SmartE
   };
 
   useEffect(() => {
-    generateSuggestions();
-  }, [currentClass.exercises, preferences.showPregnancySafeOnly]);
+    if (exercises.length > 0) {
+      generateSuggestions();
+    }
+  }, [currentClass.exercises, preferences.showPregnancySafeOnly, exercises]);
 
   if (suggestions.length === 0) return null;
 

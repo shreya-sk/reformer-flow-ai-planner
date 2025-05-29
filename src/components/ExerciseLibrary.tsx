@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -83,7 +84,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const handleSaveExercise = async (exercise: Exercise) => {
     try {
       if (editingExercise && (editingExercise as any).isSystemExercise) {
-        // Customizing a system exercise
         await customizeSystemExercise(editingExercise.id, {
           custom_name: exercise.name !== editingExercise.name ? exercise.name : null,
           custom_duration: exercise.duration !== editingExercise.duration ? exercise.duration : null,
@@ -98,7 +98,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
           description: `Your customization of "${exercise.name}" has been saved.`,
         });
       } else {
-        // Creating new user exercise
         await createUserExercise(exercise);
         
         toast({
@@ -144,7 +143,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   };
 
   const handleUpdateExercise = (updatedExercise: Exercise) => {
-    // This will be handled by the useExercises hook when we add update functionality
     setSelectedExercise(updatedExercise);
   };
 
@@ -172,7 +170,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   return (
     <>
       <div className={`w-full ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-white to-sage-25'} flex flex-col h-full`}>
-        {/* Clean Header */}
         <ExerciseLibraryHeader
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
@@ -187,7 +184,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
           activeFiltersCount={activeFiltersCount}
         />
 
-        {/* Exercise Grid */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-6xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -206,7 +202,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                     } ${isCustomized ? 'ring-2 ring-blue-200' : ''}`}
                     onClick={() => handleCardClick(exercise)}
                   >
-                    {/* Status Indicators */}
                     <div className="absolute top-2 left-2 z-10 flex gap-1">
                       {isUserCreated && (
                         <Badge className="text-xs bg-purple-100 text-purple-800 border-purple-200">
@@ -220,7 +215,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                       )}
                     </div>
 
-                    {/* Favorite Icon - Top Right */}
                     <Button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -238,7 +232,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                     </Button>
 
                     <CardContent className="p-4">
-                      {/* Exercise Thumbnail */}
                       <div className={`w-full h-32 rounded-xl overflow-hidden border mb-3 ${
                         preferences.darkMode 
                           ? 'bg-gradient-to-br from-gray-600 to-gray-700 border-gray-600' 
@@ -303,7 +296,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                               </span>
                             </div>
                             
-                            {/* Pregnancy Safe Indicator */}
                             {exercise.isPregnancySafe && (
                               <div className="flex items-center gap-1">
                                 <Baby className="h-3 w-3 text-pink-500" />

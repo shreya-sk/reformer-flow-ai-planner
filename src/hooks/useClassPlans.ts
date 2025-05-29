@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,7 +28,6 @@ export const useClassPlans = () => {
 
       if (error) throw error;
 
-      // Now we need to fetch the actual exercises
       const transformedPlans = await Promise.all(
         classPlans.map(async (plan) => {
           const exercises = await Promise.all(
@@ -35,21 +35,27 @@ export const useClassPlans = () => {
               .sort((a, b) => a.position - b.position)
               .map(async (planExercise) => {
                 if (planExercise.is_section_divider) {
-                  // Handle section dividers
                   return {
                     id: planExercise.id,
                     name: planExercise.section_name || 'Section',
                     category: 'callout' as const,
                     duration: 0,
-                    springs: 'none',
+                    springs: 'none' as const,
                     difficulty: 'beginner' as const,
                     intensityLevel: 'low' as const,
                     muscleGroups: [],
                     equipment: [],
+                    description: '',
+                    image: '',
+                    videoUrl: '',
+                    notes: '',
+                    cues: [],
+                    transitions: [],
+                    contraindications: [],
+                    isPregnancySafe: false,
                   };
                 }
 
-                // Fetch the actual exercise
                 const table = planExercise.exercise_type === 'system' 
                   ? 'system_exercises' 
                   : 'user_exercises';
@@ -63,11 +69,26 @@ export const useClassPlans = () => {
                 if (!exercise) return null;
 
                 return {
-                  ...exercise,
-                  id: planExercise.id, // Use the plan exercise ID for uniqueness
+                  id: planExercise.id,
+                  name: exercise.name,
+                  category: exercise.category,
                   duration: planExercise.duration_override || exercise.duration,
+                  springs: exercise.springs,
+                  difficulty: exercise.difficulty,
+                  intensityLevel: 'medium' as const,
+                  muscleGroups: exercise.muscle_groups || [],
+                  equipment: exercise.equipment || [],
+                  description: exercise.description || '',
+                  image: exercise.image_url || '',
+                  videoUrl: exercise.video_url || '',
+                  notes: planExercise.notes || exercise.notes || '',
+                  cues: exercise.cues || [],
+                  transitions: [],
+                  contraindications: exercise.contraindications || [],
+                  isPregnancySafe: exercise.is_pregnancy_safe || false,
                   repsOrDuration: planExercise.reps_override,
-                  notes: planExercise.notes,
+                  isCustom: planExercise.exercise_type === 'user',
+                  originalExerciseId: planExercise.exercise_id,
                 };
               })
           );
@@ -104,7 +125,6 @@ export const useClassPlans = () => {
     if (!user) return;
 
     try {
-      // First, create the class plan
       const { data: newPlan, error: planError } = await supabase
         .from('class_plans')
         .insert({
@@ -119,7 +139,6 @@ export const useClassPlans = () => {
 
       if (planError) throw planError;
 
-      // Then, add all exercises
       const exerciseInserts = classPlan.exercises.map((exercise, index) => {
         if (exercise.category === 'callout') {
           return {
@@ -132,16 +151,18 @@ export const useClassPlans = () => {
           };
         }
 
-        // Determine if this is a system or user exercise
-        const isSystemExercise = !exercise.isCustom;
+        // Get the original exercise ID (remove unique suffixes added by the UI)
+        const originalId = (exercise as any).originalExerciseId || exercise.id.replace(/-\d+-\w+$/, '');
+        const isSystemExercise = !(exercise as any).isCustom;
         
         return {
           class_plan_id: newPlan.id,
-          exercise_id: exercise.id.replace(/-\d+-\w+$/, ''), // Remove unique suffixes
-          exercise_type: isSystemExercise ? 'system' : 'user',
+          exercise_id: originalId,
+          exercise_type: isSystemExercise ? 'system' as const : 'user' as const,
           position: index,
           duration_override: exercise.duration,
           notes: exercise.notes,
+          reps_override: (exercise as any).repsOrDuration,
         };
       });
 
@@ -156,7 +177,7 @@ export const useClassPlans = () => {
         description: `"${classPlan.name}" has been added to your library.`,
       });
       
-      await fetchClassPlans(); // Refresh the list
+      await fetchClassPlans();
     } catch (error) {
       console.error('Error saving class plan:', error);
       toast({
