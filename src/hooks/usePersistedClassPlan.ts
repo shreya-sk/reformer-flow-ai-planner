@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { ClassPlan, Exercise } from '@/types/reformer';
 
@@ -51,19 +50,9 @@ export const usePersistedClassPlan = () => {
     console.log('Adding exercise to class plan:', exercise.name, 'ID:', exercise.id);
     
     setCurrentClass(prev => {
-      // Ensure unique ID - double check uniqueness
-      const existingIds = prev.exercises.map(ex => ex.id);
-      let finalId = exercise.id;
-      
-      // If ID already exists, generate a new one
-      if (existingIds.includes(finalId)) {
-        finalId = `${exercise.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      }
-      
-      // Create a complete copy of the exercise with all attributes
+      // Always use the provided ID (SmartAddButton already makes it unique)
       const exerciseCopy: Exercise = {
         ...exercise,
-        id: finalId,
         // Ensure all arrays are properly copied
         muscleGroups: [...exercise.muscleGroups],
         equipment: [...exercise.equipment],
