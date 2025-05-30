@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -132,55 +133,28 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     setIsDetailModalOpen(true);
   };
 
-  const handleEditExerciseUpdate = async (updatedExercise: Exercise) => {
-    try {
-      if (updatedExercise.isSystemExercise) {
-        await customizeSystemExercise(updatedExercise.id, {
-          custom_name: updatedExercise.name,
-          custom_duration: updatedExercise.duration,
-          custom_springs: updatedExercise.springs,
-          custom_cues: updatedExercise.cues,
-          custom_notes: updatedExercise.notes,
-          custom_difficulty: updatedExercise.difficulty,
-          custom_setup: updatedExercise.setup,
-          custom_reps_or_duration: updatedExercise.repsOrDuration,
-          custom_tempo: updatedExercise.tempo,
-          custom_target_areas: updatedExercise.targetAreas,
-          custom_breathing_cues: updatedExercise.breathingCues,
-          custom_teaching_focus: updatedExercise.teachingFocus,
-          custom_modifications: updatedExercise.modifications,
-        });
-      } else {
-        await updateUserExercise(updatedExercise.id, updatedExercise);
-      }
-      setSelectedExercise(updatedExercise);
-    } catch (error) {
-      console.error('Error updating exercise:', error);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-6">
-      {/* Header and filters remain the same */}
+    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row gap-6 mb-8">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search exercises..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+        {/* Mobile-first responsive header */}
+        <div className="flex flex-col gap-4 mb-6">
+          {/* Search bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search exercises..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-12 md:h-10"
+            />
           </div>
           
-          <div className="flex flex-wrap gap-3">
+          {/* Filters - responsive layout */}
+          <div className="flex flex-wrap gap-2 md:gap-3">
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value as ExerciseCategory | 'all')}
-              className="px-4 py-2 border border-gray-200 rounded-lg"
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm flex-1 md:flex-none"
             >
               <option value="all">All Categories</option>
               <option value="warm-up">Warm-up</option>
@@ -194,7 +168,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
             <select
               value={selectedMuscleGroup}
               onChange={(e) => setSelectedMuscleGroup(e.target.value as MuscleGroup | 'all')}
-              className="px-4 py-2 border border-gray-200 rounded-lg"
+              className="px-3 py-2 border border-gray-200 rounded-lg text-sm flex-1 md:flex-none"
             >
               <option value="all">All Muscle Groups</option>
               <option value="core">Core</option>
@@ -209,25 +183,25 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
             <Button
               variant={showPregnancySafe ? "default" : "outline"}
               onClick={() => setShowPregnancySafe(!showPregnancySafe)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-sm px-3 py-2 h-auto"
             >
               <span className="text-xs">👶</span>
-              Pregnancy Safe
+              <span className="hidden sm:inline">Pregnancy Safe</span>
             </Button>
 
             <Button
               variant={showHidden ? "default" : "outline"}
               onClick={() => setShowHidden(!showHidden)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-sm px-3 py-2 h-auto"
             >
               <EyeOff className="h-4 w-4" />
-              {showHidden ? 'Show All' : 'Show Hidden'}
+              <span className="hidden sm:inline">{showHidden ? 'Show All' : 'Hidden'}</span>
             </Button>
           </div>
         </div>
 
-        {/* Exercise Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {/* Responsive Exercise Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
           {filteredExercises.map((exercise) => (
             <ExerciseCard
               key={exercise.id}
@@ -253,7 +227,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
           </div>
         )}
 
-        {/* Exercise Detail Modal */}
+        {/* Exercise Detail Modal - remove onEdit prop since it doesn't exist */}
         <ExerciseDetailModal
           exercise={selectedExercise}
           isOpen={isDetailModalOpen}
@@ -262,7 +236,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
             setSelectedExercise(null);
           }}
           onAddToClass={handleAddToClass}
-          onEdit={handleEditExerciseUpdate}
         />
       </div>
     </div>
