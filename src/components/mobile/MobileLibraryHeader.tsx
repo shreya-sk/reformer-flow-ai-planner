@@ -1,8 +1,7 @@
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, Plus } from 'lucide-react';
+import { Search, Filter, Plus, Baby } from 'lucide-react';
 
 interface MobileLibraryHeaderProps {
   searchTerm: string;
@@ -13,6 +12,8 @@ interface MobileLibraryHeaderProps {
   showPregnancySafe: boolean;
   onPregnancySafeToggle: () => void;
   onAddExercise: () => void;
+  showFilters: boolean;
+  onClearFilters: () => void;
 }
 
 export const MobileLibraryHeader = ({
@@ -23,7 +24,9 @@ export const MobileLibraryHeader = ({
   exerciseCount,
   showPregnancySafe,
   onPregnancySafeToggle,
-  onAddExercise
+  onAddExercise,
+  showFilters,
+  onClearFilters
 }: MobileLibraryHeaderProps) => {
   return (
     <div className="p-4 border-b bg-white sticky top-0 z-20 space-y-4">
@@ -36,7 +39,7 @@ export const MobileLibraryHeader = ({
             placeholder="Search exercises..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 h-12 text-base rounded-xl border-gray-200 focus:border-sage-400"
+            className="pl-10 h-12 text-base rounded-xl border-sage-200 focus:border-sage-400"
           />
         </div>
         
@@ -44,7 +47,7 @@ export const MobileLibraryHeader = ({
         <Button
           variant="outline"
           onClick={onFilterClick}
-          className="h-12 w-12 rounded-xl border-gray-200 flex items-center justify-center p-0"
+          className="h-12 w-12 rounded-xl border-sage-200 flex items-center justify-center p-0 relative"
         >
           <Filter className="h-5 w-5" />
           {activeFiltersCount > 0 && (
@@ -58,9 +61,13 @@ export const MobileLibraryHeader = ({
         <Button
           variant={showPregnancySafe ? "default" : "outline"}
           onClick={onPregnancySafeToggle}
-          className="h-12 w-12 rounded-xl flex items-center justify-center p-0"
+          className={`h-12 w-12 rounded-xl flex items-center justify-center p-0 ${
+            showPregnancySafe 
+              ? 'bg-sage-600 hover:bg-sage-700 text-white' 
+              : 'border-sage-200 hover:bg-sage-50'
+          }`}
         >
-          <span className="text-lg">👶</span>
+          <Baby className="h-5 w-5" />
         </Button>
         
         {/* Add exercise button */}
@@ -78,6 +85,26 @@ export const MobileLibraryHeader = ({
           {exerciseCount} exercises
         </span>
       </div>
+
+      {/* Expandable filter panel */}
+      {showFilters && (
+        <div className="border-t border-sage-200 pt-4 space-y-3 animate-fade-in">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-sage-700">Filters</span>
+            <Button
+              onClick={onClearFilters}
+              variant="ghost"
+              size="sm"
+              className="text-sage-600 hover:text-sage-700"
+            >
+              Clear All
+            </Button>
+          </div>
+          <div className="text-sm text-sage-600">
+            Filter options will be expanded here
+          </div>
+        </div>
+      )}
     </div>
   );
 };

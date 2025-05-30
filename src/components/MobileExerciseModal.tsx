@@ -41,7 +41,9 @@ export const MobileExerciseModal = ({
   const handleAddToClass = async () => {
     if (!onAddToClass || isAdding) return;
     
+    console.log('🔵 MobileExerciseModal handleAddToClass called with:', exercise);
     setIsAdding(true);
+    
     try {
       onAddToClass(exercise);
       
@@ -53,8 +55,10 @@ export const MobileExerciseModal = ({
       
       setTimeout(() => {
         setIsAdding(false);
+        onClose();
       }, 1500);
     } catch (error) {
+      console.error('🔴 Error in MobileExerciseModal handleAddToClass:', error);
       setIsAdding(false);
     }
   };
@@ -119,16 +123,21 @@ export const MobileExerciseModal = ({
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop with sage tint */}
       <div 
-        className="fixed inset-0 bg-black/50 z-40 animate-fade-in"
+        className="fixed inset-0 bg-sage-900/40 backdrop-blur-sm z-40 animate-fade-in"
         onClick={onClose}
       />
       
-      {/* Modal */}
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-white rounded-t-3xl shadow-2xl animate-slide-in-bottom max-h-[85vh] flex flex-col">
+      {/* Bottom Sheet Modal */}
+      <div className="fixed inset-x-0 bottom-0 z-50 bg-white/95 backdrop-blur-xl rounded-t-3xl shadow-2xl shadow-sage-500/10 animate-slide-in-bottom max-h-[85vh] flex flex-col border-t border-sage-200">
+        {/* Drag Handle */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-12 h-1 bg-sage-300 rounded-full" />
+        </div>
+
         {/* Header */}
-        <div className="flex-shrink-0 p-6 border-b border-gray-100">
+        <div className="flex-shrink-0 p-6 border-b border-sage-100">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
@@ -140,16 +149,11 @@ export const MobileExerciseModal = ({
                     👶 Safe
                   </Badge>
                 )}
-                {isHidden && (
-                  <Badge variant="secondary" className="text-xs">
-                    Hidden
-                  </Badge>
-                )}
               </div>
-              <h2 className="text-xl font-bold text-gray-900 leading-tight">
+              <h2 className="text-xl font-bold text-sage-900 leading-tight">
                 {exercise.name}
               </h2>
-              <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+              <div className="flex items-center gap-4 mt-2 text-sm text-sage-600">
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
                   <span>{exercise.duration} min</span>
@@ -167,7 +171,7 @@ export const MobileExerciseModal = ({
               size="sm"
               onClick={handleToggleFavorite}
               className={`h-10 w-10 p-0 rounded-full ${
-                isFavorite ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:text-red-500'
+                isFavorite ? 'text-red-500 bg-red-50' : 'text-sage-400 hover:text-red-500'
               }`}
             >
               <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
@@ -179,7 +183,7 @@ export const MobileExerciseModal = ({
         <div className="flex-1 overflow-y-auto">
           {/* Exercise image */}
           {exercise.image && (
-            <div className="w-full h-48 bg-gray-100">
+            <div className="w-full h-48 bg-sage-50">
               <img 
                 src={exercise.image} 
                 alt={exercise.name}
@@ -191,10 +195,10 @@ export const MobileExerciseModal = ({
           <div className="p-6 space-y-6">
             {/* Description */}
             {exercise.description && (
-              <Card>
+              <Card className="border-sage-200">
                 <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2 text-gray-900">Description</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <h3 className="font-semibold mb-2 text-sage-900">Description</h3>
+                  <p className="text-sm text-sage-700 leading-relaxed">
                     {exercise.description}
                   </p>
                 </CardContent>
@@ -203,16 +207,16 @@ export const MobileExerciseModal = ({
 
             {/* Teaching cues */}
             {exercise.cues && exercise.cues.length > 0 && (
-              <Card>
+              <Card className="border-sage-200">
                 <CardContent className="p-4">
-                  <h3 className="font-semibold mb-3 text-gray-900">Teaching Cues</h3>
+                  <h3 className="font-semibold mb-3 text-sage-900">Teaching Cues</h3>
                   <div className="space-y-2">
                     {exercise.cues.map((cue, index) => (
                       <div key={index} className="flex gap-3">
                         <div className="w-6 h-6 rounded-full bg-sage-100 flex items-center justify-center text-xs font-bold text-sage-700 flex-shrink-0 mt-0.5">
                           {index + 1}
                         </div>
-                        <p className="text-sm text-gray-600 leading-relaxed">
+                        <p className="text-sm text-sage-700 leading-relaxed">
                           {cue}
                         </p>
                       </div>
@@ -224,10 +228,10 @@ export const MobileExerciseModal = ({
 
             {/* Notes */}
             {exercise.notes && (
-              <Card>
+              <Card className="border-sage-200">
                 <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2 text-gray-900">Notes</h3>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <h3 className="font-semibold mb-2 text-sage-900">Notes</h3>
+                  <p className="text-sm text-sage-700 leading-relaxed">
                     {exercise.notes}
                   </p>
                 </CardContent>
@@ -239,7 +243,7 @@ export const MobileExerciseModal = ({
               <Button
                 variant="outline"
                 onClick={handleToggleHidden}
-                className="h-12 flex items-center justify-center gap-2"
+                className="h-12 flex items-center justify-center gap-2 border-sage-200 hover:bg-sage-50 active:scale-[0.98] transition-transform duration-75"
               >
                 {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 <span>{isHidden ? 'Unhide' : 'Hide'}</span>
@@ -248,7 +252,7 @@ export const MobileExerciseModal = ({
               <Button
                 variant="outline"
                 onClick={handleDuplicate}
-                className="h-12 flex items-center justify-center gap-2"
+                className="h-12 flex items-center justify-center gap-2 border-sage-200 hover:bg-sage-50 active:scale-[0.98] transition-transform duration-75"
               >
                 <Copy className="h-4 w-4" />
                 <span>Duplicate</span>
@@ -258,7 +262,7 @@ export const MobileExerciseModal = ({
                 <Button
                   variant="outline"
                   onClick={() => onEdit(exercise)}
-                  className="h-12 flex items-center justify-center gap-2"
+                  className="h-12 flex items-center justify-center gap-2 border-sage-200 hover:bg-sage-50 active:scale-[0.98] transition-transform duration-75"
                 >
                   <Edit className="h-4 w-4" />
                   <span>Edit</span>
@@ -269,7 +273,7 @@ export const MobileExerciseModal = ({
                 <Button
                   variant="outline"
                   onClick={() => window.open(exercise.videoUrl, '_blank')}
-                  className="h-12 flex items-center justify-center gap-2"
+                  className="h-12 flex items-center justify-center gap-2 border-sage-200 hover:bg-sage-50 active:scale-[0.98] transition-transform duration-75"
                 >
                   <Play className="h-4 w-4" />
                   <span>Video</span>
@@ -282,7 +286,7 @@ export const MobileExerciseModal = ({
                     <AlertDialogTrigger asChild>
                       <Button
                         variant="outline"
-                        className="w-full h-12 text-red-600 border-red-200 hover:bg-red-50"
+                        className="w-full h-12 text-red-600 border-red-200 hover:bg-red-50 active:scale-[0.98] transition-transform duration-75"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete Exercise
@@ -314,11 +318,11 @@ export const MobileExerciseModal = ({
 
         {/* Bottom action */}
         {onAddToClass && (
-          <div className="flex-shrink-0 p-6 border-t border-gray-100 bg-white">
+          <div className="flex-shrink-0 p-6 border-t border-sage-100 bg-white/95">
             <Button
               onClick={handleAddToClass}
               disabled={isAdding}
-              className={`w-full h-14 text-lg font-semibold transition-all duration-300 ${
+              className={`w-full h-14 text-lg font-semibold transition-all duration-300 active:scale-[0.98] ${
                 isAdding
                   ? 'bg-green-500 hover:bg-green-500'
                   : 'bg-sage-600 hover:bg-sage-700'

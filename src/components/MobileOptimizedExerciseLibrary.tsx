@@ -1,281 +1,237 @@
 
-import { useState, useMemo } from 'react';
-import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
-import { useTouchGestures } from '@/hooks/useTouchGestures';
-import { useLazyLoading } from '@/hooks/usePerformanceOptimization';
-import { usePWA } from '@/hooks/usePWA';
+import { useState, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
-import { MobileFilterPanel } from './MobileFilterPanel';
-import { MobileExerciseModal } from './MobileExerciseModal';
-import { MobileLibraryHeader } from './mobile/MobileLibraryHeader';
-import { MobilePullToRefresh } from './mobile/MobilePullToRefresh';
+import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Exercise, ExerciseCategory } from '@/types/reformer';
 import { MobileExerciseGrid } from './mobile/MobileExerciseGrid';
+import { MobileLibraryHeader } from './mobile/MobileLibraryHeader';
+import { MobileExerciseModal } from './MobileExerciseModal';
+import { ExerciseDetailModal } from './ExerciseDetailModal';
+import { MobileFilterPanel } from './MobileFilterPanel';
+import { ImprovedExerciseForm } from './ImprovedExerciseForm';
 import { toast } from '@/hooks/use-toast';
 
 interface MobileOptimizedExerciseLibraryProps {
-  exercises: Exercise[];
-  onExerciseSelect: (exercise: Exercise) => void;
-  onRefresh?: () => void;
+  onExerciseSelect?: (exercise: Exercise) => void;
 }
 
-export const MobileOptimizedExerciseLibrary = ({
-  exercises,
-  onExerciseSelect,
-  onRefresh
-}: MobileOptimizedExerciseLibraryProps) => {
+export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptimizedExerciseLibraryProps) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { preferences } = useUserPreferences();
+  const { exercises, loading } = useExercises();
+  const { addExercise } = usePersistedClassPlan();
+  const isMobile = useIsMobile();
+
+  // State
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | 'all'>('all');
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const [showHidden, setShowHidden] = useState(false);
-  
-  const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
-  const { duplicateExercise, updateUserExercise, customizeSystemExercise, deleteUserExercise, resetSystemExerciseToOriginal } = useExercises();
-  const { observeImage } = useLazyLoading();
-  const { isOnline, isInstallable, installApp } = usePWA();
+  const [showFilters, setShowFilters] = useState(false);
+  const [showPregnancySafe, setShowPregnancySafe] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
 
-  // Filter exercises based on search and filters
+  // Filter states
+  const [selectedCategories, setSelectedCategories] = useState<ExerciseCategory[]>([]);
+  const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([]);
+
+  // Filter exercises
   const filteredExercises = useMemo(() => {
+    if (!exercises) return [];
+
     return exercises.filter(exercise => {
-      const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
-      if (!showHidden && isHidden) return false;
-      if (showHidden && !isHidden) return false;
+      // Search filter
+      const matchesSearch = !searchTerm || 
+        exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        exercise.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        exercise.muscleGroups.some(group => 
-          group.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+      // Hidden exercises filter
+      const isHidden = preferences.hiddenExercises?.includes(exercise.id);
       
-      const matchesCategory = selectedCategory === 'all' || exercise.category === selectedCategory;
-      const matchesMuscleGroup = selectedMuscleGroup === 'all' || exercise.muscleGroups.includes(selectedMuscleGroup);
-      const matchesPregnancy = !preferences.showPregnancySafeOnly || exercise.isPregnancySafe;
-      
-      return matchesSearch && matchesCategory && matchesMuscleGroup && matchesPregnancy;
+      // Pregnancy safe filter
+      const matchesPregnancy = !showPregnancySafe || exercise.isPregnancySafe;
+
+      // Category filter
+      const matchesCategory = selectedCategories.length === 0 || 
+        selectedCategories.includes(exercise.category);
+
+      // Muscle group filter
+      const matchesMuscleGroup = selectedMuscleGroups.length === 0 ||
+        selectedMuscleGroups.some(group => exercise.muscleGroups.includes(group as any));
+
+      return matchesSearch && !isHidden && matchesPregnancy && matchesCategory && matchesMuscleGroup;
     });
-  }, [exercises, searchTerm, selectedCategory, selectedMuscleGroup, preferences.showPregnancySafeOnly, preferences.hiddenExercises, showHidden]);
+  }, [exercises, searchTerm, preferences.hiddenExercises, showPregnancySafe, selectedCategories, selectedMuscleGroups]);
 
-  // Count active filters
-  const activeFiltersCount = (selectedCategory !== 'all' ? 1 : 0) + 
-                            (selectedMuscleGroup !== 'all' ? 1 : 0) + 
-                            (preferences.showPregnancySafeOnly ? 1 : 0) + 
-                            (showHidden ? 1 : 0);
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (showPregnancySafe) count++;
+    if (selectedCategories.length > 0) count += selectedCategories.length;
+    if (selectedMuscleGroups.length > 0) count += selectedMuscleGroups.length;
+    return count;
+  }, [showPregnancySafe, selectedCategories, selectedMuscleGroups]);
 
-  // Touch gestures for pull to refresh
-  const { isPulling, pullDistance } = useTouchGestures({
-    onPullToRefresh: async () => {
-      if (onRefresh) {
-        setIsRefreshing(true);
-        await onRefresh();
-        setIsRefreshing(false);
-      }
-    },
-    pullToRefreshThreshold: 80
-  });
-
-  const handleInstallClick = async () => {
-    const success = await installApp();
-    if (success) {
-      console.log('App installed successfully!');
-    }
-  };
-
-  const handleCardClick = (exercise: Exercise) => {
-    setSelectedExercise(exercise);
-    setShowDetailModal(true);
-  };
-
-  const handleAddToClass = (exercise: Exercise) => {
-    // Create a unique copy for the class plan
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substr(2, 9);
-    const uniqueId = `${exercise.id}-${timestamp}-${randomId}`;
-    
-    const exerciseToAdd = {
-      ...exercise,
-      id: uniqueId,
-    };
-    
-    onExerciseSelect(exerciseToAdd);
-    
-    toast({
-      title: "Added to class",
-      description: `"${exercise.name}" has been added to your class plan.`,
-    });
-  };
-
-  const handleToggleFavorite = (exerciseId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    toggleFavoriteExercise(exerciseId);
-  };
-
-  const handleToggleHidden = (exerciseId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    toggleHiddenExercise(exerciseId);
-  };
-
-  const handleEditExercise = (exercise: Exercise, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedExercise(exercise);
-    setShowDetailModal(true);
-  };
-
-  const handleDuplicateExercise = async (exercise: Exercise, e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      await duplicateExercise(exercise);
-      toast({
-        title: "Exercise duplicated",
-        description: `"${exercise.name} (Copy)" has been created.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to duplicate exercise.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteExercise = async (exercise: Exercise, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!exercise.isCustom) return;
+  // Debug: Add to class function
+  const handleAddToClass = useCallback((exercise: Exercise) => {
+    console.log('🔵 MobileOptimizedExerciseLibrary handleAddToClass called with:', exercise);
     
     try {
-      await deleteUserExercise(exercise.id);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete exercise.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleResetToOriginal = async (exercise: Exercise, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!exercise.isSystemExercise || !exercise.isCustomized) return;
-    
-    try {
-      await resetSystemExerciseToOriginal(exercise.id);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to reset exercise.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const clearAllFilters = () => {
-    setSelectedCategory('all');
-    setSelectedMuscleGroup('all');
-    setShowHidden(false);
-  };
-
-  const handleEditExerciseUpdate = async (updatedExercise: Exercise) => {
-    try {
-      if (updatedExercise.isSystemExercise) {
-        await customizeSystemExercise(updatedExercise.id, {
-          custom_name: updatedExercise.name,
-          custom_duration: updatedExercise.duration,
-          custom_springs: updatedExercise.springs,
-          custom_cues: updatedExercise.cues,
-          custom_notes: updatedExercise.notes,
-          custom_difficulty: updatedExercise.difficulty,
-          custom_setup: updatedExercise.setup,
-          custom_reps_or_duration: updatedExercise.repsOrDuration,
-          custom_tempo: updatedExercise.tempo,
-          custom_target_areas: updatedExercise.targetAreas,
-          custom_breathing_cues: updatedExercise.breathingCues,
-          custom_teaching_focus: updatedExercise.teachingFocus,
-          custom_modifications: updatedExercise.modifications,
-        });
+      if (onExerciseSelect) {
+        console.log('🔵 Calling onExerciseSelect prop');
+        onExerciseSelect(exercise);
       } else {
-        await updateUserExercise(updatedExercise.id, updatedExercise);
+        console.log('🔵 Using addExercise from usePersistedClassPlan');
+        addExercise(exercise);
+        
+        toast({
+          title: "Added to class",
+          description: `"${exercise.name}" has been added to your class plan.`,
+        });
+        
+        console.log('🔵 Exercise added successfully, navigating to plan');
+        navigate('/plan');
       }
-      setSelectedExercise(updatedExercise);
     } catch (error) {
-      console.error('Error updating exercise:', error);
+      console.error('🔴 Error in MobileOptimizedExerciseLibrary handleAddToClass:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add exercise to class plan.",
+        variant: "destructive",
+      });
     }
-  };
+  }, [onExerciseSelect, addExercise, navigate]);
+
+  const handleExerciseClick = useCallback((exercise: Exercise) => {
+    console.log('🔵 Exercise clicked:', exercise.name);
+    setSelectedExercise(exercise);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedExercise(null);
+    setEditingExercise(null);
+  }, []);
+
+  const handleEditExercise = useCallback((exercise: Exercise) => {
+    console.log('🔵 Edit exercise:', exercise.name);
+    setEditingExercise(exercise);
+    setSelectedExercise(null);
+  }, []);
+
+  const handleToggleFilters = useCallback(() => {
+    setShowFilters(prev => !prev);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setSelectedCategories([]);
+    setSelectedMuscleGroups([]);
+    setShowPregnancySafe(false);
+    setShowFilters(false);
+  }, []);
+
+  const handleCreateExercise = useCallback(() => {
+    setIsCreating(true);
+  }, []);
+
+  const handleSaveExercise = useCallback((exercise: Exercise) => {
+    // Handle save logic here
+    setIsCreating(false);
+    setEditingExercise(null);
+  }, []);
+
+  const handleCancelExercise = useCallback(() => {
+    setIsCreating(false);
+    setEditingExercise(null);
+  }, []);
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-sage-600">Please sign in to access the exercise library.</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-sage-600">Loading exercises...</p>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className={`h-full flex flex-col ${preferences.darkMode ? 'bg-gray-900' : 'bg-white'}`}>
-        {/* Pull to refresh indicator */}
-        <MobilePullToRefresh 
-          isPulling={isPulling}
-          pullDistance={pullDistance}
-          isRefreshing={isRefreshing}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
+      {/* Header - Fixed at top */}
+      <MobileLibraryHeader
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        onFilterClick={handleToggleFilters}
+        activeFiltersCount={activeFiltersCount}
+        exerciseCount={filteredExercises.length}
+        showPregnancySafe={showPregnancySafe}
+        onPregnancySafeToggle={() => setShowPregnancySafe(prev => !prev)}
+        onAddExercise={handleCreateExercise}
+        showFilters={showFilters}
+        onClearFilters={handleClearFilters}
+      />
 
-        {/* Header */}
-        <MobileLibraryHeader
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          isOnline={isOnline}
-          isInstallable={isInstallable}
-          onInstallClick={handleInstallClick}
-          onFilterClick={() => setShowFilterPanel(true)}
-          activeFiltersCount={activeFiltersCount}
-          exerciseCount={filteredExercises.length}
-          onRefresh={onRefresh}
-          isRefreshing={isRefreshing}
+      {/* Filter Panel */}
+      {showFilters && (
+        <MobileFilterPanel
+          selectedCategories={selectedCategories}
+          onCategoriesChange={setSelectedCategories}
+          selectedMuscleGroups={selectedMuscleGroups}
+          onMuscleGroupsChange={setSelectedMuscleGroups}
+          onClose={() => setShowFilters(false)}
         />
+      )}
 
-        {/* Exercise grid */}
+      {/* Exercise Grid */}
+      <div className="pb-20">
         <MobileExerciseGrid
           exercises={filteredExercises}
-          showHidden={showHidden}
-          onExerciseSelect={handleCardClick}
+          onExerciseClick={handleExerciseClick}
           onAddToClass={handleAddToClass}
-          onToggleFavorite={handleToggleFavorite}
-          onToggleHidden={handleToggleHidden}
-          onEdit={handleEditExercise}
-          onDuplicate={handleDuplicateExercise}
-          onDelete={handleDeleteExercise}
-          onResetToOriginal={handleResetToOriginal}
-          observeImage={observeImage}
-          favoriteExercises={preferences.favoriteExercises || []}
-          hiddenExercises={preferences.hiddenExercises || []}
-          darkMode={preferences.darkMode}
         />
       </div>
 
-      {/* Filter Panel */}
-      <MobileFilterPanel
-        isOpen={showFilterPanel}
-        onClose={() => setShowFilterPanel(false)}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        selectedMuscleGroup={selectedMuscleGroup}
-        onMuscleGroupChange={setSelectedMuscleGroup}
-        showPregnancySafe={preferences.showPregnancySafeOnly || false}
-        onPregnancySafeChange={(show) => {
-          // This would need to be implemented in useUserPreferences
-          console.log('Toggle pregnancy safe:', show);
-        }}
-        showHidden={showHidden}
-        onShowHiddenChange={setShowHidden}
-        onClearAll={clearAllFilters}
-        activeFiltersCount={activeFiltersCount}
-      />
+      {/* Modals */}
+      {selectedExercise && (
+        isMobile ? (
+          <MobileExerciseModal
+            exercise={selectedExercise}
+            isOpen={!!selectedExercise}
+            onClose={handleCloseModal}
+            onAddToClass={handleAddToClass}
+            onEdit={handleEditExercise}
+          />
+        ) : (
+          <ExerciseDetailModal
+            exercise={selectedExercise}
+            isOpen={!!selectedExercise}
+            onClose={handleCloseModal}
+            onAddToClass={handleAddToClass}
+            onEditExercise={handleEditExercise}
+          />
+        )
+      )}
 
-      {/* Exercise Detail Modal */}
-      <MobileExerciseModal
-        exercise={selectedExercise}
-        isOpen={showDetailModal}
-        onClose={() => {
-          setShowDetailModal(false);
-          setSelectedExercise(null);
-        }}
-        onAddToClass={handleAddToClass}
-        onEdit={handleEditExerciseUpdate}
-      />
-    </>
+      {/* Create/Edit Exercise Form */}
+      {(isCreating || editingExercise) && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <ImprovedExerciseForm
+              exercise={editingExercise || undefined}
+              onSave={handleSaveExercise}
+              onCancel={handleCancelExercise}
+            />
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
