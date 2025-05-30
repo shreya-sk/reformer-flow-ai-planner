@@ -9,7 +9,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Exercise, ExerciseCategory, MuscleGroup } from '@/types/reformer';
 import { MobileExerciseGrid } from './mobile/MobileExerciseGrid';
 import { MobileLibraryHeader } from './mobile/MobileLibraryHeader';
-import { MobileExerciseModal } from './MobileExerciseModal';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
 import { MobileFilterPanel } from './MobileFilterPanel';
 import { ImprovedExerciseForm } from './ImprovedExerciseForm';
@@ -80,6 +79,8 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   // Debug: Add to class function
   const handleAddToClass = useCallback((exercise: Exercise) => {
     console.log('🔵 MobileOptimizedExerciseLibrary handleAddToClass called with:', exercise);
+    console.log('🔵 Current user:', user?.id);
+    console.log('🔵 onExerciseSelect prop:', !!onExerciseSelect);
     
     try {
       if (onExerciseSelect) {
@@ -87,6 +88,13 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
         onExerciseSelect(exercise);
       } else {
         console.log('🔵 Using addExercise from usePersistedClassPlan');
+        console.log('🔵 Exercise being added:', {
+          id: exercise.id,
+          name: exercise.name,
+          duration: exercise.duration,
+          category: exercise.category
+        });
+        
         addExercise(exercise);
         
         toast({
@@ -105,7 +113,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
         variant: "destructive",
       });
     }
-  }, [onExerciseSelect, addExercise, navigate]);
+  }, [onExerciseSelect, addExercise, navigate, user]);
 
   const handleExerciseSelect = useCallback((exercise: Exercise) => {
     console.log('🔵 Exercise selected:', exercise.name);
@@ -213,8 +221,6 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
         showPregnancySafe={showPregnancySafe}
         onPregnancySafeToggle={() => setShowPregnancySafe(prev => !prev)}
         onAddExercise={handleCreateExercise}
-        showFilters={showFilters}
-        onClearFilters={handleClearFilters}
       />
 
       {/* Filter Panel */}
@@ -255,25 +261,15 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
         />
       </div>
 
-      {/* Modals */}
+      {/* Consolidated Modal */}
       {selectedExercise && (
-        isMobile ? (
-          <MobileExerciseModal
-            exercise={selectedExercise}
-            isOpen={!!selectedExercise}
-            onClose={handleCloseModal}
-            onAddToClass={handleAddToClass}
-            onEdit={handleEditExercise}
-          />
-        ) : (
-          <ExerciseDetailModal
-            exercise={selectedExercise}
-            isOpen={!!selectedExercise}
-            onClose={handleCloseModal}
-            onAddToClass={handleAddToClass}
-            onEditExercise={handleEditExercise}
-          />
-        )
+        <ExerciseDetailModal
+          exercise={selectedExercise}
+          isOpen={!!selectedExercise}
+          onClose={handleCloseModal}
+          onAddToClass={handleAddToClass}
+          onEditExercise={handleEditExercise}
+        />
       )}
 
       {/* Create/Edit Exercise Form */}
