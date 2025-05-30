@@ -1,12 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
@@ -18,11 +14,8 @@ import {
   Heart, 
   ChevronDown,
   ChevronRight,
-  Settings2,
-  Image as ImageIcon,
   Edit3,
-  Target,
-  Palette
+  Target
 } from 'lucide-react';
 import { ClassPlan, Exercise, CustomCallout } from '@/types/reformer';
 import { ExerciseSuggestions } from './ExerciseSuggestions';
@@ -460,338 +453,262 @@ export const ClassBuilder = ({
   return (
     <>
       <div className="flex-1 overflow-hidden">
-        <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 p-2 sm:p-3 h-full">
-          {/* Class Settings Sidebar - Stack on mobile, sidebar on desktop */}
-          <div className="lg:col-span-1 space-y-4 order-2 lg:order-1">
-            <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden">
-              <CardHeader className="border-b border-sage-100 bg-gradient-to-r from-sage-50 to-white p-2 sm:p-3">
-                <CardTitle className="text-sm sm:text-base text-sage-800 font-medium flex items-center gap-2">
-                  <Settings2 className="h-4 w-4" />
-                  Class Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-                {/* Class Name */}
-                <div>
-                  <Label className="text-xs sm:text-sm font-medium text-sage-700 mb-2 block">
-                    Class Name
-                  </Label>
-                  <Input
-                    value={currentClass.name}
-                    onChange={(e) => onUpdateClassName(e.target.value)}
-                    placeholder="Enter class name..."
-                    className="border-sage-300 focus:border-sage-500 text-sm"
-                  />
-                </div>
-
-                {/* Class Duration */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label className="text-xs sm:text-sm font-medium text-sage-700">
-                      Duration
-                    </Label>
-                    <span className="text-xs sm:text-sm font-medium text-sage-800">{currentClass.classDuration || 45} min</span>
-                  </div>
-                  <Slider
-                    value={[currentClass.classDuration || 45]}
-                    onValueChange={(values) => onUpdateClassDuration(values[0])}
-                    min={15}
-                    max={90}
-                    step={5}
-                    className="py-2"
-                  />
-                  <div className="flex justify-between text-xs text-sage-600 mt-1">
-                    <span>15 min</span>
-                    <span>45 min</span>
-                    <span>90 min</span>
-                  </div>
-                </div>
-
-                {/* Class Image */}
-                <div>
-                  <Label className="text-xs sm:text-sm font-medium text-sage-700 mb-2 block">
-                    Class Image
-                  </Label>
-                  <div className="flex items-center gap-3">
-                    {currentClass.image ? (
-                      <img 
-                        src={currentClass.image} 
-                        alt="Class thumbnail" 
-                        className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg border border-sage-200"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sage-50 rounded-lg border border-sage-200 flex items-center justify-center">
-                        <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 text-sage-400" />
-                      </div>
-                    )}
-                    
-                    <Dialog open={showImageSelector} onOpenChange={setShowImageSelector}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="border-sage-300 text-sage-600 text-xs sm:text-sm">
-                          Select
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle>Select Class Image</DialogTitle>
-                        </DialogHeader>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                          {defaultImages.map((image, index) => (
-                            <button
-                              key={index}
-                              onClick={() => handleImageSelect(image)}
-                              className="aspect-square overflow-hidden rounded-lg border-2 border-transparent hover:border-sage-500 transition-colors"
-                            >
-                              <img 
-                                src={image} 
-                                alt={`Option ${index + 1}`}
-                                className="w-full h-full object-cover"
-                              />
-                            </button>
-                          ))}
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-
-                {/* Class Notes */}
-                <div>
-                  <Label className="text-xs sm:text-sm font-medium text-sage-700 mb-2 block">
-                    Notes
-                  </Label>
-                  <Textarea
-                    value={currentClass.notes || ''}
-                    onChange={(e) => onUpdateClassNotes(e.target.value)}
-                    placeholder="Add class notes..."
-                    rows={3}
-                    className="border-sage-300 focus:border-sage-500 text-sm"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Class Timeline - Full width on mobile */}
-          <div className="lg:col-span-3 order-1 lg:order-2 flex flex-col min-h-0">
-            <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden flex-1 flex flex-col">
-              <CardHeader className="border-b border-sage-100 bg-gradient-to-r from-sage-50 to-white p-2 sm:p-3 flex-shrink-0">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <CardTitle className="text-base sm:text-lg text-sage-800">Class Timeline</CardTitle>
-                    
-                    {/* Inline Class Stats - Stack on mobile */}
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                      <div className="flex items-center gap-1 bg-sage-100 px-2 py-1 rounded-full">
-                        <Clock className="h-3 w-3 text-sage-600" />
-                        <span className="text-xs font-medium text-sage-700">{currentClass.totalDuration}min</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-1 bg-sage-100 px-2 py-1 rounded-full">
-                        <BookOpen className="h-3 w-3 text-sage-600" />
-                        <span className="text-xs font-medium text-sage-700">
-                          {currentClass.exercises.filter(ex => ex.category !== 'callout').length}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-1 bg-sage-100 px-2 py-1 rounded-full">
-                        <Target className="h-3 w-3 text-sage-600" />
-                        <span className="text-xs font-medium text-sage-700">
-                          {getMuscleGroupCoverage().length} groups
-                        </span>
-                      </div>
+        {/* Compact Class Header */}
+        <div className="bg-white/90 backdrop-blur-sm border-b border-sage-200 p-3 sm:p-4">
+          <div className="flex items-center gap-4">
+            {/* Class Image - Circle on left */}
+            <Dialog open={showImageSelector} onOpenChange={setShowImageSelector}>
+              <DialogTrigger asChild>
+                <button className="flex-shrink-0 w-16 h-16 rounded-full overflow-hidden border-2 border-sage-300 hover:border-sage-400 transition-colors">
+                  {currentClass.image ? (
+                    <img 
+                      src={currentClass.image} 
+                      alt="Class" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-sage-100 flex items-center justify-center">
+                      <BookOpen className="h-6 w-6 text-sage-400" />
                     </div>
-                  </div>
-                  
-                  <Button 
-                    onClick={onAddExercise}
-                    variant="outline"
-                    size="sm" 
-                    className="border-sage-300 hover:bg-sage-100 text-sage-700 rounded-full w-full sm:w-auto text-xs sm:text-sm"
-                  >
-                    <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                    Add Exercise
-                  </Button>
+                  )}
+                </button>
+              </DialogTrigger>
+              <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Select Class Image</DialogTitle>
+                </DialogHeader>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {defaultImages.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleImageSelect(image)}
+                      className="aspect-square overflow-hidden rounded-lg border-2 border-transparent hover:border-sage-500 transition-colors"
+                    >
+                      <img 
+                        src={image} 
+                        alt={`Option ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Class Name - Editable */}
+            <div className="flex-1">
+              <Input
+                value={currentClass.name}
+                onChange={(e) => onUpdateClassName(e.target.value)}
+                placeholder="Class Name"
+                className="text-lg font-medium border-none shadow-none p-0 focus-visible:ring-0 bg-transparent text-sage-800"
+              />
+              <div className="flex items-center gap-4 mt-1">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-sage-500" />
+                  <Input
+                    type="number"
+                    value={currentClass.classDuration || 45}
+                    onChange={(e) => onUpdateClassDuration(parseInt(e.target.value) || 45)}
+                    className="w-16 h-6 text-sm border-sage-300"
+                    min="15"
+                    max="90"
+                    step="5"
+                  />
+                  <span className="text-sm text-sage-600">min</span>
                 </div>
                 
-                {currentClass.exercises.length > 0 && (
-                  <p className="text-xs text-sage-600 mt-2">
-                    Drag to reorder exercises
+                <div className="flex items-center gap-3 text-xs text-sage-600">
+                  <span>{currentClass.exercises.filter(ex => ex.category !== 'callout').length} exercises</span>
+                  <span>{getMuscleGroupCoverage().length} muscle groups</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Add Exercise Button - Single sage button */}
+            <Button 
+              onClick={onAddExercise}
+              className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-full px-4 py-2 shadow-lg"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Exercise
+            </Button>
+          </div>
+        </div>
+
+        {/* Class Timeline */}
+        <div className="p-3">
+          <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden">
+            <div className="p-3">
+              {currentClass.exercises.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="bg-sage-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <BookOpen className="h-7 w-7 text-sage-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-sage-700 mb-2">Start Building Your Class</h3>
+                  <p className="text-sage-500 text-sm max-w-sm mx-auto mb-4">
+                    Add exercises from the library to create your perfect Reformer flow.
                   </p>
-                )}
-              </CardHeader>
-              
-              <div className="flex-1 overflow-y-auto px-2 sm:px-3 py-2">
-                {currentClass.exercises.length === 0 ? (
-                  <div className="text-center py-6 sm:py-8 lg:py-12">
-                    <div className="bg-sage-50 rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-4">
-                      <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 text-sage-400" />
-                    </div>
-                    <h3 className="text-sm sm:text-base lg:text-lg font-medium text-sage-700 mb-2">Start Building Your Class</h3>
-                    <p className="text-sage-500 text-xs sm:text-sm max-w-sm mx-auto mb-4 px-4">
-                      Add exercises from the library to create your perfect Reformer flow.
-                    </p>
-                    <Button onClick={onAddExercise} className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-full px-4 sm:px-6 py-2 transform hover:scale-105 transition-all duration-300 shadow-lg text-xs sm:text-sm">
-                      <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                      Add First Exercise
+                  <Button onClick={onAddExercise} className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-full px-6 py-2 transform hover:scale-105 transition-all duration-300 shadow-lg">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add First Exercise
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {/* Add initial callout button */}
+                  <div className="flex justify-center py-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openCalloutSelector(0)}
+                      className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Section
                     </Button>
                   </div>
-                ) : (
-                  <div className="space-y-1">
-                    {/* Add initial callout button */}
-                    <div className="flex justify-center py-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openCalloutSelector(0)}
-                        className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        Add Section
-                      </Button>
-                    </div>
-                    
-                    <ExerciseSuggestions 
-                      currentClass={currentClass} 
-                      onAddExercise={onAddExercise}
-                    />
-                    
-                    {/* Exercise list with improved mobile layout */}
-                    {groupedExercises().map((group, groupIndex) => (
-                      <div key={groupIndex}>
-                        {group.callout ? (
-                          <Collapsible
-                            open={!collapsedSections.has(group.callout.id)}
-                            onOpenChange={() => onToggleSectionCollapse(group.callout.id)}
-                          >
-                            {/* Callout header */}
-                            <div className="relative mb-2 px-2 sm:px-4">
-                              <div className={`border-l-4 pl-3 py-2 rounded-r-lg ${getCalloutColorClasses(group.callout.calloutColor).border} ${getCalloutColorClasses(group.callout.calloutColor).bg}`}>
-                                <div className="flex items-center justify-between">
-                                  <CollapsibleTrigger asChild>
-                                    <Button variant="ghost" className={`flex items-center gap-2 p-0 h-auto hover:bg-transparent ${getCalloutColorClasses(group.callout.calloutColor).text}`}>
-                                      {collapsedSections.has(group.callout.id) ? (
-                                        <ChevronRight className="h-4 w-4" />
-                                      ) : (
-                                        <ChevronDown className="h-4 w-4" />
-                                      )}
-                                      {editingCallout === group.callout.id ? (
-                                        <Input
-                                          value={editCalloutValue}
-                                          onChange={(e) => setEditCalloutValue(e.target.value)}
-                                          onBlur={saveCalloutEdit}
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter') saveCalloutEdit();
-                                            if (e.key === 'Escape') cancelCalloutEdit();
-                                          }}
-                                          className="h-6 text-sm border-amber-300"
-                                          autoFocus
-                                          onClick={(e) => e.stopPropagation()}
-                                        />
-                                      ) : (
-                                        <span className="font-medium text-xs sm:text-sm">{group.callout.name}</span>
-                                      )}
-                                      <Badge variant="secondary" className={`text-xs ml-2 ${getCalloutColorClasses(group.callout.calloutColor).bg} ${getCalloutColorClasses(group.callout.calloutColor).text}`}>
-                                        {group.exercises?.length || 0}
-                                      </Badge>
-                                    </Button>
-                                  </CollapsibleTrigger>
-                                  
-                                  <div className="flex gap-1">
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        startEditingCallout(group.callout);
-                                      }}
-                                      className={`h-6 w-6 p-0 ${getCalloutColorClasses(group.callout.calloutColor).text}`}
-                                    >
-                                      <Edit3 className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (onDeleteCallout) onDeleteCallout(group.callout.id);
-                                      }}
-                                      className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                                    >
-                                      <Trash2 className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            {/* Exercises inside CollapsibleContent */}
-                            <CollapsibleContent>
-                              <div className={`ml-2 sm:ml-4 border-l-2 pl-2 sm:pl-4 ${getCalloutColorClasses(group.callout.calloutColor).leftBorder}`}>
-                                {group.exercises?.map((exercise) => {
-                                  const actualIndex = currentClass.exercises.findIndex(ex => ex.id === exercise.id);
-                                  return (
-                                    <ExerciseCard 
-                                      key={exercise.id} 
-                                      exercise={exercise} 
-                                      index={actualIndex}
-                                    />
-                                  );
-                                })}
+                  
+                  <ExerciseSuggestions 
+                    currentClass={currentClass} 
+                    onAddExercise={onAddExercise}
+                  />
+                  
+                  {/* Exercise list with improved mobile layout */}
+                  {groupedExercises().map((group, groupIndex) => (
+                    <div key={groupIndex}>
+                      {group.callout ? (
+                        <Collapsible
+                          open={!collapsedSections.has(group.callout.id)}
+                          onOpenChange={() => onToggleSectionCollapse(group.callout.id)}
+                        >
+                          {/* Callout header */}
+                          <div className="relative mb-2 px-2 sm:px-4">
+                            <div className={`border-l-4 pl-3 py-2 rounded-r-lg ${getCalloutColorClasses(group.callout.calloutColor).border} ${getCalloutColorClasses(group.callout.calloutColor).bg}`}>
+                              <div className="flex items-center justify-between">
+                                <CollapsibleTrigger asChild>
+                                  <Button variant="ghost" className={`flex items-center gap-2 p-0 h-auto hover:bg-transparent ${getCalloutColorClasses(group.callout.calloutColor).text}`}>
+                                    {collapsedSections.has(group.callout.id) ? (
+                                      <ChevronRight className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronDown className="h-4 w-4" />
+                                    )}
+                                    {editingCallout === group.callout.id ? (
+                                      <Input
+                                        value={editCalloutValue}
+                                        onChange={(e) => setEditCalloutValue(e.target.value)}
+                                        onBlur={saveCalloutEdit}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') saveCalloutEdit();
+                                          if (e.key === 'Escape') cancelCalloutEdit();
+                                        }}
+                                        className="h-6 text-sm border-amber-300"
+                                        autoFocus
+                                        onClick={(e) => e.stopPropagation()}
+                                      />
+                                    ) : (
+                                      <span className="font-medium text-xs sm:text-sm">{group.callout.name}</span>
+                                    )}
+                                    <Badge variant="secondary" className={`text-xs ml-2 ${getCalloutColorClasses(group.callout.calloutColor).bg} ${getCalloutColorClasses(group.callout.calloutColor).text}`}>
+                                      {group.exercises?.length || 0}
+                                    </Badge>
+                                  </Button>
+                                </CollapsibleTrigger>
                                 
-                                {/* Add section button at end of callout */}
-                                <div className="flex justify-center py-2">
+                                <div className="flex gap-1">
                                   <Button
                                     size="sm"
-                                    variant="outline"
-                                    onClick={() => openCalloutSelector(group.startIndex + group.exercises.length)}
-                                    className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      startEditingCallout(group.callout);
+                                    }}
+                                    className={`h-6 w-6 p-0 ${getCalloutColorClasses(group.callout.calloutColor).text}`}
                                   >
-                                    <Plus className="h-3 w-3 mr-1" />
-                                    Add Section
+                                    <Edit3 className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onDeleteCallout) onDeleteCallout(group.callout.id);
+                                    }}
+                                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
                                   </Button>
                                 </div>
                               </div>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        ) : (
-                          // Ungrouped exercises
-                          <>
-                            {group.exercises.map((exercise) => {
-                              const actualIndex = currentClass.exercises.findIndex(ex => ex.id === exercise.id);
-                              return (
-                                <ExerciseCard 
-                                  key={exercise.id} 
-                                  exercise={exercise} 
-                                  index={actualIndex} 
-                                />
-                              );
-                            })}
-                            
-                            {/* Add section button after ungrouped exercises */}
-                            <div className="flex justify-center py-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => openCalloutSelector(group.startIndex + group.exercises.length)}
-                                className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
-                              >
-                                <Plus className="h-3 w-3 mr-1" />
-                                Add Section
-                              </Button>
                             </div>
-                          </>
-                        )}
-                      </div>
-                    ))}
+                          </div>
+                          
+                          {/* Exercises inside CollapsibleContent */}
+                          <CollapsibleContent>
+                            <div className={`ml-2 sm:ml-4 border-l-2 pl-2 sm:pl-4 ${getCalloutColorClasses(group.callout.calloutColor).leftBorder}`}>
+                              {group.exercises?.map((exercise) => {
+                                const actualIndex = currentClass.exercises.findIndex(ex => ex.id === exercise.id);
+                                return (
+                                  <ExerciseCard 
+                                    key={exercise.id} 
+                                    exercise={exercise} 
+                                    index={actualIndex}
+                                  />
+                                );
+                              })}
+                              
+                              {/* Add section button at end of callout */}
+                              <div className="flex justify-center py-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => openCalloutSelector(group.startIndex + group.exercises.length)}
+                                  className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
+                                >
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  Add Section
+                                </Button>
+                              </div>
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      ) : (
+                        // Ungrouped exercises
+                        <>
+                          {group.exercises.map((exercise) => {
+                            const actualIndex = currentClass.exercises.findIndex(ex => ex.id === exercise.id);
+                            return (
+                              <ExerciseCard 
+                                key={exercise.id} 
+                                exercise={exercise} 
+                                index={actualIndex} 
+                              />
+                            );
+                          })}
+                          
+                          {/* Add section button after ungrouped exercises */}
+                          <div className="flex justify-center py-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openCalloutSelector(group.startIndex + group.exercises.length)}
+                              className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              Add Section
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
 
-                    {/* Final drop zone */}
-                    <DropZone index={currentClass.exercises.length} className="mt-4" />
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
+                  {/* Final drop zone */}
+                  <DropZone index={currentClass.exercises.length} className="mt-4" />
+                </div>
+              )}
+            </div>
+          </Card>
         </div>
       </div>
 
@@ -800,7 +717,6 @@ export const ClassBuilder = ({
         <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
               Add Section Divider
             </DialogTitle>
           </DialogHeader>

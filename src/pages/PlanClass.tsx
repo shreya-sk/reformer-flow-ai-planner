@@ -7,7 +7,6 @@ import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
 import { ClassHeader } from '@/components/plan-class/ClassHeader';
-import { TabbedPlanView } from '@/components/plan-class/TabbedPlanView';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { toast } from '@/hooks/use-toast';
 import { AuthPage } from '@/components/AuthPage';
@@ -179,18 +178,31 @@ const PlanClass = () => {
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-50 via-white to-sage-100'} pb-20`}>
-      <ClassHeader
-        currentClass={currentClass}
-        onUpdateClassName={updateClassName}
-        onSaveClass={handleSaveClass}
-        onStartTeaching={() => setIsTeachingMode(true)}
-        onUndo={() => {}}
-        onRedo={() => {}}
-        canUndo={false}
-        canRedo={false}
-      />
+      {/* Simplified Header - removed teach button */}
+      <div className="bg-white/90 backdrop-blur-sm border-b border-sage-200 p-3 sm:p-4 sticky top-0 z-10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => navigate('/')}
+              className="text-sage-600 hover:text-sage-800 transition-colors"
+            >
+              ← Back
+            </button>
+            <h1 className="text-lg font-semibold text-sage-800">Class Builder</h1>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSaveClass}
+              className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-300"
+            >
+              Save Class
+            </button>
+          </div>
+        </div>
+      </div>
 
-      <div className="p-3">
+      <div className="px-2 sm:px-3 pt-0">
         <Tabs defaultValue="builder" value={activeTab} onValueChange={setActiveTab} className="rounded-xl overflow-hidden shadow-md bg-white/80 backdrop-blur-sm">
           <TabsList className="w-full grid grid-cols-2 bg-sage-50/70 p-1">
             <TabsTrigger value="builder" className="rounded-lg data-[state=active]:bg-sage-100 data-[state=active]:text-sage-800">
@@ -201,7 +213,7 @@ const PlanClass = () => {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="builder" className="py-2">
+          <TabsContent value="builder" className="py-0">
             <ClassBuilder
               currentClass={currentClass}
               onRemoveExercise={removeExercise}
