@@ -173,4 +173,3 @@ export interface CustomCallout {
   updatedAt: Date;
   isDefault?: boolean;
 }
-
