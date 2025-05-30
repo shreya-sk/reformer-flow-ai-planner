@@ -1,3 +1,4 @@
+
 export type ExerciseCategory =
   | 'supine'
   | 'prone'
@@ -5,9 +6,12 @@ export type ExerciseCategory =
   | 'side-lying'
   | 'kneeling'
   | 'standing'
+  | 'warm-up'
+  | 'cool-down'
+  | 'callout'
   | 'other';
 
-export type SpringSetting = 'light' | 'medium' | 'heavy' | 'mixed';
+export type SpringSetting = 'light' | 'medium' | 'heavy' | 'mixed' | 'none';
 
 export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
@@ -69,7 +73,17 @@ export type Equipment =
   | 'pilates-ball'
   | 'bosu-ball'
   | 'chair'
-  | ' кадаillac'
+  | 'cadillac'
+  | 'straps'
+  | 'theraband'
+  | 'soft-ball'
+  | 'short-box'
+  | 'long-box'
+  | 'jump-board'
+  | 'platform-extender'
+  | 'tower'
+  | 'pole'
+  | 'none'
   | 'other';
 
 export type TeachingFocus =
@@ -80,7 +94,10 @@ export type TeachingFocus =
   | 'control'
   | 'flow'
   | 'stability'
-  | 'mobility';
+  | 'mobility'
+  | 'balance'
+  | 'strength'
+  | 'coordination';
 
 export interface Exercise {
   id: string;
@@ -112,4 +129,41 @@ export interface Exercise {
   isCustom?: boolean;
   isSystemExercise?: boolean;
   isCustomized?: boolean;
+  calloutColor?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface ClassPlan {
+  id: string;
+  name: string;
+  description?: string;
+  duration: number;
+  exercises: Exercise[];
+  createdAt: Date;
+  updatedAt: Date;
+  tags?: string[];
+  notes?: string;
+  difficultyLevel?: DifficultyLevel;
+  isPublic?: boolean;
+  shareToken?: string;
+  userId?: string;
+  viewCount?: number;
+  copyCount?: number;
+  imageUrl?: string;
+}
+
+export interface CustomCallout {
+  id: string;
+  text: string;
+  color: string;
+  backgroundColor: string;
+  fontSize: number;
+  fontWeight: string;
+  textAlign: 'left' | 'center' | 'right';
+  duration: number;
+  userId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  isDefault?: boolean;
 }
