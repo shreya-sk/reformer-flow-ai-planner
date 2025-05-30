@@ -27,7 +27,8 @@ export const ClassPlanContainer = () => {
     reorderExercises,
     updateClassName,
     clearClassPlan,
-    addCallout
+    addCallout,
+    loadClass
   } = usePersistedClassPlan();
 
   // Debug: Log whenever currentClass changes
@@ -51,7 +52,7 @@ export const ClassPlanContainer = () => {
     
     if (loadedClass) {
       console.log('🔵 Loading class from navigation:', loadedClass);
-      // TODO: Implement loadClass method in usePersistedClassPlan
+      loadClass(loadedClass);
     } else if (cartExercises.length > 0) {
       console.log('🔵 Loading cart exercises:', cartExercises.length);
       cartExercises.forEach((exercise: Exercise) => {
@@ -63,7 +64,7 @@ export const ClassPlanContainer = () => {
     if (location.state?.cartExercises || location.state?.loadedClass) {
       navigate(location.pathname, { replace: true });
     }
-  }, [location.state, navigate, addExercise]);
+  }, [location.state, navigate, addExercise, loadClass]);
 
   const handleSaveClass = async () => {
     if (currentClass.exercises.length === 0) {
@@ -113,12 +114,18 @@ export const ClassPlanContainer = () => {
   // Handle exercise selection from library - this is the key fix!
   const handleExerciseSelection = (exercise: Exercise) => {
     console.log('🔵 Exercise selected from library:', exercise.name);
+    
+    // Add exercise to the persisted state
     addExercise(exercise);
-    // Don't close library immediately, let user add multiple exercises
+    
+    // Show toast immediately
     toast({
       title: "Added to class",
       description: `"${exercise.name}" has been added to your class plan.`,
     });
+    
+    // Don't close library immediately, let user add multiple exercises
+    console.log('🔵 Exercise added successfully, current count:', currentClass.exercises.length + 1);
   };
 
   const handleAddCallout = (name: string, position: number) => {

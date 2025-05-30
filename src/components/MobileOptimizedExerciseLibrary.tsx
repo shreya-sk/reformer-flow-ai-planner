@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,7 +22,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   const { user } = useAuth();
   const { preferences } = useUserPreferences();
   const { exercises, loading } = useExercises();
-  const { addExercise } = usePersistedClassPlan();
+  const { addExercise, currentClass } = usePersistedClassPlan(); // Get currentClass for debug
   const isMobile = useIsMobile();
 
   // State
@@ -76,34 +75,33 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     return count;
   }, [showPregnancySafe, showHidden, selectedCategory, selectedMuscleGroup]);
 
-  // Debug: Add to class function
+  // Enhanced add to class function with better error handling
   const handleAddToClass = useCallback((exercise: Exercise) => {
-    console.log('🔵 MobileOptimizedExerciseLibrary handleAddToClass called with:', exercise);
+    console.log('🔵 MobileOptimizedExerciseLibrary handleAddToClass called with:', exercise.name);
     console.log('🔵 Current user:', user?.id);
-    console.log('🔵 onExerciseSelect prop:', !!onExerciseSelect);
+    console.log('🔵 onExerciseSelect prop exists:', !!onExerciseSelect);
+    console.log('🔵 Current class state:', {
+      exerciseCount: currentClass.exercises.length,
+      totalDuration: currentClass.totalDuration
+    });
     
     try {
       if (onExerciseSelect) {
-        console.log('🔵 Calling onExerciseSelect prop');
+        console.log('🔵 Using onExerciseSelect prop');
         onExerciseSelect(exercise);
       } else {
         console.log('🔵 Using addExercise from usePersistedClassPlan');
-        console.log('🔵 Exercise being added:', {
-          id: exercise.id,
-          name: exercise.name,
-          duration: exercise.duration,
-          category: exercise.category
-        });
         
+        // Add exercise to the persisted state
         addExercise(exercise);
         
+        // Show immediate feedback
         toast({
           title: "Added to class",
           description: `"${exercise.name}" has been added to your class plan.`,
         });
         
-        console.log('🔵 Exercise added successfully, navigating to plan');
-        navigate('/plan');
+        console.log('🔵 Exercise added successfully');
       }
     } catch (error) {
       console.error('🔴 Error in MobileOptimizedExerciseLibrary handleAddToClass:', error);
@@ -113,7 +111,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
         variant: "destructive",
       });
     }
-  }, [onExerciseSelect, addExercise, navigate, user]);
+  }, [onExerciseSelect, addExercise, user, currentClass]);
 
   const handleExerciseSelect = useCallback((exercise: Exercise) => {
     console.log('🔵 Exercise selected:', exercise.name);
@@ -151,6 +149,10 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     // Handle save logic here
     setIsCreating(false);
     setEditingExercise(null);
+    toast({
+      title: "Exercise saved",
+      description: `"${exercise.name}" has been saved.`,
+    });
   }, []);
 
   const handleCancelExercise = useCallback(() => {
@@ -211,6 +213,13 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
+      {/* Debug info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-yellow-100 p-2 text-xs">
+          <strong>Library Debug:</strong> Class has {currentClass.exercises.length} exercises, {currentClass.totalDuration}min
+        </div>
+      )}
+
       {/* Header - Fixed at top */}
       <MobileLibraryHeader
         searchTerm={searchTerm}

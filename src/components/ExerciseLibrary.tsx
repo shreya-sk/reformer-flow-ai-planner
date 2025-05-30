@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,16 +7,17 @@ import { Search, Filter, Heart, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw, Plus
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
+import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
 import { toast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ImprovedExerciseForm } from './ImprovedExerciseForm';
-import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
+
 interface ExerciseLibraryProps {
-  
+  onExerciseSelect?: (exercise: Exercise) => void;
 }
 
-export const ExerciseLibrary = ({  }: ExerciseLibraryProps) => {
+export const ExerciseLibrary = ({ onExerciseSelect }: ExerciseLibraryProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | 'all'>('all');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
@@ -26,10 +26,11 @@ export const ExerciseLibrary = ({  }: ExerciseLibraryProps) => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const { addExercise } = usePersistedClassPlan();
+  const [isCreating, setIsCreating] = useState(false);
   
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
   const { exercises, duplicateExercise, updateUserExercise, customizeSystemExercise, deleteUserExercise, resetSystemExerciseToOriginal, createUserExercise } = useExercises();
+  const { addExercise, currentClass } = usePersistedClassPlan();
 
   const filteredExercises = useMemo(() => {
     return exercises.filter(exercise => {
@@ -56,29 +57,28 @@ export const ExerciseLibrary = ({  }: ExerciseLibraryProps) => {
   };
 
   const handleAddToClass = (exercise: Exercise) => {
-    console.log('Add to class clicked for:', exercise.name);
+    console.log('🔵 ExerciseLibrary: Add to class clicked for:', exercise.name);
     
     try {
-      const timestamp = Date.now();
-      const randomId = Math.random().toString(36).substr(2, 9);
-      const uniqueId = `${exercise.id}-${timestamp}-${randomId}`;
+      if (onExerciseSelect) {
+        // If callback provided, use it
+        onExerciseSelect(exercise);
+      } else {
+        // Otherwise use the persisted class plan
+        addExercise(exercise);
+        
+        toast({
+          title: "Added to class",
+          description: `"${exercise.name}" has been added to your class plan.`,
+        });
+      }
       
-      const exerciseToAdd = {
-        ...exercise,
-        id: uniqueId,
-      };
-      
-      console.log('Calling onAddExercise with:', exerciseToAdd);
-      addExercise(exerciseToAdd);
-      
-      toast({
-        title: "Added to class",
-        description: `"${exercise.name}" has been added to your class plan.`,
+      console.log('🔵 Exercise added successfully. Current class state:', {
+        exerciseCount: currentClass.exercises.length,
+        totalDuration: currentClass.totalDuration
       });
-      
-      console.log('Exercise added successfully');
     } catch (error) {
-      console.error('Error adding exercise to class:', error);
+      console.error('🔴 Error adding exercise to class:', error);
       toast({
         title: "Error",
         description: "Failed to add exercise to class.",
@@ -156,8 +156,6 @@ export const ExerciseLibrary = ({  }: ExerciseLibraryProps) => {
     setShowPregnancySafe(false);
     setShowHidden(false);
   };
-  const [isCreating, setIsCreating] = useState(false);
-
 
   const activeFiltersCount = (selectedCategory !== 'all' ? 1 : 0) + 
                             (selectedMuscleGroup !== 'all' ? 1 : 0) + 
@@ -167,6 +165,13 @@ export const ExerciseLibrary = ({  }: ExerciseLibraryProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Debug info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-yellow-100 p-2 text-xs mb-4">
+            <strong>Library Debug:</strong> Class has {currentClass.exercises.length} exercises, {currentClass.totalDuration}min
+          </div>
+        )}
+
         {/* Simplified Header */}
         <div className="flex flex-col gap-4 mb-6">
           {/* Search and Action Buttons */}
@@ -207,27 +212,12 @@ export const ExerciseLibrary = ({  }: ExerciseLibraryProps) => {
             </Button>
 
             <Button
-                onClick={() => setIsCreating(true)}  // Just set creation mode
-                className="flex items-center gap-2 h-10 px-3 bg-sage-600 hover:bg-sage-700"
-              >
-                <Plus className="h-5 w-5" />
-                <span className="hidden sm:inline">Add Exercise</span>
-              </Button>
-              {isCreating && (
-              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <ImprovedExerciseForm
-                    // No exercise prop = create mode
-                    onSave={async (exercise) => {
-                      await createUserExercise(exercise);
-                      setIsCreating(false);
-                      // Show success toast
-                    }}
-                    onCancel={() => setIsCreating(false)}
-                  />
-                </div>
-              </div>
-            )}
+              onClick={() => setIsCreating(true)}
+              className="flex items-center gap-2 h-10 px-3 bg-sage-600 hover:bg-sage-700"
+            >
+              <Plus className="h-5 w-5" />
+              <span className="hidden sm:inline">Add Exercise</span>
+            </Button>
           </div>
 
           {/* Expandable Filter Panel */}
@@ -320,6 +310,25 @@ export const ExerciseLibrary = ({  }: ExerciseLibraryProps) => {
           </div>
         )}
 
+        {/* Create Exercise Form */}
+        {isCreating && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <ImprovedExerciseForm
+                onSave={async (exercise) => {
+                  await createUserExercise(exercise);
+                  setIsCreating(false);
+                  toast({
+                    title: "Exercise created",
+                    description: `"${exercise.name}" has been created.`,
+                  });
+                }}
+                onCancel={() => setIsCreating(false)}
+              />
+            </div>
+          </div>
+        )}
+
         <ExerciseDetailModal
           exercise={selectedExercise}
           isOpen={isDetailModalOpen}
@@ -359,7 +368,7 @@ export const ExerciseLibrary = ({  }: ExerciseLibraryProps) => {
   );
 };
 
-// Exercise Card Component
+// Exercise Card Component (unchanged from original)
 interface ExerciseCardProps {
   exercise: Exercise;
   onSelect: (exercise: Exercise) => void;
