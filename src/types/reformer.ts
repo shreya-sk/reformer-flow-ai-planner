@@ -1,4 +1,5 @@
 
+
 export type ExerciseCategory =
   | 'supine'
   | 'prone'
@@ -151,11 +152,16 @@ export interface ClassPlan {
   viewCount?: number;
   copyCount?: number;
   imageUrl?: string;
+  // Additional properties used in the codebase
+  totalDuration?: number;
+  classDuration?: number;
+  image?: string;
 }
 
 export interface CustomCallout {
   id: string;
-  text: string;
+  name: string; // Changed from 'text' to 'name' to match usage
+  text?: string; // Keep text as optional for backward compatibility
   color: string;
   backgroundColor: string;
   fontSize: number;
@@ -167,3 +173,4 @@ export interface CustomCallout {
   updatedAt: Date;
   isDefault?: boolean;
 }
+
