@@ -1,94 +1,19 @@
-export interface Exercise {
-  id: string;
-  name: string;
-  category: ExerciseCategory;
-  duration?: number; // in minutes - optional for flexible timing
-  repsOrDuration?: string; // "10 reps" or "30 sec" - more flexible
-  springs: SpringSetting;
-  difficulty: DifficultyLevel;
-  intensityLevel: IntensityLevel;
-  muscleGroups: MuscleGroup[];
-  targetAreas?: string[]; // more specific than muscle groups
-  equipment: Equipment[];
-  description?: string;
-  image?: string;
-  videoUrl?: string;
-  animationPreview?: string; // GIF or static image
-  notes?: string;
-  cues?: string[]; // AI generated, anatomical but client friendly
-  setup?: string; // AI generated setup instructions
-  tempo?: string; // optional tempo instructions
-  transitions?: string[];
-  contraindications?: string[];
-  progressions?: string[]; // harder variations
-  regressions?: string[]; // easier/assisted versions
-  isPregnancySafe?: boolean;
-  teachingFocus?: TeachingFocus[]; // alignment, breath, flow, etc.
-  breathingCues?: string[]; // breathing instructions
-  modifications?: string[]; // general modifications
-  
-  // Custom exercise metadata
-  isCustom?: boolean;
-  createdBy?: string; // user attribution for custom exercises
-  
-  // Set grouping (optional)
-  parentSetId?: string; // for nested sets like "Hands in Straps"
-  setOrder?: number;
-  setName?: string;
-  
-  // Callout specific properties
-  calloutColor?: 'amber' | 'blue' | 'green' | 'purple' | 'red';
-  
-  // Auto-generated insights
-  usageFrequency?: number;
-  lastUsed?: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export interface ClassPlan {
-  id: string;
-  name: string;
-  exercises: Exercise[];
-  sections?: ClassSection[];
-  totalDuration: number;
-  classDuration: number; // Total class time in minutes (default 45)
-  createdAt: Date;
-  notes?: string;
-  image?: string; // Optional class plan thumbnail
-}
-
-export interface ClassSection {
-  id: string;
-  name: string;
-  exercises: Exercise[];
-  isCollapsed?: boolean;
-}
-
-export type ExerciseCategory = 
-  | 'warm-up'
-  | 'standing'
+export type ExerciseCategory =
   | 'supine'
   | 'prone'
   | 'sitting'
   | 'side-lying'
   | 'kneeling'
-  | 'cool-down'
-  | 'callout'; // Keep callout for organizational structure
+  | 'standing'
+  | 'other';
 
-export type SpringSetting = string; // Now supports multiple springs like "1.5,2" or "red,yellow"
+export type SpringSetting = 'light' | 'medium' | 'heavy' | 'mixed';
 
-export type DifficultyLevel = 
-  | 'beginner' 
-  | 'intermediate' 
-  | 'advanced';
+export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
-export type IntensityLevel = 
-  | 'low'
-  | 'medium' 
-  | 'high';
+export type IntensityLevel = 'low' | 'medium' | 'high';
 
-export type MuscleGroup = 
+export type MuscleGroup =
   | 'core'
   | 'legs'
   | 'arms'
@@ -134,55 +59,57 @@ export type MuscleGroup =
   | 'diaphragm'
   | 'intercostals';
 
-export type Equipment = 
-  | 'straps'
-  | 'weights'
-  | 'magic-circle'
-  | 'theraband'
-  | 'soft-ball'
-  | 'short-box'
-  | 'long-box'
-  | 'jump-board'
-  | 'platform-extender'
-  | 'tower'
-  | 'pole'
-  | 'foam-roller'
-  | 'resistance-bands'
-  | 'pilates-ring'
-  | 'reformer-box'
-  | 'stability-ball'
-  | 'yoga-blocks'
-  | 'spine-corrector'
-  | 'push-through-bar'
-  | 'roll-down-bar'
-  | 'sitting-box'
-  | 'moon-box'
-  | 'arc-barrel'
-  | 'ladder-barrel'
-  | 'chair'
-  | 'cadillac'
-  | 'wall-unit'
+export type Equipment =
+  | 'reformer'
   | 'mat'
-  | 'towel'
-  | 'elastic-band'
-  | 'weighted-ball'
-  | 'balance-pad'
+  | 'magic-circle'
+  | 'weights'
+  | 'resistance-band'
+  | 'foam-roller'
+  | 'pilates-ball'
   | 'bosu-ball'
-  | 'none';
+  | 'chair'
+  | ' кадаillac'
+  | 'other';
 
 export type TeachingFocus =
   | 'alignment'
+  | 'core-engagement'
   | 'breath'
+  | 'precision'
+  | 'control'
   | 'flow'
   | 'stability'
-  | 'balance'
-  | 'strength'
-  | 'mobility'
-  | 'coordination';
+  | 'mobility';
 
-export interface CustomCallout {
+export interface Exercise {
   id: string;
   name: string;
-  color: 'amber' | 'blue' | 'green' | 'purple' | 'red';
-  createdAt: Date;
+  category: ExerciseCategory;
+  duration: number;
+  springs: SpringSetting;
+  difficulty: DifficultyLevel;
+  intensityLevel: 'low' | 'medium' | 'high';
+  muscleGroups: MuscleGroup[];
+  equipment: Equipment[];
+  description: string;
+  image: string;
+  videoUrl: string;
+  notes: string;
+  cues: string[];
+  setup: string;
+  repsOrDuration: string;
+  tempo: string;
+  targetAreas: string[];
+  breathingCues: string[];
+  teachingFocus: TeachingFocus[];
+  modifications: string[];
+  progressions: string[];
+  regressions: string[];
+  transitions: string[];
+  contraindications: string[];
+  isPregnancySafe: boolean;
+  isCustom?: boolean;
+  isSystemExercise?: boolean;
+  isCustomized?: boolean;
 }

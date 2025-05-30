@@ -3,11 +3,10 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Search, Filter, RefreshCw, Download, Wifi, WifiOff } from 'lucide-react';
+import { Search, RefreshCw, Download, Wifi, WifiOff, Plus, Heart, Filter } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
 import { useTouchGestures } from '@/hooks/useTouchGestures';
-import { useLazyLoading, useVirtualScrolling } from '@/hooks/usePerformanceOptimization';
+import { useLazyLoading } from '@/hooks/usePerformanceOptimization';
 import { usePWA } from '@/hooks/usePWA';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ExerciseDetailModal } from '@/components/ExerciseDetailModal';
@@ -18,35 +17,54 @@ interface MobileOptimizedExerciseLibraryProps {
   onRefresh?: () => void;
 }
 
+const categoryOptions = [
+  { value: 'all', label: 'All', color: 'bg-sage-600' },
+  { value: 'supine', label: 'Supine', color: 'bg-blue-500' },
+  { value: 'prone', label: 'Prone', color: 'bg-purple-500' },
+  { value: 'sitting', label: 'Sitting', color: 'bg-green-500' },
+  { value: 'side-lying', label: 'Side-lying', color: 'bg-pink-500' },
+  { value: 'kneeling', label: 'Kneeling', color: 'bg-yellow-500' },
+];
+
+const difficultyOptions = [
+  { value: 'all', label: 'All Levels', color: 'bg-gray-500' },
+  { value: 'beginner', label: 'Beginner', color: 'bg-green-500' },
+  { value: 'intermediate', label: 'Intermediate', color: 'bg-yellow-500' },
+  { value: 'advanced', label: 'Advanced', color: 'bg-red-500' },
+];
+
 export const MobileOptimizedExerciseLibrary = ({
   exercises,
   onExerciseSelect,
   onRefresh
 }: MobileOptimizedExerciseLibraryProps) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const { preferences } = useUserPreferences();
+  const { preferences, toggleFavoriteExercise } = useUserPreferences();
   const { observeImage } = useLazyLoading();
   const { isOnline, isInstallable, installApp } = usePWA();
 
-  // Filter exercises based on search
+  // Filter exercises based on search and filters
   const filteredExercises = useMemo(() => {
-    return exercises.filter(exercise =>
-      exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      exercise.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      exercise.muscleGroups.some(group => 
-        group.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  }, [exercises, searchTerm]);
+    return exercises.filter(exercise => {
+      const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        exercise.muscleGroups.some(group => 
+          group.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      
+      const matchesCategory = selectedCategory === 'all' || exercise.category === selectedCategory;
+      const matchesDifficulty = selectedDifficulty === 'all' || exercise.difficulty === selectedDifficulty;
+      const matchesPregnancy = !preferences.showPregnancySafeOnly || exercise.isPregnancySafe;
+      
+      return matchesSearch && matchesCategory && matchesDifficulty && matchesPregnancy;
+    });
+  }, [exercises, searchTerm, selectedCategory, selectedDifficulty, preferences.showPregnancySafeOnly]);
 
-  // Virtual scrolling for performance
-  const { containerRef, visibleItems, totalHeight, offsetY, handleScroll, visibleStart } = 
-    useVirtualScrolling(filteredExercises, 120, 600);
-
-  // Touch gestures
+  // Touch gestures for pull to refresh
   const { isPulling, pullDistance } = useTouchGestures({
     onPullToRefresh: async () => {
       if (onRefresh) {
@@ -68,6 +86,16 @@ export const MobileOptimizedExerciseLibrary = ({
   const handleCardClick = (exercise: Exercise) => {
     setSelectedExercise(exercise);
     setShowDetailModal(true);
+  };
+
+  const handleAddToClass = (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onExerciseSelect(exercise);
+  };
+
+  const handleToggleFavorite = (exerciseId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavoriteExercise(exerciseId);
   };
 
   return (
@@ -113,18 +141,56 @@ export const MobileOptimizedExerciseLibrary = ({
         </div>
 
         {/* Search header */}
-        <div className="p-4 border-b bg-white sticky top-0 z-20">
+        <div className="p-4 border-b bg-white sticky top-0 z-20 space-y-4">
+          {/* Search bar */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search exercises..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-12 text-base"
+              className="pl-10 h-12 text-base rounded-xl border-gray-200 focus:border-sage-400"
             />
           </div>
           
-          <div className="flex items-center justify-between mt-3">
+          {/* Filter chips */}
+          <div className="space-y-3">
+            {/* Category filters */}
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {categoryOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setSelectedCategory(option.value)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedCategory === option.value
+                      ? `${option.color} text-white shadow-md transform scale-105`
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            
+            {/* Difficulty filters */}
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {difficultyOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setSelectedDifficulty(option.value)}
+                  className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    selectedDifficulty === option.value
+                      ? `${option.color} text-white shadow-md transform scale-105`
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">
               {filteredExercises.length} exercises
             </span>
@@ -134,29 +200,21 @@ export const MobileOptimizedExerciseLibrary = ({
           </div>
         </div>
 
-        {/* Virtual scrolled exercise list */}
-        <div 
-          ref={containerRef}
-          className="flex-1 overflow-auto"
-          onScroll={handleScroll}
-          style={{ height: '100%' }}
-        >
-          <div style={{ height: totalHeight, position: 'relative' }}>
-            <div style={{ transform: `translateY(${offsetY}px)` }}>
-              {visibleItems.map((exercise, index) => {
-                const actualIndex = visibleStart + index;
-                return (
-                  <ExerciseCard
-                    key={exercise.id}
-                    exercise={exercise}
-                    onSelect={handleCardClick}
-                    onAddToClass={onExerciseSelect}
-                    observeImage={observeImage}
-                    darkMode={preferences.darkMode}
-                  />
-                );
-              })}
-            </div>
+        {/* Two-column exercise grid */}
+        <div className="flex-1 overflow-y-auto p-3">
+          <div className="grid grid-cols-2 gap-3">
+            {filteredExercises.map((exercise) => (
+              <ExerciseCard
+                key={exercise.id}
+                exercise={exercise}
+                onSelect={handleCardClick}
+                onAddToClass={handleAddToClass}
+                onToggleFavorite={handleToggleFavorite}
+                observeImage={observeImage}
+                isFavorite={preferences.favoriteExercises?.includes(exercise.id) || false}
+                darkMode={preferences.darkMode}
+              />
+            ))}
           </div>
         </div>
       </div>
@@ -180,12 +238,22 @@ export const MobileOptimizedExerciseLibrary = ({
 interface ExerciseCardProps {
   exercise: Exercise;
   onSelect: (exercise: Exercise) => void;
-  onAddToClass: (exercise: Exercise) => void;
+  onAddToClass: (exercise: Exercise, e: React.MouseEvent) => void;
+  onToggleFavorite: (exerciseId: string, e: React.MouseEvent) => void;
   observeImage: (element: HTMLImageElement, src: string) => void;
+  isFavorite: boolean;
   darkMode: boolean;
 }
 
-const ExerciseCard = ({ exercise, onSelect, onAddToClass, observeImage, darkMode }: ExerciseCardProps) => {
+const ExerciseCard = ({ 
+  exercise, 
+  onSelect, 
+  onAddToClass, 
+  onToggleFavorite, 
+  observeImage, 
+  isFavorite, 
+  darkMode 
+}: ExerciseCardProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
@@ -194,62 +262,93 @@ const ExerciseCard = ({ exercise, onSelect, onAddToClass, observeImage, darkMode
     }
   }, [exercise.image, observeImage]);
 
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'beginner': return 'bg-green-500';
+      case 'intermediate': return 'bg-yellow-500';
+      case 'advanced': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
   return (
-    <Card 
-      className={`m-3 cursor-pointer transition-all duration-200 active:scale-95 ${
-        darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'
-      }`}
+    <div 
+      className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transition-all duration-300 active:scale-95 hover:shadow-lg"
       onClick={() => onSelect(exercise)}
     >
-      <CardContent className="p-4">
-        <div className="flex gap-4">
-          {/* Exercise image with lazy loading */}
-          <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-            {exercise.image ? (
-              <img
-                ref={imageRef}
-                alt={exercise.name}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <div className="w-full h-full bg-sage-100 flex items-center justify-center">
-                <span className="text-sage-400 text-xs">No Image</span>
-              </div>
-            )}
+      {/* Image container with overlay elements */}
+      <div className="relative aspect-square overflow-hidden">
+        {/* Exercise image */}
+        {exercise.image ? (
+          <img
+            ref={imageRef}
+            alt={exercise.name}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-sage-100 to-sage-200 flex items-center justify-center">
+            <img 
+              src="/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png" 
+              alt="Default exercise"
+              className="w-full h-full object-cover opacity-50"
+            />
           </div>
+        )}
+        
+        {/* Favorite heart - top right */}
+        <button
+          onClick={(e) => onToggleFavorite(exercise.id, e)}
+          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+            isFavorite 
+              ? 'bg-white/90 text-red-500 scale-110' 
+              : 'bg-black/20 text-white hover:bg-white/90 hover:text-red-500'
+          }`}
+        >
+          <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
+        </button>
 
-          {/* Exercise details */}
+        {/* Difficulty badge - top left */}
+        <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium text-white ${getDifficultyColor(exercise.difficulty)}`}>
+          {exercise.difficulty}
+        </div>
+
+        {/* Pregnancy safe indicator */}
+        {exercise.isPregnancySafe && (
+          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full">
+            👶
+          </div>
+        )}
+
+        {/* Custom exercise indicator */}
+        {exercise.isCustom && (
+          <div className="absolute bottom-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+            Custom
+          </div>
+        )}
+      </div>
+      
+      {/* Exercise info overlay at bottom */}
+      <div className="p-3 bg-white">
+        <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
-            <h3 className={`font-medium truncate ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h3 className="font-semibold text-sm text-gray-900 truncate">
               {exercise.name}
             </h3>
-            <div className="flex flex-wrap gap-1 mt-1">
-              <Badge variant="secondary" className="text-xs">
-                {exercise.category}
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                {exercise.difficulty}
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                {exercise.duration}min
-              </Badge>
-            </div>
-            <div className="flex flex-wrap gap-1 mt-2">
-              {exercise.muscleGroups.slice(0, 2).map(group => (
-                <Badge key={group} variant="outline" className="text-xs">
-                  {group}
-                </Badge>
-              ))}
-              {exercise.muscleGroups.length > 2 && (
-                <Badge variant="outline" className="text-xs">
-                  +{exercise.muscleGroups.length - 2}
-                </Badge>
-              )}
-            </div>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {exercise.duration}min • {exercise.category}
+            </p>
           </div>
+          
+          {/* Add button */}
+          <button
+            onClick={(e) => onAddToClass(exercise, e)}
+            className="ml-2 w-8 h-8 bg-sage-600 hover:bg-sage-700 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 shadow-md"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
