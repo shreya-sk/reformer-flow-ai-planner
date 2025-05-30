@@ -192,6 +192,25 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     }
   };
 
+  const handleResetToOriginal = async (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!exercise.isSystemExercise || !exercise.isCustomized) {
+      toast({
+        title: "Cannot reset",
+        description: "Only modified system exercises can be reset.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await resetSystemExerciseToOriginal(exercise.id);
+    } catch (error) {
+      console.error('Error resetting exercise:', error);
+    }
+  };
+
   const handleToggleHidden = (exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
     toggleHiddenExercise(exercise.id);
@@ -199,7 +218,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     toast({
       title: isHidden ? "Exercise unhidden" : "Exercise hidden",
       description: isHidden 
-        ? `"${exercise.name}" is now visible in your library.`
+        ? `"${exercise.name}" is now visible in your library.` 
         : `"${exercise.name}" has been hidden from your library.`,
     });
   };
