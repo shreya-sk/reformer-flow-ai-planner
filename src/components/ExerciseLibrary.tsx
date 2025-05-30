@@ -24,6 +24,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
   const { exercises, duplicateExercise, updateUserExercise, customizeSystemExercise, deleteUserExercise, resetSystemExerciseToOriginal } = useExercises();
@@ -53,21 +54,35 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   };
 
   const handleAddToClass = (exercise: Exercise) => {
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substr(2, 9);
-    const uniqueId = `${exercise.id}-${timestamp}-${randomId}`;
+    console.log('Add to class clicked for:', exercise.name);
     
-    const exerciseToAdd = {
-      ...exercise,
-      id: uniqueId,
-    };
-    
-    onAddExercise(exerciseToAdd);
-    
-    toast({
-      title: "Added to class",
-      description: `"${exercise.name}" has been added to your class plan.`,
-    });
+    try {
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substr(2, 9);
+      const uniqueId = `${exercise.id}-${timestamp}-${randomId}`;
+      
+      const exerciseToAdd = {
+        ...exercise,
+        id: uniqueId,
+      };
+      
+      console.log('Calling onAddExercise with:', exerciseToAdd);
+      onAddExercise(exerciseToAdd);
+      
+      toast({
+        title: "Added to class",
+        description: `"${exercise.name}" has been added to your class plan.`,
+      });
+      
+      console.log('Exercise added successfully');
+    } catch (error) {
+      console.error('Error adding exercise to class:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add exercise to class.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleToggleFavorite = (exerciseId: string, e: React.MouseEvent) => {
@@ -133,74 +148,136 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     setIsDetailModalOpen(true);
   };
 
+  const clearAllFilters = () => {
+    setSelectedCategory('all');
+    setSelectedMuscleGroup('all');
+    setShowPregnancySafe(false);
+    setShowHidden(false);
+  };
+
+  const activeFiltersCount = (selectedCategory !== 'all' ? 1 : 0) + 
+                            (selectedMuscleGroup !== 'all' ? 1 : 0) + 
+                            (showPregnancySafe ? 1 : 0) + 
+                            (showHidden ? 1 : 0);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Mobile-first responsive header */}
+        {/* Simplified Header */}
         <div className="flex flex-col gap-4 mb-6">
-          {/* Search bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search exercises..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-12 md:h-10"
-            />
-          </div>
-          
-          {/* Filters - responsive layout */}
-          <div className="flex flex-wrap gap-2 md:gap-3">
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value as ExerciseCategory | 'all')}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm flex-1 md:flex-none"
+          {/* Search and Action Buttons */}
+          <div className="flex items-center gap-3">
+            {/* Search bar */}
+            <div className="relative flex-1 max-w-lg">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search exercises..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-10"
+              />
+            </div>
+            
+            {/* Action buttons */}
+            <Button
+              variant={showFilters ? "default" : "outline"}
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 h-10 px-3"
             >
-              <option value="all">All Categories</option>
-              <option value="warm-up">Warm-up</option>
-              <option value="footwork">Footwork</option>
-              <option value="springs">Springs</option>
-              <option value="hundred">Hundred</option>
-              <option value="tower">Tower</option>
-              <option value="cool-down">Cool-down</option>
-            </select>
-
-            <select
-              value={selectedMuscleGroup}
-              onChange={(e) => setSelectedMuscleGroup(e.target.value as MuscleGroup | 'all')}
-              className="px-3 py-2 border border-gray-200 rounded-lg text-sm flex-1 md:flex-none"
-            >
-              <option value="all">All Muscle Groups</option>
-              <option value="core">Core</option>
-              <option value="legs">Legs</option>
-              <option value="arms">Arms</option>
-              <option value="back">Back</option>
-              <option value="glutes">Glutes</option>
-              <option value="shoulders">Shoulders</option>
-              <option value="full-body">Full Body</option>
-            </select>
+              <Filter className="h-5 w-5" />
+              <span className="hidden sm:inline">Filter</span>
+              {activeFiltersCount > 0 && (
+                <Badge className="bg-sage-600 text-white text-xs ml-1">
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
 
             <Button
               variant={showPregnancySafe ? "default" : "outline"}
               onClick={() => setShowPregnancySafe(!showPregnancySafe)}
-              className="flex items-center gap-2 text-sm px-3 py-2 h-auto"
+              className="flex items-center gap-2 h-10 px-3"
             >
-              <span className="text-xs">👶</span>
+              <span className="text-sm">👶</span>
               <span className="hidden sm:inline">Pregnancy Safe</span>
             </Button>
 
             <Button
-              variant={showHidden ? "default" : "outline"}
-              onClick={() => setShowHidden(!showHidden)}
-              className="flex items-center gap-2 text-sm px-3 py-2 h-auto"
+              onClick={() => {
+                setSelectedExercise(null);
+                setIsDetailModalOpen(true);
+              }}
+              className="flex items-center gap-2 h-10 px-3 bg-sage-600 hover:bg-sage-700"
             >
-              <EyeOff className="h-4 w-4" />
-              <span className="hidden sm:inline">{showHidden ? 'Show All' : 'Hidden'}</span>
+              <Plus className="h-5 w-5" />
+              <span className="hidden sm:inline">Add Exercise</span>
             </Button>
           </div>
+
+          {/* Expandable Filter Panel */}
+          {showFilters && (
+            <div className="p-4 bg-sage-50 rounded-lg border border-sage-200 space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <div className="flex-1 min-w-0">
+                  <label className="text-sm font-medium text-sage-700 mb-2 block">Categories</label>
+                  <div className="flex flex-wrap gap-1">
+                    {['all', 'warm-up', 'footwork', 'springs', 'hundred', 'tower', 'cool-down'].map((category) => (
+                      <Button
+                        key={category}
+                        variant={selectedCategory === category ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedCategory(category as ExerciseCategory | 'all')}
+                        className="text-xs h-7"
+                      >
+                        {category === 'all' ? 'All' : category.charAt(0).toUpperCase() + category.slice(1)}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <label className="text-sm font-medium text-sage-700 mb-2 block">Muscle Groups</label>
+                  <div className="flex flex-wrap gap-1">
+                    {['all', 'core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body'].map((group) => (
+                      <Button
+                        key={group}
+                        variant={selectedMuscleGroup === group ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedMuscleGroup(group as MuscleGroup | 'all')}
+                        className="text-xs h-7"
+                      >
+                        {group === 'all' ? 'All' : group.charAt(0).toUpperCase() + group.slice(1)}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-sage-200">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowHidden(!showHidden)}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  {showHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                  {showHidden ? 'Show All' : 'Show Hidden'}
+                </Button>
+
+                {activeFiltersCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    onClick={clearAllFilters}
+                    className="text-sm text-sage-600 hover:text-sage-800"
+                  >
+                    Clear All Filters
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Responsive Exercise Grid */}
+        {/* Exercise Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
           {filteredExercises.map((exercise) => (
             <ExerciseCard
@@ -227,7 +304,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
           </div>
         )}
 
-        {/* Exercise Detail Modal - remove onEdit prop since it doesn't exist */}
         <ExerciseDetailModal
           exercise={selectedExercise}
           isOpen={isDetailModalOpen}
@@ -349,7 +425,6 @@ const ExerciseCard = ({
           {showActions && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <div className="flex gap-2">
-                {/* Edit button */}
                 <button
                   onClick={(e) => onEdit(exercise, e)}
                   className="w-8 h-8 rounded-full bg-sage-600 text-white flex items-center justify-center hover:bg-sage-700 transition-colors"
@@ -358,7 +433,6 @@ const ExerciseCard = ({
                   <Edit className="h-4 w-4" />
                 </button>
 
-                {/* Duplicate button */}
                 <button
                   onClick={(e) => onDuplicate(exercise, e)}
                   className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors"
@@ -367,7 +441,6 @@ const ExerciseCard = ({
                   <Copy className="h-4 w-4" />
                 </button>
 
-                {/* Hide/Show button */}
                 <button
                   onClick={(e) => onToggleHidden(exercise.id, e)}
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
@@ -380,7 +453,6 @@ const ExerciseCard = ({
                   {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 </button>
 
-                {/* Reset button for modified system exercises */}
                 {isCustomized && isSystemExercise && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -408,7 +480,6 @@ const ExerciseCard = ({
                   </AlertDialog>
                 )}
 
-                {/* Delete button for custom exercises */}
                 {isCustom && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>

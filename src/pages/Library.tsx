@@ -7,12 +7,14 @@ import { BottomNavigation } from '@/components/BottomNavigation';
 import { AuthPage } from '@/components/AuthPage';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
+import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 
 const Library = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { preferences } = useUserPreferences();
   const { exercises, loading: exercisesLoading, refetchExercises } = useExercises();
+  const { addExercise } = usePersistedClassPlan();
 
   if (loading || exercisesLoading) {
     return (
@@ -27,13 +29,22 @@ const Library = () => {
   }
 
   const handleAddExercise = (exercise: Exercise) => {
-    // Navigate directly to plan page with the exercise
-    navigate('/plan', { state: { selectedExercises: [exercise] } });
+    console.log('Library handleAddExercise called with:', exercise);
+    
+    try {
+      // Add exercise to the persisted class plan
+      addExercise(exercise);
+      console.log('Exercise added to class plan successfully');
+      
+      // Navigate to plan page to show the updated class
+      navigate('/plan');
+    } catch (error) {
+      console.error('Error in Library handleAddExercise:', error);
+    }
   };
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20 safe-area-pb`}>
-      {/* Use the unified responsive ExerciseLibrary component */}
       <div className="min-h-screen flex flex-col">
         <ExerciseLibrary onAddExercise={handleAddExercise} />
       </div>

@@ -2,62 +2,35 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, RefreshCw, Download, Wifi, WifiOff, Filter } from 'lucide-react';
+import { Search, Filter, Plus } from 'lucide-react';
 
 interface MobileLibraryHeaderProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
-  isOnline: boolean;
-  isInstallable: boolean;
-  onInstallClick: () => void;
   onFilterClick: () => void;
   activeFiltersCount: number;
   exerciseCount: number;
-  onRefresh?: () => void;
-  isRefreshing: boolean;
+  showPregnancySafe: boolean;
+  onPregnancySafeToggle: () => void;
+  onAddExercise: () => void;
 }
 
 export const MobileLibraryHeader = ({
   searchTerm,
   onSearchChange,
-  isOnline,
-  isInstallable,
-  onInstallClick,
   onFilterClick,
   activeFiltersCount,
   exerciseCount,
-  onRefresh,
-  isRefreshing
+  showPregnancySafe,
+  onPregnancySafeToggle,
+  onAddExercise
 }: MobileLibraryHeaderProps) => {
   return (
-    <>
-      {/* Status bar */}
-      <div className="flex items-center justify-between p-3 border-b bg-sage-50 text-xs">
-        <div className="flex items-center gap-2">
-          {isOnline ? (
-            <><Wifi className="h-3 w-3 text-green-600" /><span>Online</span></>
-          ) : (
-            <><WifiOff className="h-3 w-3 text-red-600" /><span>Offline</span></>
-          )}
-        </div>
-        
-        {isInstallable && (
-          <Button 
-            onClick={onInstallClick}
-            size="sm" 
-            variant="outline" 
-            className="h-6 text-xs py-1 px-2"
-          >
-            <Download className="h-3 w-3 mr-1" />
-            Install App
-          </Button>
-        )}
-      </div>
-
-      {/* Search and filter header */}
-      <div className="p-4 border-b bg-white sticky top-0 z-20 space-y-4">
+    <div className="p-4 border-b bg-white sticky top-0 z-20 space-y-4">
+      {/* Search and action buttons */}
+      <div className="flex items-center gap-3">
         {/* Search bar */}
-        <div className="relative">
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search exercises..."
@@ -67,32 +40,44 @@ export const MobileLibraryHeader = ({
           />
         </div>
         
-        {/* Filter button and results */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={onFilterClick}
-            className="h-10 px-4 rounded-xl border-gray-200 flex items-center gap-2"
-          >
-            <Filter className="h-4 w-4" />
-            <span>Filters</span>
-            {activeFiltersCount > 0 && (
-              <Badge className="bg-sage-600 text-white text-xs">
-                {activeFiltersCount}
-              </Badge>
-            )}
-          </Button>
-          
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-600">
-              {exerciseCount} exercises
-            </span>
-            <Button variant="ghost" size="sm" onClick={onRefresh} disabled={isRefreshing}>
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            </Button>
-          </div>
-        </div>
+        {/* Filter button */}
+        <Button
+          variant="outline"
+          onClick={onFilterClick}
+          className="h-12 w-12 rounded-xl border-gray-200 flex items-center justify-center p-0"
+        >
+          <Filter className="h-5 w-5" />
+          {activeFiltersCount > 0 && (
+            <Badge className="absolute -top-1 -right-1 bg-sage-600 text-white text-xs h-5 w-5 rounded-full p-0 flex items-center justify-center">
+              {activeFiltersCount}
+            </Badge>
+          )}
+        </Button>
+        
+        {/* Pregnancy safe toggle */}
+        <Button
+          variant={showPregnancySafe ? "default" : "outline"}
+          onClick={onPregnancySafeToggle}
+          className="h-12 w-12 rounded-xl flex items-center justify-center p-0"
+        >
+          <span className="text-lg">👶</span>
+        </Button>
+        
+        {/* Add exercise button */}
+        <Button
+          onClick={onAddExercise}
+          className="h-12 w-12 rounded-xl bg-sage-600 hover:bg-sage-700 flex items-center justify-center p-0"
+        >
+          <Plus className="h-5 w-5" />
+        </Button>
       </div>
-    </>
+      
+      {/* Exercise count */}
+      <div className="flex justify-center">
+        <span className="text-sm text-gray-600">
+          {exerciseCount} exercises
+        </span>
+      </div>
+    </div>
   );
 };
