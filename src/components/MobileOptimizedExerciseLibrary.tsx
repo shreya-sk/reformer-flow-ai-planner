@@ -6,7 +6,7 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
 import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Exercise, ExerciseCategory } from '@/types/reformer';
+import { Exercise, ExerciseCategory, MuscleGroup } from '@/types/reformer';
 import { MobileExerciseGrid } from './mobile/MobileExerciseGrid';
 import { MobileLibraryHeader } from './mobile/MobileLibraryHeader';
 import { MobileExerciseModal } from './MobileExerciseModal';
@@ -32,12 +32,13 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [showPregnancySafe, setShowPregnancySafe] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
 
-  // Filter states
-  const [selectedCategories, setSelectedCategories] = useState<ExerciseCategory[]>([]);
-  const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([]);
+  // Filter states - matching MobileFilterPanel interface
+  const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | 'all'>('all');
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
 
   // Filter exercises
   const filteredExercises = useMemo(() => {
@@ -51,29 +52,30 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
 
       // Hidden exercises filter
       const isHidden = preferences.hiddenExercises?.includes(exercise.id);
+      const matchesHiddenFilter = showHidden || !isHidden;
       
       // Pregnancy safe filter
       const matchesPregnancy = !showPregnancySafe || exercise.isPregnancySafe;
 
       // Category filter
-      const matchesCategory = selectedCategories.length === 0 || 
-        selectedCategories.includes(exercise.category);
+      const matchesCategory = selectedCategory === 'all' || exercise.category === selectedCategory;
 
       // Muscle group filter
-      const matchesMuscleGroup = selectedMuscleGroups.length === 0 ||
-        selectedMuscleGroups.some(group => exercise.muscleGroups.includes(group as any));
+      const matchesMuscleGroup = selectedMuscleGroup === 'all' ||
+        exercise.muscleGroups.includes(selectedMuscleGroup);
 
-      return matchesSearch && !isHidden && matchesPregnancy && matchesCategory && matchesMuscleGroup;
+      return matchesSearch && matchesHiddenFilter && matchesPregnancy && matchesCategory && matchesMuscleGroup;
     });
-  }, [exercises, searchTerm, preferences.hiddenExercises, showPregnancySafe, selectedCategories, selectedMuscleGroups]);
+  }, [exercises, searchTerm, preferences.hiddenExercises, showHidden, showPregnancySafe, selectedCategory, selectedMuscleGroup]);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (showPregnancySafe) count++;
-    if (selectedCategories.length > 0) count += selectedCategories.length;
-    if (selectedMuscleGroups.length > 0) count += selectedMuscleGroups.length;
+    if (showHidden) count++;
+    if (selectedCategory !== 'all') count++;
+    if (selectedMuscleGroup !== 'all') count++;
     return count;
-  }, [showPregnancySafe, selectedCategories, selectedMuscleGroups]);
+  }, [showPregnancySafe, showHidden, selectedCategory, selectedMuscleGroup]);
 
   // Debug: Add to class function
   const handleAddToClass = useCallback((exercise: Exercise) => {
@@ -105,8 +107,8 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     }
   }, [onExerciseSelect, addExercise, navigate]);
 
-  const handleExerciseClick = useCallback((exercise: Exercise) => {
-    console.log('🔵 Exercise clicked:', exercise.name);
+  const handleExerciseSelect = useCallback((exercise: Exercise) => {
+    console.log('🔵 Exercise selected:', exercise.name);
     setSelectedExercise(exercise);
   }, []);
 
@@ -126,9 +128,10 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   }, []);
 
   const handleClearFilters = useCallback(() => {
-    setSelectedCategories([]);
-    setSelectedMuscleGroups([]);
+    setSelectedCategory('all');
+    setSelectedMuscleGroup('all');
     setShowPregnancySafe(false);
+    setShowHidden(false);
     setShowFilters(false);
   }, []);
 
@@ -145,6 +148,41 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   const handleCancelExercise = useCallback(() => {
     setIsCreating(false);
     setEditingExercise(null);
+  }, []);
+
+  // Mock functions for MobileExerciseGrid props that aren't used in this simplified view
+  const handleToggleFavorite = useCallback((exerciseId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // TODO: Implement favorite functionality
+  }, []);
+
+  const handleToggleHidden = useCallback((exerciseId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // TODO: Implement hide functionality
+  }, []);
+
+  const handleEdit = useCallback((exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleEditExercise(exercise);
+  }, [handleEditExercise]);
+
+  const handleDuplicate = useCallback((exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // TODO: Implement duplicate functionality
+  }, []);
+
+  const handleDelete = useCallback((exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // TODO: Implement delete functionality
+  }, []);
+
+  const handleResetToOriginal = useCallback((exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // TODO: Implement reset functionality
+  }, []);
+
+  const observeImage = useCallback((element: HTMLImageElement, src: string) => {
+    // TODO: Implement image lazy loading
   }, []);
 
   if (!user) {
@@ -182,11 +220,18 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
       {/* Filter Panel */}
       {showFilters && (
         <MobileFilterPanel
-          selectedCategories={selectedCategories}
-          onCategoriesChange={setSelectedCategories}
-          selectedMuscleGroups={selectedMuscleGroups}
-          onMuscleGroupsChange={setSelectedMuscleGroups}
+          isOpen={showFilters}
           onClose={() => setShowFilters(false)}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          selectedMuscleGroup={selectedMuscleGroup}
+          onMuscleGroupChange={setSelectedMuscleGroup}
+          showPregnancySafe={showPregnancySafe}
+          onPregnancySafeChange={setShowPregnancySafe}
+          showHidden={showHidden}
+          onShowHiddenChange={setShowHidden}
+          onClearAll={handleClearFilters}
+          activeFiltersCount={activeFiltersCount}
         />
       )}
 
@@ -194,8 +239,19 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
       <div className="pb-20">
         <MobileExerciseGrid
           exercises={filteredExercises}
-          onExerciseClick={handleExerciseClick}
+          showHidden={showHidden}
+          onExerciseSelect={handleExerciseSelect}
           onAddToClass={handleAddToClass}
+          onToggleFavorite={handleToggleFavorite}
+          onToggleHidden={handleToggleHidden}
+          onEdit={handleEdit}
+          onDuplicate={handleDuplicate}
+          onDelete={handleDelete}
+          onResetToOriginal={handleResetToOriginal}
+          observeImage={observeImage}
+          favoriteExercises={preferences.favoriteExercises || []}
+          hiddenExercises={preferences.hiddenExercises || []}
+          darkMode={preferences.darkMode || false}
         />
       </div>
 
