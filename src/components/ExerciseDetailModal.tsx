@@ -21,6 +21,22 @@ interface ExerciseDetailModalProps {
   showEditButton?: boolean;
 }
 
+// Default preferences object
+const defaultDetailPreferences = {
+  showSpringsEquipment: true,
+  showTeachingCues: true,
+  showBreathingCues: true,
+  showSetupInstructions: true,
+  showMuscleGroups: true,
+  showProgressions: true,
+  showRegressions: true,
+  showModifications: true,
+  showSafetyNotes: true,
+  showDescription: true,
+  showMedia: true,
+  showPregnancySafety: true,
+};
+
 export const ExerciseDetailModal = ({ 
   exercise, 
   isOpen, 
@@ -40,7 +56,12 @@ export const ExerciseDetailModal = ({
   const isCustomized = exercise.isCustomized || false;
   const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
   const canEdit = isCustomExercise || isSystemExercise;
-  const detailPrefs = preferences.exerciseDetailPreferences || {};
+  
+  // Ensure we have proper fallback values for detail preferences
+  const detailPrefs = {
+    ...defaultDetailPreferences,
+    ...(preferences.exerciseDetailPreferences || {})
+  };
 
   const handleEdit = () => {
     setIsEditing(true);

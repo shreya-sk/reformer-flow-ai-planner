@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,22 @@ const defaultProfileImages = [
   '/lovable-uploads/52923e3d-1669-4ae1-9710-9e1c18d8820d.png',
   '/lovable-uploads/52c9b506-ac25-4335-8a26-0c2b10d2c954.png',
 ];
+
+// Default detail preferences
+const defaultDetailPreferences = {
+  showSpringsEquipment: true,
+  showTeachingCues: true,
+  showBreathingCues: true,
+  showSetupInstructions: true,
+  showMuscleGroups: true,
+  showProgressions: true,
+  showRegressions: true,
+  showModifications: true,
+  showSafetyNotes: true,
+  showDescription: true,
+  showMedia: true,
+  showPregnancySafety: true,
+};
 
 export const EnhancedUserProfile = () => {
   const { user, signOut } = useAuth();
@@ -95,7 +112,11 @@ export const EnhancedUserProfile = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const detailPrefs = preferences.exerciseDetailPreferences || {};
+  // Ensure we have proper fallback values for detail preferences
+  const detailPrefs = {
+    ...defaultDetailPreferences,
+    ...(preferences.exerciseDetailPreferences || {})
+  };
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} p-4`}>
