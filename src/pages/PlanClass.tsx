@@ -13,6 +13,9 @@ import { AuthPage } from '@/components/AuthPage';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ClassTeachingMode } from '@/components/ClassTeachingMode';
 import { ClassBuilder } from '@/components/ClassBuilder';
+import { ClassPlanContainer } from '@/components/plan-class/ClassPlanContainer';
+
+
 
 const PlanClass = () => {
   const navigate = useNavigate();
@@ -52,6 +55,7 @@ const PlanClass = () => {
         onClose={() => setIsTeachingMode(false)}
       />
     );
+    return <ClassPlanContainer />;
   }
 
   const handleSaveClass = async () => {

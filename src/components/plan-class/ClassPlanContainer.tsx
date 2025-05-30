@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { ClassHeader } from './ClassHeader';
 import { ClassPlanCart } from './ClassPlanCart';
 import { ExerciseLibrary } from '@/components/ExerciseLibrary';
@@ -15,79 +15,53 @@ export const ClassPlanContainer = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { saveClassPlan, savedClasses } = useClassPlans();
+  const { saveClassPlan } = useClassPlans();
   const { preferences } = useUserPreferences();
   const [showLibrary, setShowLibrary] = useState(false);
   
-  // Get cart exercises from navigation state
-  const cartExercises = location.state?.cartExercises || [];
-  const loadedClass = location.state?.loadedClass;
+  // Use the persisted class plan hook
+  const {
+    currentClass,
+    addExercise,
+    removeExercise,
+    reorderExercises,
+    updateClassName,
+    updateClassDuration,
+    updateClassNotes,
+    updateClassImage,
+    clearClassPlan
+  } = usePersistedClassPlan();
 
-  const initialClass: ClassPlan = loadedClass || {
-    id: '',
-    name: 'New Class',
-    exercises: cartExercises,
-    totalDuration: cartExercises.reduce((sum: number, ex: Exercise) => sum + ex.duration, 0),
-    createdAt: new Date(),
-    notes: '',
-  };
+  console.log('🔍 ClassPlanContainer Debug:', {
+    'currentClass': currentClass,
+    'currentClass.exercises': currentClass.exercises,
+    'currentClass.exercises.length': currentClass.exercises.length
+  });
+
+  // Load class from navigation state if provided
+  useEffect(() => {
+    const cartExercises = location.state?.cartExercises;
+    const loadedClass = location.state?.loadedClass;
+    
+    if (loadedClass) {
+      // If we have a loaded class, we should set it in the persisted state
+      // For now, we'll just navigate without state to avoid conflicts
+      navigate(location.pathname, { replace: true });
+    } else if (cartExercises && cartExercises.length > 0) {
+      // Add cart exercises to current class
+      cartExercises.forEach((exercise: Exercise) => {
+        addExercise(exercise);
+      });
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, addExercise]);
 
   const {
-    state: currentClass,
-    set: setCurrentClass,
     undo,
     redo,
     canUndo,
     canRedo,
-    reset: resetUndoHistory
-  } = useUndoRedo<ClassPlan>(initialClass);
-
-  // Clear navigation state after using it
-  useEffect(() => {
-    if (location.state?.cartExercises || location.state?.loadedClass) {
-      navigate(location.pathname, { replace: true });
-    }
-  }, []);
-
-  const addExerciseToClass = (exercise: Exercise) => {
-    setCurrentClass(prev => ({
-      ...prev,
-      exercises: [...prev.exercises, { ...exercise, id: `${exercise.id}-${Date.now()}` }],
-      totalDuration: prev.totalDuration + exercise.duration,
-    }));
-  };
-
-  const removeExerciseFromClass = (exerciseId: string) => {
-    const exercise = currentClass.exercises.find(ex => ex.id === exerciseId);
-    if (exercise) {
-      setCurrentClass(prev => ({
-        ...prev,
-        exercises: prev.exercises.filter(ex => ex.id !== exerciseId),
-        totalDuration: prev.totalDuration - exercise.duration,
-      }));
-    }
-  };
-
-  const reorderExercises = (exercises: Exercise[]) => {
-    setCurrentClass(prev => ({
-      ...prev,
-      exercises,
-      totalDuration: exercises.reduce((sum, ex) => sum + ex.duration, 0),
-    }));
-  };
-
-  const updateExerciseInClass = (updatedExercise: Exercise) => {
-    setCurrentClass(prev => ({
-      ...prev,
-      exercises: prev.exercises.map(ex => 
-        ex.id === updatedExercise.id ? updatedExercise : ex
-      ),
-    }));
-  };
-
-  const updateClassName = (name: string) => {
-    setCurrentClass(prev => ({ ...prev, name }));
-  };
+  } = useUndoRedo(currentClass);
 
   const handleSaveClass = async () => {
     if (currentClass.exercises.length === 0) {
@@ -104,27 +78,40 @@ export const ClassPlanContainer = () => {
       name: currentClass.name || `Class ${Date.now()}`,
     };
     
-    await saveClassPlan(classToSave);
-    
-    toast({
-      title: "Class saved!",
-      description: "Redirecting to My Classes...",
-    });
-    
-    resetUndoHistory(classToSave);
-    
-    setTimeout(() => {
-      navigate('/');
-    }, 1500);
+    try {
+      await saveClassPlan(classToSave);
+      
+      toast({
+        title: "Class saved!",
+        description: "Redirecting to My Classes...",
+      });
+      
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
+    } catch (error) {
+      toast({
+        title: "Error saving class",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAddExercise = () => {
     setShowLibrary(true);
   };
 
-  const handleLibraryAddExercise = (exercise: Exercise) => {
-    addExerciseToClass(exercise);
-    
+  const handleStartTeaching = () => {
+    if (currentClass.exercises.length === 0) {
+      toast({
+        title: "Cannot start teaching",
+        description: "Add some exercises to your class first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    navigate(`/teaching/${currentClass.id}`);
   };
 
   if (!user) {
@@ -139,6 +126,7 @@ export const ClassPlanContainer = () => {
           currentClass={currentClass}
           onUpdateClassName={updateClassName}
           onSaveClass={handleSaveClass}
+          onStartTeaching={handleStartTeaching}
           onUndo={undo}
           onRedo={redo}
           canUndo={canUndo}
@@ -157,21 +145,58 @@ export const ClassPlanContainer = () => {
         currentClass={currentClass}
         onUpdateClassName={updateClassName}
         onSaveClass={handleSaveClass}
+        onStartTeaching={handleStartTeaching}
         onUndo={undo}
         onRedo={redo}
         canUndo={canUndo}
         canRedo={canRedo}
       />
 
-      <ClassPlanCart
-        currentClass={currentClass}
-        onUpdateClassName={updateClassName}
-        onRemoveExercise={removeExerciseFromClass}
-        onReorderExercises={reorderExercises}
-        onUpdateExercise={updateExerciseInClass}
-        onSaveClass={handleSaveClass}
-        onAddExercise={handleAddExercise}
-      />
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Class Plan Cart */}
+          <div className="lg:w-1/3">
+            <ClassPlanCart
+              currentClass={currentClass}
+              onRemoveExercise={removeExercise}
+              onReorderExercises={reorderExercises}
+              onAddExercise={handleAddExercise}
+            />
+          </div>
+
+          {/* Quick Add Section */}
+          <div className="lg:w-2/3">
+            <div className="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
+              <h2 className="text-xl font-semibold text-sage-800 mb-4">Quick Actions</h2>
+              <div className="space-y-4">
+                <button
+                  onClick={handleAddExercise}
+                  className="w-full p-4 border-2 border-dashed border-sage-300 rounded-lg text-sage-600 hover:border-sage-400 hover:bg-sage-50 transition-colors"
+                >
+                  + Add Exercise from Library
+                </button>
+                
+                {currentClass.exercises.length > 0 && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <button
+                      onClick={handleSaveClass}
+                      className="p-3 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
+                    >
+                      Save Class
+                    </button>
+                    <button
+                      onClick={handleStartTeaching}
+                      className="p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Start Teaching
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

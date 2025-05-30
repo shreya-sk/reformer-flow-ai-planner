@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -59,7 +58,7 @@ export const useDataSync = () => {
   }, [user]);
 
   // Sync localStorage data to Supabase
-  const syncToCloud = useCallback(async () => {
+  const syncToCloud = useCallback(async (showSuccessToast = false) => {
     if (!user || !syncStatus.isOnline) return;
 
     setSyncStatus(prev => ({ ...prev, isSyncing: true }));
@@ -90,11 +89,20 @@ export const useDataSync = () => {
         hasPendingChanges: false,
       }));
 
+      // Only show success toast if explicitly requested (e.g., manual sync)
+      if (showSuccessToast) {
+        toast({
+          title: "Data synced",
+          description: "Your data has been synced to the cloud.",
+        });
+      }
+
       console.log('Data synced to cloud successfully');
     } catch (error) {
       console.error('Error syncing to cloud:', error);
       setSyncStatus(prev => ({ ...prev, isSyncing: false }));
       
+      // Only show error toasts for sync failures
       toast({
         title: "Sync failed",
         description: "Failed to sync data to cloud. Changes saved locally.",
@@ -104,7 +112,7 @@ export const useDataSync = () => {
   }, [user, syncStatus.isOnline]);
 
   // Load data from Supabase and merge with localStorage
-  const syncFromCloud = useCallback(async () => {
+  const syncFromCloud = useCallback(async (showSuccessToast = false) => {
     if (!user || !syncStatus.isOnline) return;
 
     setSyncStatus(prev => ({ ...prev, isSyncing: true }));
@@ -145,17 +153,20 @@ export const useDataSync = () => {
           }
           localStorage.setItem('last_sync_time', cloudSyncTime.toISOString());
 
-          toast({
-            title: "Data restored",
-            description: "Your data has been restored from the cloud.",
-          });
+          // Only show this toast if explicitly requested or if it's a significant restore
+          if (showSuccessToast) {
+            toast({
+              title: "Data restored",
+              description: "Your data has been restored from the cloud.",
+            });
+          }
         } else if (localClassPlan || localPreferences) {
-          // Local data is newer or equal, sync to cloud
-          await syncToCloud();
+          // Local data is newer or equal, sync to cloud silently
+          await syncToCloud(false);
         }
       } else {
-        // No cloud data exists, sync local data to cloud
-        await syncToCloud();
+        // No cloud data exists, sync local data to cloud silently
+        await syncToCloud(false);
       }
 
       setSyncStatus(prev => ({
@@ -169,20 +180,20 @@ export const useDataSync = () => {
     }
   }, [user, syncStatus.isOnline, syncToCloud]);
 
-  // Auto-sync when user logs in
+  // Auto-sync when user logs in - silent
   useEffect(() => {
     if (user && syncStatus.isOnline) {
-      syncFromCloud();
+      syncFromCloud(false); // Silent sync on login
     }
   }, [user, syncFromCloud, syncStatus.isOnline]);
 
-  // Periodic sync for authenticated users
+  // Periodic sync for authenticated users - silent
   useEffect(() => {
     if (!user || !syncStatus.isOnline) return;
 
     const interval = setInterval(() => {
       if (syncStatus.hasPendingChanges) {
-        syncToCloud();
+        syncToCloud(false); // Silent background sync
       }
     }, 30000); // Sync every 30 seconds if there are pending changes
 
@@ -194,17 +205,17 @@ export const useDataSync = () => {
     setSyncStatus(prev => ({ ...prev, hasPendingChanges: true }));
   }, []);
 
-  // Force sync now
+  // Force sync now - this one can show success toast since it's manual
   const forceSyncNow = useCallback(async () => {
     if (user && syncStatus.isOnline) {
-      await syncToCloud();
+      await syncToCloud(true); // Show toast for manual sync
     }
   }, [user, syncStatus.isOnline, syncToCloud]);
 
   return {
     syncStatus,
-    syncToCloud,
-    syncFromCloud,
+    syncToCloud: (showToast = false) => syncToCloud(showToast),
+    syncFromCloud: (showToast = false) => syncFromCloud(showToast),
     markPendingChanges,
     forceSyncNow,
   };

@@ -6,7 +6,7 @@ const CLASS_PLAN_KEY = 'reformerly_class_plan';
 
 const getInitialClassPlan = (): ClassPlan => ({
   id: `class-${Date.now()}`,
-  name: '',
+  name: 'New Class',
   duration: 45,
   exercises: [],
   totalDuration: 0,
@@ -19,7 +19,6 @@ const getInitialClassPlan = (): ClassPlan => ({
 
 export const usePersistedClassPlan = () => {
   const [currentClass, setCurrentClass] = useState<ClassPlan>(getInitialClassPlan());
-  const { markPendingChanges } = useDataSync();
 
   useEffect(() => {
     const storedClassPlan = localStorage.getItem(CLASS_PLAN_KEY);
@@ -41,20 +40,28 @@ export const usePersistedClassPlan = () => {
   useEffect(() => {
     console.log('Saving class plan to localStorage:', currentClass);
     localStorage.setItem(CLASS_PLAN_KEY, JSON.stringify(currentClass));
-    markPendingChanges(); // Mark for sync
-  }, [currentClass, markPendingChanges]);
+    // markPendingChanges(); // Mark for sync (removed or comment out if not defined)
+  }, [currentClass]);
 
   const updateClass = (updatedClass: Partial<ClassPlan>) => {
-    console.log('Updating class with:', updatedClass);
+    console.log('🔄 usePersistedClassPlan: updateClass called with:', updatedClass);
     setCurrentClass(prevClass => {
-      const newClass = { ...prevClass, ...updatedClass, updatedAt: new Date() };
-      console.log('New class state:', newClass);
+      const newClass = { 
+        ...prevClass, 
+        ...updatedClass, 
+        updatedAt: new Date() 
+      };
+      console.log('🔄 usePersistedClassPlan: New class state:', {
+        name: newClass.name,
+        exerciseCount: newClass.exercises.length,
+        totalDuration: newClass.totalDuration
+      });
       return newClass;
     });
   };
 
   const addExercise = (exercise: Exercise) => {
-    console.log('Adding exercise to class plan:', exercise);
+    console.log('➕ usePersistedClassPlan: Adding exercise:', exercise.name);
     setCurrentClass(prevClass => {
       // Create a unique ID if not already unique
       const timestamp = Date.now();
@@ -72,14 +79,22 @@ export const usePersistedClassPlan = () => {
         totalDuration, 
         updatedAt: new Date() 
       };
-      console.log('Updated class plan after adding exercise:', newClass);
+      
+      console.log('➕ usePersistedClassPlan: After adding exercise:', {
+        name: newClass.name,
+        exerciseCount: newClass.exercises.length,
+        totalDuration: newClass.totalDuration,
+        addedExercise: uniqueExercise.name
+      });
+      
       return newClass;
     });
   };
 
   const removeExercise = (exerciseId: string) => {
-    console.log('Removing exercise from class plan:', exerciseId);
+    console.log('➖ usePersistedClassPlan: Removing exercise:', exerciseId);
     setCurrentClass(prevClass => {
+      const exerciseToRemove = prevClass.exercises.find(ex => ex.id === exerciseId);
       const newExercises = prevClass.exercises.filter(exercise => exercise.id !== exerciseId);
       const totalDuration = newExercises.reduce((sum, ex) => sum + (ex.duration || 0), 0);
       const newClass = { 
@@ -88,13 +103,20 @@ export const usePersistedClassPlan = () => {
         totalDuration, 
         updatedAt: new Date() 
       };
-      console.log('Updated class plan after removing exercise:', newClass);
+      
+      console.log('➖ usePersistedClassPlan: After removing exercise:', {
+        name: newClass.name,
+        exerciseCount: newClass.exercises.length,
+        totalDuration: newClass.totalDuration,
+        removedExercise: exerciseToRemove?.name || 'Unknown'
+      });
+      
       return newClass;
     });
   };
 
   const reorderExercises = (exercises: Exercise[]) => {
-    console.log('Reordering exercises in class plan:', exercises);
+    console.log('🔄 usePersistedClassPlan: Reordering exercises:', exercises.length);
     setCurrentClass(prevClass => {
       const totalDuration = exercises.reduce((sum, ex) => sum + (ex.duration || 0), 0);
       const newClass = { 
@@ -103,34 +125,45 @@ export const usePersistedClassPlan = () => {
         totalDuration, 
         updatedAt: new Date() 
       };
-      console.log('Updated class plan after reordering:', newClass);
+      
+      console.log('🔄 usePersistedClassPlan: After reordering:', {
+        name: newClass.name,
+        exerciseCount: newClass.exercises.length,
+        totalDuration: newClass.totalDuration
+      });
+      
       return newClass;
     });
   };
 
   const updateClassName = (name: string) => {
+    console.log('📝 usePersistedClassPlan: Updating class name to:', name);
     updateClass({ name });
   };
 
   const updateClassDuration = (duration: number) => {
+    console.log('⏱️ usePersistedClassPlan: Updating class duration to:', duration);
     updateClass({ classDuration: duration });
   };
 
   const updateClassNotes = (notes: string) => {
+    console.log('📝 usePersistedClassPlan: Updating class notes');
     updateClass({ notes });
   };
 
   const updateClassImage = (image: string) => {
+    console.log('🖼️ usePersistedClassPlan: Updating class image');
     updateClass({ image });
   };
 
   const clearClassPlan = () => {
-    console.log('Clearing class plan');
-    setCurrentClass(getInitialClassPlan());
+    console.log('🗑️ usePersistedClassPlan: Clearing class plan');
+    const initialPlan = getInitialClassPlan();
+    setCurrentClass(initialPlan);
   };
 
   const addCallout = (name: string, position: number) => {
-    console.log('Adding callout to class plan:', name, 'at position:', position);
+    console.log('📝 usePersistedClassPlan: Adding callout:', name, 'at position:', position);
     const calloutExercise: Exercise = {
       id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name,
@@ -161,10 +194,35 @@ export const usePersistedClassPlan = () => {
       contraindications: []
     };
 
-    const newExercises = [...currentClass.exercises];
-    newExercises.splice(position, 0, calloutExercise);
-    reorderExercises(newExercises);
+    setCurrentClass(prevClass => {
+      const newExercises = [...prevClass.exercises];
+      newExercises.splice(position, 0, calloutExercise);
+      const totalDuration = newExercises.reduce((sum, ex) => sum + (ex.duration || 0), 0);
+      
+      const newClass = {
+        ...prevClass,
+        exercises: newExercises,
+        totalDuration,
+        updatedAt: new Date()
+      };
+      
+      console.log('📝 usePersistedClassPlan: After adding callout:', {
+        name: newClass.name,
+        exerciseCount: newClass.exercises.length,
+        totalDuration: newClass.totalDuration
+      });
+      
+      return newClass;
+    });
   };
+
+  // Debug logging for current state
+  console.log('🎯 usePersistedClassPlan current state:', {
+    name: currentClass.name,
+    exerciseCount: currentClass.exercises.length,
+    totalDuration: currentClass.totalDuration,
+    exercises: currentClass.exercises.map(ex => ({ id: ex.id, name: ex.name, duration: ex.duration }))
+  });
 
   return {
     currentClass,

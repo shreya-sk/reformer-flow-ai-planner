@@ -34,7 +34,7 @@ export const ClassPlanCart = ({
   totalDuration = 0, 
   targetDuration = 45 
 }: ClassPlanCartProps) => {
-  const displayExercises = exercises.length > 0 ? exercises : currentClass?.exercises || [];
+  const displayExercises = currentClass?.exercises || exercises;
   const displayDuration = totalDuration > 0 ? totalDuration : currentClass?.totalDuration || 0;
   const displayTargetDuration = targetDuration !== 45 ? targetDuration : currentClass?.duration || 45;
 
