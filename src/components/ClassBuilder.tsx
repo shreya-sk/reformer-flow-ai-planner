@@ -88,8 +88,6 @@ export const ClassBuilder = ({
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showImageSelector, setShowImageSelector] = useState(false);
-  const [showCalloutSelector, setShowCalloutSelector] = useState(false);
-  const [calloutInsertPosition, setCalloutInsertPosition] = useState(0);
   const [editingCallout, setEditingCallout] = useState<string | null>(null);
   const [editCalloutValue, setEditCalloutValue] = useState('');
   const [isDragging, setIsDragging] = useState(false);
@@ -186,87 +184,11 @@ export const ClassBuilder = ({
     }
   };
 
-  const handleAddCustomCallout = (callout: CustomCallout, position: number) => {
+  const handleAddCallout = (position: number) => {
+    console.log('ClassBuilder handleAddCallout called with position:', position);
     if (onAddCallout) {
-      const calloutExercise: Exercise = {
-        id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        name: callout.name,
-        category: 'callout',
-        difficulty: 'beginner',
-        intensityLevel: 'low',
-        duration: 0,
-        muscleGroups: [],
-        equipment: [],
-        springs: 'none',
-        isPregnancySafe: true,
-        description: `${callout.name} section divider`,
-        calloutColor: callout.color,
-        cues: [],
-        notes: '',
-        image: '',
-        videoUrl: '',
-        setup: '',
-        repsOrDuration: '',
-        tempo: '',
-        targetAreas: [],
-        breathingCues: [],
-        teachingFocus: [],
-        modifications: [],
-        progressions: [],
-        regressions: [],
-        transitions: [],
-        contraindications: []
-      };
-
-      const newExercises = [...currentClass.exercises];
-      newExercises.splice(position, 0, calloutExercise);
-      onReorderExercises(newExercises);
+      onAddCallout(position);
     }
-    setShowCalloutSelector(false);
-  };
-
-  const handleAddDefaultCallout = (position: number) => {
-    if (onAddCallout) {
-      const calloutExercise: Exercise = {
-        id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        name: `Note ${Date.now()}`,
-        category: 'callout',
-        difficulty: 'beginner',
-        intensityLevel: 'low',
-        duration: 0,
-        muscleGroups: [],
-        equipment: [],
-        springs: 'none',
-        isPregnancySafe: true,
-        description: 'Section divider',
-        calloutColor: 'amber',
-        cues: [],
-        notes: '',
-        image: '',
-        videoUrl: '',
-        setup: '',
-        repsOrDuration: '',
-        tempo: '',
-        targetAreas: [],
-        breathingCues: [],
-        teachingFocus: [],
-        modifications: [],
-        progressions: [],
-        regressions: [],
-        transitions: [],
-        contraindications: []
-      };
-
-      const newExercises = [...currentClass.exercises];
-      newExercises.splice(position, 0, calloutExercise);
-      onReorderExercises(newExercises);
-    }
-    setShowCalloutSelector(false);
-  };
-
-  const openCalloutSelector = (position: number) => {
-    setCalloutInsertPosition(position);
-    setShowCalloutSelector(true);
   };
 
   const handleShortlistExercise = (exercise: Exercise, e: React.MouseEvent) => {
@@ -562,7 +484,7 @@ export const ClassBuilder = ({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => openCalloutSelector(0)}
+                      onClick={() => handleAddCallout(0)}
                       className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
                     >
                       <Plus className="h-3 w-3 mr-1" />
@@ -622,7 +544,7 @@ export const ClassBuilder = ({
                                     variant="ghost"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      startEditingCallout(group.callout);
+                                      startEditingCallout(group.callout!);
                                     }}
                                     className={`h-6 w-6 p-0 ${getCalloutColorClasses(group.callout.calloutColor).text}`}
                                   >
@@ -633,7 +555,7 @@ export const ClassBuilder = ({
                                     variant="ghost"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      if (onDeleteCallout) onDeleteCallout(group.callout.id);
+                                      if (onDeleteCallout) onDeleteCallout(group.callout!.id);
                                     }}
                                     className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
                                   >
@@ -663,7 +585,7 @@ export const ClassBuilder = ({
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => openCalloutSelector(group.startIndex + group.exercises.length)}
+                                  onClick={() => handleAddCallout(group.startIndex + group.exercises.length)}
                                   className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
                                 >
                                   <Plus className="h-3 w-3 mr-1" />
@@ -692,7 +614,7 @@ export const ClassBuilder = ({
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => openCalloutSelector(group.startIndex + group.exercises.length)}
+                              onClick={() => handleAddCallout(group.startIndex + group.exercises.length)}
                               className="rounded-full bg-sage-50 border-sage-300 hover:bg-sage-100 text-sage-700 text-xs"
                             >
                               <Plus className="h-3 w-3 mr-1" />
@@ -705,7 +627,7 @@ export const ClassBuilder = ({
                   ))}
 
                   {/* Final drop zone */}
-                  <DropZone index={currentClass.exercises.length} className="mt-4" />
+                  <DropZone index={currentClass.exercises.length} className="min-h-4" />
                 </div>
               )}
             </div>
@@ -713,63 +635,15 @@ export const ClassBuilder = ({
         </div>
       </div>
 
-      {/* Custom Callout Selector Dialog */}
-      <Dialog open={showCalloutSelector} onOpenChange={setShowCalloutSelector}>
-        <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              Add Section Divider
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {/* Default callout option */}
-            <Button
-              variant="outline"
-              className="w-full justify-start h-auto p-3"
-              onClick={() => handleAddDefaultCallout(calloutInsertPosition)}
-            >
-              <div className="border-l-4 border-amber-400 pl-3 py-2 bg-amber-50 rounded-r flex-1 text-left">
-                <span className="font-medium text-amber-700">Default Note</span>
-              </div>
-            </Button>
-
-            {/* Custom callouts */}
-            {(preferences.customCallouts || []).map((callout) => {
-              const colorClasses = getCalloutColorClasses(callout.color);
-              return (
-                <Button
-                  key={callout.id}
-                  variant="outline"
-                  className="w-full justify-start h-auto p-3"
-                  onClick={() => handleAddCustomCallout(callout, calloutInsertPosition)}
-                >
-                  <div className={`border-l-4 ${colorClasses.border} pl-3 py-2 ${colorClasses.bg} rounded-r flex-1 text-left`}>
-                    <span className={`font-medium ${colorClasses.text}`}>{callout.name}</span>
-                  </div>
-                </Button>
-              );
-            })}
-
-            {(preferences.customCallouts || []).length === 0 && (
-              <div className="text-center py-4 text-gray-500 text-sm">
-                No custom callouts yet. Create some in your profile settings.
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {selectedExercise && (
-        <ExerciseDetailModal
-          exercise={selectedExercise}
-          isOpen={showDetailModal}
-          onClose={() => {
-            setShowDetailModal(false);
-            setSelectedExercise(null);
-          }}
-          onEditExercise={handleUpdateExerciseFromModal}
-        />
-      )}
+      <ExerciseDetailModal
+        exercise={selectedExercise}
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedExercise(null);
+        }}
+        onSave={handleUpdateExerciseFromModal}
+      />
     </>
   );
 };

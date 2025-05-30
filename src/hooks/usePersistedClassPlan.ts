@@ -54,7 +54,15 @@ export const usePersistedClassPlan = () => {
   const addExercise = (exercise: Exercise) => {
     console.log('Adding exercise to class plan:', exercise);
     setCurrentClass(prevClass => {
-      const newExercises = [...prevClass.exercises, exercise];
+      // Create a unique ID if not already unique
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substr(2, 9);
+      const uniqueExercise = {
+        ...exercise,
+        id: `${exercise.id}-${timestamp}-${randomId}`,
+      };
+      
+      const newExercises = [...prevClass.exercises, uniqueExercise];
       const totalDuration = newExercises.reduce((sum, ex) => sum + (ex.duration || 0), 0);
       const newClass = { 
         ...prevClass, 

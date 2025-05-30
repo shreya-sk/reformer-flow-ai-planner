@@ -33,17 +33,8 @@ const Library = () => {
     console.log('Library handleAddExercise called with:', exercise);
     
     try {
-      const timestamp = Date.now();
-      const randomId = Math.random().toString(36).substr(2, 9);
-      const uniqueId = `${exercise.id}-${timestamp}-${randomId}`;
-      
-      const exerciseToAdd = {
-        ...exercise,
-        id: uniqueId,
-      };
-      
-      console.log('Calling addExercise with:', exerciseToAdd);
-      addExercise(exerciseToAdd);
+      console.log('Calling addExercise with original exercise:', exercise);
+      addExercise(exercise);
       console.log('Exercise added to class plan successfully');
       
       toast({
