@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { X, Plus, Sparkles, Clock, Target, Settings } from 'lucide-react';
-import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment } from '@/types/reformer';
+import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment, TeachingFocus } from '@/types/reformer';
 import { z } from 'zod';
 import { exerciseSchema } from '@/schemas/exercise';
 
@@ -35,6 +35,17 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
     notes: exercise?.notes || '',
     cues: exercise?.cues || [] as string[],
     isPregnancySafe: exercise?.isPregnancySafe || false,
+    setup: exercise?.setup || '',
+    repsOrDuration: exercise?.repsOrDuration || '',
+    tempo: exercise?.tempo || '',
+    targetAreas: exercise?.targetAreas || [] as string[],
+    breathingCues: exercise?.breathingCues || [] as string[],
+    teachingFocus: exercise?.teachingFocus || [] as TeachingFocus[],
+    modifications: exercise?.modifications || [] as string[],
+    progressions: exercise?.progressions || [] as string[],
+    regressions: exercise?.regressions || [] as string[],
+    transitions: exercise?.transitions || [] as string[],
+    contraindications: exercise?.contraindications || [] as string[],
   });
 
   const [newCue, setNewCue] = useState('');
@@ -104,35 +115,39 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
     }
   };
 
-  const handleSubmit = (values: z.infer<typeof exerciseSchema>) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
     const exerciseData: Exercise = {
-      name: values.name,
-      category: values.category,
-      duration: values.duration,
-      springs: values.springs,
-      difficulty: values.difficulty,
-      intensityLevel: values.intensityLevel,
-      muscleGroups: values.muscleGroups,
-      equipment: values.equipment,
-      description: values.description || '',
-      image: values.image || '',
-      videoUrl: values.videoUrl || '',
-      notes: values.notes || '',
-      cues: values.cues || [],
-      setup: values.setup || '',
-      repsOrDuration: values.repsOrDuration || '',
-      tempo: values.tempo || '',
-      targetAreas: values.targetAreas || [],
-      breathingCues: values.breathingCues || [],
-      teachingFocus: values.teachingFocus || [],
-      modifications: values.modifications || [],
-      progressions: values.progressions || [],
-      regressions: values.regressions || [],
-      transitions: values.transitions || [],
-      contraindications: values.contraindications || [],
-      isPregnancySafe: values.isPregnancySafe || false,
+      id: exercise?.id || Date.now().toString(),
+      name: formData.name,
+      category: formData.category,
+      duration: formData.duration,
+      springs: formData.springs,
+      difficulty: formData.difficulty,
+      intensityLevel: formData.intensityLevel,
+      muscleGroups: formData.muscleGroups,
+      equipment: formData.equipment,
+      description: formData.description,
+      image: formData.image,
+      videoUrl: formData.videoUrl,
+      notes: formData.notes,
+      cues: formData.cues,
+      setup: formData.setup,
+      repsOrDuration: formData.repsOrDuration,
+      tempo: formData.tempo,
+      targetAreas: formData.targetAreas,
+      breathingCues: formData.breathingCues,
+      teachingFocus: formData.teachingFocus,
+      modifications: formData.modifications,
+      progressions: formData.progressions,
+      regressions: formData.regressions,
+      transitions: formData.transitions,
+      contraindications: formData.contraindications,
+      isPregnancySafe: formData.isPregnancySafe,
       isCustom: true,
-      id: Date.now().toString()
+      createdAt: exercise?.createdAt || new Date(),
+      updatedAt: new Date()
     };
 
     onSave(exerciseData);

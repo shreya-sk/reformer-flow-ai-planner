@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +20,7 @@ interface ClassPlanCartProps {
   onUpdateExercise?: (exercise: Exercise) => void;
   onSaveClass?: () => Promise<void>;
   onAddExercise?: () => void;
+  onRemoveExercise?: (exerciseId: string) => void;
 }
 
 export const ClassPlanCart = ({ 
@@ -29,6 +29,7 @@ export const ClassPlanCart = ({
   onRemove, 
   onReorder,
   onReorderExercises,
+  onRemoveExercise,
   onAddCallout,
   totalDuration = 0, 
   targetDuration = 45 
@@ -48,6 +49,14 @@ export const ClassPlanCart = ({
       onReorder(items);
     } else if (onReorderExercises) {
       onReorderExercises(items);
+    }
+  };
+
+  const handleRemove = (exerciseId: string) => {
+    if (onRemove) {
+      onRemove(exerciseId);
+    } else if (onRemoveExercise) {
+      onRemoveExercise(exerciseId);
     }
   };
 
@@ -136,11 +145,11 @@ export const ClassPlanCart = ({
                             </div>
                           </div>
                           
-                          {onRemove && (
+                          {(onRemove || onRemoveExercise) && (
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => onRemove(exercise.id)}
+                              onClick={() => handleRemove(exercise.id)}
                               className="text-red-600 hover:text-red-700 hover:bg-red-50"
                             >
                               <Trash2 className="h-4 w-4" />

@@ -14,117 +14,86 @@ export const useClassPlans = () => {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // First fetch class plans
+      const { data: classPlansData, error: classPlansError } = await supabase
         .from('class_plans')
-        .select(`
-          id,
-          name,
-          duration_minutes,
-          notes,
-          image_url,
-          created_at,
-          updated_at,
-          class_plan_exercises (
-            id,
-            exercise_id,
-            position,
-            system_exercises (
-              id,
-              name,
-              category,
-              duration,
-              springs,
-              difficulty,
-              muscle_groups,
-              equipment,
-              description,
-              image_url,
-              video_url,
-              notes,
-              cues,
-              setup,
-              reps_or_duration,
-              tempo,
-              target_areas,
-              breathing_cues,
-              teaching_focus,
-              modifications,
-              progressions,
-              regressions,
-              contraindications,
-              is_pregnancy_safe
-            ),
-            user_exercises (
-              id,
-              name,
-              category,
-              duration,
-              springs,
-              difficulty,
-              muscle_groups,
-              equipment,
-              description,
-              image_url,
-              video_url,
-              notes,
-              cues,
-              setup,
-              reps_or_duration,
-              tempo,
-              target_areas,
-              breathing_cues,
-              teaching_focus,
-              modifications,
-              progressions,
-              regressions,
-              contraindications,
-              is_pregnancy_safe
-            )
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (classPlansError) throw classPlansError;
 
-      const transformedPlans: ClassPlan[] = data.map(plan => {
-        const exercises: Exercise[] = plan.class_plan_exercises
-          .sort((a, b) => a.position - b.position)
-          .map(cpe => {
-            const exercise = cpe.system_exercises || cpe.user_exercises;
-            return {
-              id: exercise.id,
-              name: exercise.name,
-              category: exercise.category,
-              duration: exercise.duration,
-              springs: exercise.springs,
-              difficulty: exercise.difficulty,
+      // Then fetch exercises for each class plan
+      const transformedPlans: ClassPlan[] = [];
+      
+      for (const plan of classPlansData || []) {
+        // Fetch class plan exercises
+        const { data: classPlanExercises, error: cpeError } = await supabase
+          .from('class_plan_exercises')
+          .select('*')
+          .eq('class_plan_id', plan.id)
+          .order('position');
+
+        if (cpeError) throw cpeError;
+
+        const exercises: Exercise[] = [];
+        
+        // Fetch exercise details for each class plan exercise
+        for (const cpe of classPlanExercises || []) {
+          let exerciseData = null;
+          
+          if (cpe.exercise_type === 'system') {
+            const { data: systemExercise } = await supabase
+              .from('system_exercises')
+              .select('*')
+              .eq('id', cpe.exercise_id)
+              .single();
+            exerciseData = systemExercise;
+          } else {
+            const { data: userExercise } = await supabase
+              .from('user_exercises')
+              .select('*')
+              .eq('id', cpe.exercise_id)
+              .single();
+            exerciseData = userExercise;
+          }
+
+          if (exerciseData) {
+            const exercise: Exercise = {
+              id: exerciseData.id,
+              name: exerciseData.name,
+              category: exerciseData.category,
+              duration: cpe.duration_override || exerciseData.duration,
+              springs: exerciseData.springs,
+              difficulty: exerciseData.difficulty,
               intensityLevel: 'medium' as const,
-              muscleGroups: exercise.muscle_groups || [],
-              equipment: exercise.equipment || [],
-              description: exercise.description || '',
-              image: exercise.image_url || '',
-              videoUrl: exercise.video_url || '',
-              notes: exercise.notes || '',
-              cues: exercise.cues || [],
-              setup: exercise.setup || '',
-              repsOrDuration: exercise.reps_or_duration || '',
-              tempo: exercise.tempo || '',
-              targetAreas: exercise.target_areas || [],
-              breathingCues: exercise.breathing_cues || [],
-              teachingFocus: exercise.teaching_focus || [],
-              modifications: exercise.modifications || [],
-              progressions: exercise.progressions || [],
-              regressions: exercise.regressions || [],
+              muscleGroups: exerciseData.muscle_groups || [],
+              equipment: exerciseData.equipment || [],
+              description: exerciseData.description || '',
+              image: exerciseData.image_url || '',
+              videoUrl: exerciseData.video_url || '',
+              notes: cpe.notes || exerciseData.notes || '',
+              cues: exerciseData.cues || [],
+              setup: exerciseData.setup || '',
+              repsOrDuration: cpe.reps_override || exerciseData.reps_or_duration || '',
+              tempo: exerciseData.tempo || '',
+              targetAreas: exerciseData.target_areas || [],
+              breathingCues: exerciseData.breathing_cues || [],
+              teachingFocus: exerciseData.teaching_focus || [],
+              modifications: exerciseData.modifications || [],
+              progressions: exerciseData.progressions || [],
+              regressions: exerciseData.regressions || [],
               transitions: [],
-              contraindications: exercise.contraindications || [],
-              isPregnancySafe: exercise.is_pregnancy_safe || false,
-              isCustom: !!cpe.user_exercises,
-              isSystemExercise: !!cpe.system_exercises,
+              contraindications: exerciseData.contraindications || [],
+              isPregnancySafe: exerciseData.is_pregnancy_safe || false,
+              isCustom: cpe.exercise_type === 'user',
+              isSystemExercise: cpe.exercise_type === 'system',
             };
-          });
+            exercises.push(exercise);
+          }
+        }
 
-        return {
+        transformedPlans.push({
           id: plan.id,
           name: plan.name,
           duration: plan.duration_minutes,
@@ -135,8 +104,8 @@ export const useClassPlans = () => {
           updatedAt: new Date(plan.updated_at),
           notes: plan.notes || '',
           image: plan.image_url || ''
-        };
-      });
+        });
+      }
 
       setClassPlans(transformedPlans);
     } catch (error) {
