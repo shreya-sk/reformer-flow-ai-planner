@@ -1,6 +1,21 @@
 import { useState, useEffect } from 'react';
 import { CustomCallout } from '@/types/reformer';
 
+interface ExerciseDetailPreferences {
+  showSpringsEquipment: boolean;
+  showTeachingCues: boolean;
+  showBreathingCues: boolean;
+  showSetupInstructions: boolean;
+  showMuscleGroups: boolean;
+  showProgressions: boolean;
+  showRegressions: boolean;
+  showModifications: boolean;
+  showSafetyNotes: boolean;
+  showDescription: boolean;
+  showMedia: boolean;
+  showPregnancySafety: boolean;
+}
+
 interface UserPreferences {
   darkMode: boolean;
   showPregnancySafeOnly?: boolean;
@@ -8,9 +23,25 @@ interface UserPreferences {
   customCallouts?: CustomCallout[];
   favoriteExercises?: string[];
   hiddenExercises?: string[];
+  exerciseDetailPreferences?: ExerciseDetailPreferences;
 }
 
 const PREFERENCES_KEY = 'user-preferences';
+
+const defaultDetailPreferences: ExerciseDetailPreferences = {
+  showSpringsEquipment: true,
+  showTeachingCues: true,
+  showBreathingCues: true,
+  showSetupInstructions: true,
+  showMuscleGroups: true,
+  showProgressions: true,
+  showRegressions: true,
+  showModifications: true,
+  showSafetyNotes: true,
+  showDescription: true,
+  showMedia: true,
+  showPregnancySafety: true,
+};
 
 export const useUserPreferences = () => {
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
@@ -20,6 +51,10 @@ export const useUserPreferences = () => {
         const parsed = JSON.parse(saved);
         return {
           ...parsed,
+          exerciseDetailPreferences: {
+            ...defaultDetailPreferences,
+            ...parsed.exerciseDetailPreferences
+          },
           customCallouts: (parsed.customCallouts || []).map((callout: any) => ({
             ...callout,
             createdAt: new Date(callout.createdAt)
@@ -35,7 +70,8 @@ export const useUserPreferences = () => {
       profileImage: '',
       customCallouts: [],
       favoriteExercises: [],
-      hiddenExercises: []
+      hiddenExercises: [],
+      exerciseDetailPreferences: defaultDetailPreferences
     };
   });
 
@@ -49,6 +85,17 @@ export const useUserPreferences = () => {
 
   const updatePreferences = (updates: Partial<UserPreferences>) => {
     setPreferences(prev => ({ ...prev, ...updates }));
+  };
+
+  const updateDetailPreferences = (updates: Partial<ExerciseDetailPreferences>) => {
+    setPreferences(prev => ({
+      ...prev,
+      exerciseDetailPreferences: {
+        ...prev.exerciseDetailPreferences,
+        ...defaultDetailPreferences,
+        ...updates
+      }
+    }));
   };
 
   const addCustomCallout = (name: string, color: string) => {
@@ -123,6 +170,7 @@ export const useUserPreferences = () => {
   return {
     preferences,
     updatePreferences,
+    updateDetailPreferences,
     addCustomCallout,
     updateCustomCallout,
     deleteCustomCallout,

@@ -16,7 +16,8 @@ import {
   Save,
   Edit2,
   Baby,
-  Camera
+  Camera,
+  Eye
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
@@ -35,7 +36,7 @@ const defaultProfileImages = [
 
 export const EnhancedUserProfile = () => {
   const { user, signOut } = useAuth();
-  const { preferences, updatePreferences } = useUserPreferences();
+  const { preferences, updatePreferences, updateDetailPreferences } = useUserPreferences();
   const [isEditing, setIsEditing] = useState(false);
   const [showImageSelector, setShowImageSelector] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -93,6 +94,8 @@ export const EnhancedUserProfile = () => {
     const name = profileData.displayName || profileData.email;
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
+
+  const detailPrefs = preferences.exerciseDetailPreferences || {};
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} p-4`}>
@@ -209,6 +212,142 @@ export const EnhancedUserProfile = () => {
               <p className={`text-xs mt-1 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>
                 Email cannot be changed
               </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Exercise Detail View Preferences */}
+        <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'}`}>
+          <CardHeader>
+            <CardTitle className={`text-lg flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+              <Eye className="h-5 w-5" />
+              Exercise Detail Preferences
+            </CardTitle>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+              Customize what information you see when viewing exercise details
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center justify-between">
+                <Label className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  Springs & Equipment
+                </Label>
+                <Switch
+                  checked={detailPrefs.showSpringsEquipment}
+                  onCheckedChange={(checked) => updateDetailPreferences({ showSpringsEquipment: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  Teaching Cues
+                </Label>
+                <Switch
+                  checked={detailPrefs.showTeachingCues}
+                  onCheckedChange={(checked) => updateDetailPreferences({ showTeachingCues: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  Breathing Cues
+                </Label>
+                <Switch
+                  checked={detailPrefs.showBreathingCues}
+                  onCheckedChange={(checked) => updateDetailPreferences({ showBreathingCues: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  Setup Instructions
+                </Label>
+                <Switch
+                  checked={detailPrefs.showSetupInstructions}
+                  onCheckedChange={(checked) => updateDetailPreferences({ showSetupInstructions: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  Muscle Groups
+                </Label>
+                <Switch
+                  checked={detailPrefs.showMuscleGroups}
+                  onCheckedChange={(checked) => updateDetailPreferences({ showMuscleGroups: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  Progressions
+                </Label>
+                <Switch
+                  checked={detailPrefs.showProgressions}
+                  onCheckedChange={(checked) => updateDetailPreferences({ showProgressions: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  Regressions
+                </Label>
+                <Switch
+                  checked={detailPrefs.showRegressions}
+                  onCheckedChange={(checked) => updateDetailPreferences({ showRegressions: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  Modifications
+                </Label>
+                <Switch
+                  checked={detailPrefs.showModifications}
+                  onCheckedChange={(checked) => updateDetailPreferences({ showModifications: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  Safety Notes
+                </Label>
+                <Switch
+                  checked={detailPrefs.showSafetyNotes}
+                  onCheckedChange={(checked) => updateDetailPreferences({ showSafetyNotes: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  Description
+                </Label>
+                <Switch
+                  checked={detailPrefs.showDescription}
+                  onCheckedChange={(checked) => updateDetailPreferences({ showDescription: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  Images & Videos
+                </Label>
+                <Switch
+                  checked={detailPrefs.showMedia}
+                  onCheckedChange={(checked) => updateDetailPreferences({ showMedia: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Label className={`text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                  Pregnancy Safety
+                </Label>
+                <Switch
+                  checked={detailPrefs.showPregnancySafety}
+                  onCheckedChange={(checked) => updateDetailPreferences({ showPregnancySafety: checked })}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
