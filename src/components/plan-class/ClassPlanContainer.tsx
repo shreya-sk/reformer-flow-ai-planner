@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
-import { useUndoRedo } from '@/hooks/useUndoRedo';
-import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ClassHeader } from './ClassHeader';
 import { ClassPlanCart } from './ClassPlanCart';
 import { ExerciseLibrary } from '@/components/ExerciseLibrary';
@@ -19,49 +18,38 @@ export const ClassPlanContainer = () => {
   const { preferences } = useUserPreferences();
   const [showLibrary, setShowLibrary] = useState(false);
   
-  // Use the persisted class plan hook
+  // Use the persisted class plan hook instead of undo/redo for now
   const {
     currentClass,
     addExercise,
     removeExercise,
     reorderExercises,
     updateClassName,
-    updateClassDuration,
-    updateClassNotes,
-    updateClassImage,
     clearClassPlan
   } = usePersistedClassPlan();
 
-  console.log('🔍 ClassPlanContainer Debug:', {
-    'currentClass': currentClass,
-    'currentClass.exercises': currentClass.exercises,
-    'currentClass.exercises.length': currentClass.exercises.length
-  });
-
-  // Load class from navigation state if provided
+  // Handle initial loading from navigation state
   useEffect(() => {
-    const cartExercises = location.state?.cartExercises;
+    const cartExercises = location.state?.cartExercises || [];
     const loadedClass = location.state?.loadedClass;
     
     if (loadedClass) {
-      // If we have a loaded class, we should set it in the persisted state
-      // For now, we'll just navigate without state to avoid conflicts
-      navigate(location.pathname, { replace: true });
-    } else if (cartExercises && cartExercises.length > 0) {
-      // Add cart exercises to current class
+      // Load the class from navigation state
+      console.log('🔵 Loading class from navigation:', loadedClass);
+      // We'd need to add a method to load a full class plan
+    } else if (cartExercises.length > 0) {
+      // Add cart exercises to the current class
+      console.log('🔵 Loading cart exercises:', cartExercises.length);
       cartExercises.forEach((exercise: Exercise) => {
         addExercise(exercise);
       });
+    }
+    
+    // Clear navigation state after using it
+    if (location.state?.cartExercises || location.state?.loadedClass) {
       navigate(location.pathname, { replace: true });
     }
   }, [location.state, navigate, addExercise]);
-
-  const {
-    undo,
-    redo,
-    canUndo,
-    canRedo,
-  } = useUndoRedo(currentClass);
 
   const handleSaveClass = async () => {
     if (currentClass.exercises.length === 0) {
@@ -83,36 +71,40 @@ export const ClassPlanContainer = () => {
       
       toast({
         title: "Class saved!",
-        description: "Redirecting to My Classes...",
+        description: "Your class has been saved successfully.",
       });
       
+      // Clear the current class plan after saving
+      clearClassPlan();
+      
+      // Navigate back to home
       setTimeout(() => {
         navigate('/');
       }, 1500);
     } catch (error) {
+      console.error('Error saving class:', error);
       toast({
-        title: "Error saving class",
-        description: "Please try again.",
+        title: "Save failed",
+        description: "Failed to save your class. Please try again.",
         variant: "destructive",
       });
     }
   };
 
   const handleAddExercise = () => {
+    console.log('🔵 Opening exercise library');
     setShowLibrary(true);
   };
 
-  const handleStartTeaching = () => {
-    if (currentClass.exercises.length === 0) {
-      toast({
-        title: "Cannot start teaching",
-        description: "Add some exercises to your class first.",
-        variant: "destructive",
-      });
-      return;
-    }
-    navigate(`/teaching/${currentClass.id}`);
-  };
+  // Debug: Log current class state changes
+  useEffect(() => {
+    console.log('🔵 Current class state changed:', {
+      name: currentClass.name,
+      exerciseCount: currentClass.exercises.length,
+      totalDuration: currentClass.totalDuration,
+      exercises: currentClass.exercises.map(ex => ({ id: ex.id, name: ex.name }))
+    });
+  }, [currentClass]);
 
   if (!user) {
     navigate('/');
@@ -126,15 +118,19 @@ export const ClassPlanContainer = () => {
           currentClass={currentClass}
           onUpdateClassName={updateClassName}
           onSaveClass={handleSaveClass}
-          onStartTeaching={handleStartTeaching}
-          onUndo={undo}
-          onRedo={redo}
-          canUndo={canUndo}
-          canRedo={canRedo}
+          onUndo={() => {}} // Disabled for now
+          onRedo={() => {}} // Disabled for now
+          canUndo={false}
+          canRedo={false}
           showBackButton={true}
-          onBack={() => setShowLibrary(false)}
+          onBack={() => {
+            console.log('🔵 Closing exercise library');
+            setShowLibrary(false);
+          }}
         />
-        <ExerciseLibrary />
+        <div className="p-4">
+          <ExerciseLibrary />
+        </div>
       </div>
     );
   }
@@ -145,58 +141,22 @@ export const ClassPlanContainer = () => {
         currentClass={currentClass}
         onUpdateClassName={updateClassName}
         onSaveClass={handleSaveClass}
-        onStartTeaching={handleStartTeaching}
-        onUndo={undo}
-        onRedo={redo}
-        canUndo={canUndo}
-        canRedo={canRedo}
+        onUndo={() => {}} // Disabled for now
+        onRedo={() => {}} // Disabled for now
+        canUndo={false}
+        canRedo={false}
       />
 
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Class Plan Cart */}
-          <div className="lg:w-1/3">
-            <ClassPlanCart
-              currentClass={currentClass}
-              onRemoveExercise={removeExercise}
-              onReorderExercises={reorderExercises}
-              onAddExercise={handleAddExercise}
-            />
-          </div>
-
-          {/* Quick Add Section */}
-          <div className="lg:w-2/3">
-            <div className="bg-white rounded-lg shadow-sm border border-sage-200 p-6">
-              <h2 className="text-xl font-semibold text-sage-800 mb-4">Quick Actions</h2>
-              <div className="space-y-4">
-                <button
-                  onClick={handleAddExercise}
-                  className="w-full p-4 border-2 border-dashed border-sage-300 rounded-lg text-sage-600 hover:border-sage-400 hover:bg-sage-50 transition-colors"
-                >
-                  + Add Exercise from Library
-                </button>
-                
-                {currentClass.exercises.length > 0 && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <button
-                      onClick={handleSaveClass}
-                      className="p-3 bg-sage-600 text-white rounded-lg hover:bg-sage-700 transition-colors"
-                    >
-                      Save Class
-                    </button>
-                    <button
-                      onClick={handleStartTeaching}
-                      className="p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      Start Teaching
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ClassPlanCart
+        currentClass={currentClass}
+        exercises={currentClass.exercises}
+        totalDuration={currentClass.totalDuration}
+        onUpdateClassName={updateClassName}
+        onRemoveExercise={removeExercise}
+        onReorderExercises={reorderExercises}
+        onAddExercise={handleAddExercise}
+        onSaveClass={handleSaveClass}
+      />
     </div>
   );
 };
