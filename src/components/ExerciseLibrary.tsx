@@ -4,7 +4,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Clock, Edit, Copy, Heart, Baby, Check, Search, Trash2, EyeOff, Eye, Plus, ArrowLeft } from 'lucide-react';
+import { Clock, Edit, Copy, Heart, Baby, Check, Search, Trash2, EyeOff, Eye, Plus, ArrowLeft, RotateCcw } from 'lucide-react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { ExerciseForm } from './ExerciseForm';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
@@ -19,10 +19,26 @@ interface ExerciseLibraryProps {
   onAddExercise: (exercise: Exercise) => void;
 }
 
+// Default detail preferences
+const defaultDetailPreferences = {
+  showSpringsEquipment: true,
+  showTeachingCues: true,
+  showBreathingCues: true,
+  showSetupInstructions: true,
+  showMuscleGroups: true,
+  showProgressions: true,
+  showRegressions: true,
+  showModifications: true,
+  showSafetyNotes: true,
+  showDescription: true,
+  showMedia: true,
+  showPregnancySafety: true,
+};
+
 export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const navigate = useNavigate();
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
-  const { exercises, loading, createUserExercise, updateUserExercise, deleteUserExercise, customizeSystemExercise } = useExercises();
+  const { exercises, loading, createUserExercise, updateUserExercise, deleteUserExercise, customizeSystemExercise, resetSystemExerciseToOriginal } = useExercises();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<ExerciseCategory | 'all'>('all');
@@ -229,6 +245,11 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const activeFiltersCount = (selectedMuscleGroup !== 'all' ? 1 : 0) + (selectedPosition !== 'all' ? 1 : 0);
   const hiddenCount = preferences.hiddenExercises?.length || 0;
 
+  const detailPrefs = {
+    ...defaultDetailPreferences,
+    ...(preferences.exerciseDetailPreferences || {})
+  };
+
   if (loading) {
     return (
       <div className={`w-full ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-white to-sage-25'} flex items-center justify-center h-full`}>
@@ -295,6 +316,8 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                 const isFavorite = preferences.favoriteExercises?.includes(exercise.id) || false;
                 const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
                 const isCustom = exercise.isCustom || false;
+                const isSystemExercise = exercise.isSystemExercise || false;
+                const isCustomized = exercise.isCustomized || false;
                 
                 return (
                   <Card 
@@ -306,6 +329,25 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                     } ${isHidden ? 'opacity-60' : ''}`}
                     onClick={() => handleCardClick(exercise)}
                   >
+                    {/* Status Indicators - Top Left */}
+                    <div className="absolute top-2 left-2 z-10 flex gap-1">
+                      {isHidden && (
+                        <Badge variant="secondary" className="text-xs bg-gray-500 text-white">
+                          Hidden
+                        </Badge>
+                      )}
+                      {isCustomized && isSystemExercise && (
+                        <Badge variant="outline" className="text-xs text-orange-600 border-orange-300 bg-orange-50">
+                          Modified
+                        </Badge>
+                      )}
+                      {isCustom && (
+                        <Badge variant="outline" className="text-xs text-blue-600 border-blue-300 bg-blue-50">
+                          Custom
+                        </Badge>
+                      )}
+                    </div>
+
                     {/* Favorite Icon - Top Right */}
                     <Button
                       onClick={(e) => {
@@ -323,36 +365,29 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                       <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
                     </Button>
 
-                    {/* Hidden indicator */}
-                    {isHidden && (
-                      <div className="absolute top-2 left-2 z-10">
-                        <Badge variant="secondary" className="text-xs bg-gray-500 text-white">
-                          Hidden
-                        </Badge>
-                      </div>
-                    )}
-
                     <CardContent className="p-4">
                       {/* Exercise Thumbnail */}
-                      <div className={`w-full h-32 rounded-xl overflow-hidden border mb-3 ${
-                        preferences.darkMode 
-                          ? 'bg-gradient-to-br from-gray-600 to-gray-700 border-gray-600' 
-                          : 'bg-gradient-to-br from-sage-100 to-sage-200 border-sage-200'
-                      }`}>
-                        {exercise.image ? (
-                          <img 
-                            src={exercise.image} 
-                            alt={exercise.name}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <img 
-                            src="/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png" 
-                            alt="Default exercise"
-                            className="w-full h-full object-cover"
-                          />
-                        )}
-                      </div>
+                      {detailPrefs.showMedia && (
+                        <div className={`w-full h-32 rounded-xl overflow-hidden border mb-3 ${
+                          preferences.darkMode 
+                            ? 'bg-gradient-to-br from-gray-600 to-gray-700 border-gray-600' 
+                            : 'bg-gradient-to-br from-sage-100 to-sage-200 border-sage-200'
+                        }`}>
+                          {exercise.image ? (
+                            <img 
+                              src={exercise.image} 
+                              alt={exercise.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <img 
+                              src="/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png" 
+                              alt="Default exercise"
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                      )}
 
                       <div className="space-y-2">
                         <div className="flex items-start justify-between">
@@ -361,122 +396,288 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                           }`}>
                             {exercise.name}
                           </h4>
-                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => handleEditExercise(exercise, e)}
-                              className={`h-6 w-6 p-0 ${
-                                preferences.darkMode 
-                                  ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
-                                  : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
-                              }`}
-                            >
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => handleDuplicateExercise(exercise, e)}
-                              className={`h-6 w-6 p-0 ${
-                                preferences.darkMode 
-                                  ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
-                                  : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
-                              }`}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => handleToggleHidden(exercise, e)}
-                              className={`h-6 w-6 p-0 ${
-                                preferences.darkMode 
-                                  ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
-                                  : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
-                              }`}
-                            >
-                              {isHidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                            </Button>
-                            {isCustom && (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-6 w-6 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Exercise</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to permanently delete "{exercise.name}"? This action cannot be undone.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction 
-                                      onClick={(e) => handleDeleteExercise(exercise, e)}
-                                      className="bg-red-600 hover:bg-red-700"
-                                    >
-                                      Delete
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            )}
-                          </div>
+                          
+                          {/* Universal Edit Button - Always Visible */}
+                          <Button
+                            size="sm"
+                            onClick={(e) => handleEditExercise(exercise, e)}
+                            className="h-6 w-8 p-0 bg-sage-600 hover:bg-sage-700 text-white ml-2"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
                         </div>
 
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1">
-                              <Clock className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`} />
-                              <span className={`font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
-                                {exercise.duration}min
-                              </span>
-                            </div>
-                            
-                            {exercise.isPregnancySafe && (
-                              <div className="flex items-center gap-1">
-                                <Baby className="h-3 w-3 text-pink-500" />
-                                <Check className="h-2 w-2 text-green-500" />
-                              </div>
-                            )}
-                          </div>
+                        {/* Action Icons - Only in hover state */}
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => handleDuplicateExercise(exercise, e)}
+                            className={`h-6 w-6 p-0 ${
+                              preferences.darkMode 
+                                ? 'text-gray-400 hover:text-white hover:bg-gray-600' 
+                                : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'
+                            }`}
+                            title="Duplicate"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
                           
-                          <div className="flex items-center gap-1">
-                            <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>Springs:</span>
-                            {getSpringVisual(exercise.springs)}
-                          </div>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-1">
-                          <Badge className={`text-xs font-medium ${getDifficultyColor(exercise.difficulty)}`}>
-                            {exercise.difficulty}
-                          </Badge>
-                          {isCustom && (
-                            <Badge variant="outline" className="text-xs text-blue-600 border-blue-300">
-                              Custom
-                            </Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={(e) => handleToggleHidden(exercise, e)}
+                            className={`h-6 w-6 p-0 ${
+                              isHidden ? 'text-blue-600 bg-blue-50' : 'text-gray-400 hover:text-blue-600'
+                            }`}
+                            title={isHidden ? "Show Exercise" : "Hide Exercise"}
+                          >
+                            {isHidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                          </Button>
+
+                          {/* Reset to Original - Modified System Exercises Only */}
+                          {isCustomized && isSystemExercise && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                                  title="Reset to Original"
+                                >
+                                  <RotateCcw className="h-3 w-3" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Reset to Original</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to reset "{exercise.name}" to its original system version? All your customizations will be lost.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={(e) => handleResetToOriginal(exercise, e)}
+                                    className="bg-orange-600 hover:bg-orange-700"
+                                  >
+                                    Reset
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           )}
-                          {exercise.muscleGroups.slice(0, 2).map(group => (
-                            <Badge 
-                              key={group} 
-                              variant="secondary" 
-                              className={`text-xs ${
-                                preferences.darkMode 
-                                  ? 'bg-gray-700 text-gray-300 border-gray-600' 
-                                  : 'bg-sage-100 text-sage-700 border-sage-200'
-                              }`}
-                            >
-                              {group}
-                            </Badge>
-                          ))}
+
+                          {/* Delete - Custom Exercises Only */}
+                          {isCustom && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                                  title="Delete Exercise"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Exercise</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to permanently delete "{exercise.name}"? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={(e) => handleDeleteExercise(exercise, e)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                         </div>
+
+                        {/* Basic info - always visible */}
+                        <div className="flex flex-wrap items-center gap-2 text-sm">
+                          <Badge variant="secondary" className="text-xs">
+                            {exercise.category}
+                          </Badge>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            <span>{exercise.duration} min</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="capitalize">{exercise.difficulty}</span>
+                          </div>
+                          {detailPrefs.showPregnancySafety && exercise.isPregnancySafe && (
+                            <div className="flex items-center gap-1">
+                              <Baby className="h-3 w-3 text-pink-500" />
+                              <Check className="h-2 w-2 text-green-500" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Springs and Equipment - conditional */}
+                        {detailPrefs.showSpringsEquipment && (
+                          <div className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-1">
+                              <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-500'}`}>Springs:</span>
+                              {getSpringVisual(exercise.springs)}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Equipment - conditional */}
+                        {detailPrefs.showSpringsEquipment && exercise.equipment && exercise.equipment.length > 0 && (
+                          <div className="space-y-1">
+                            <span className={`text-xs font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                              Equipment:
+                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              {exercise.equipment.map(equip => (
+                                <Badge key={equip} variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                                  {equip}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Muscle groups - conditional */}
+                        {detailPrefs.showMuscleGroups && (
+                          <div className="flex flex-wrap gap-1">
+                            <Badge className={`text-xs font-medium ${getDifficultyColor(exercise.difficulty)}`}>
+                              {exercise.difficulty}
+                            </Badge>
+                            {exercise.muscleGroups.slice(0, 2).map(group => (
+                              <Badge 
+                                key={group} 
+                                variant="secondary" 
+                                className={`text-xs ${
+                                  preferences.darkMode 
+                                    ? 'bg-gray-700 text-gray-300 border-gray-600' 
+                                    : 'bg-sage-100 text-sage-700 border-sage-200'
+                                }`}
+                              >
+                                {group}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Description - conditional */}
+                        {detailPrefs.showDescription && exercise.description && (
+                          <p className={`text-xs leading-relaxed line-clamp-2 ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>
+                            {exercise.description}
+                          </p>
+                        )}
+
+                        {/* Teaching cues - conditional */}
+                        {detailPrefs.showTeachingCues && exercise.cues && exercise.cues.length > 0 && (
+                          <div className="space-y-1">
+                            <span className={`text-xs font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                              Teaching Cues:
+                            </span>
+                            <div className="space-y-1">
+                              {exercise.cues.slice(0, 2).map((cue, index) => (
+                                <p key={index} className={`text-xs leading-relaxed ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                                  • {cue}
+                                </p>
+                              ))}
+                              {exercise.cues.length > 2 && (
+                                <p className={`text-xs ${preferences.darkMode ? 'text-gray-500' : 'text-sage-500'}`}>
+                                  +{exercise.cues.length - 2} more cues
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Breathing cues - conditional */}
+                        {detailPrefs.showBreathingCues && exercise.breathingCues && exercise.breathingCues.length > 0 && (
+                          <div className="space-y-1">
+                            <span className={`text-xs font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                              Breathing:
+                            </span>
+                            <div className="space-y-1">
+                              {exercise.breathingCues.slice(0, 1).map((cue, index) => (
+                                <p key={index} className={`text-xs leading-relaxed ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                                  • {cue}
+                                </p>
+                              ))}
+                              {exercise.breathingCues.length > 1 && (
+                                <p className={`text-xs ${preferences.darkMode ? 'text-gray-500' : 'text-sage-500'}`}>
+                                  +{exercise.breathingCues.length - 1} more
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Setup instructions - conditional */}
+                        {detailPrefs.showSetupInstructions && exercise.setup && (
+                          <div className="space-y-1">
+                            <span className={`text-xs font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                              Setup:
+                            </span>
+                            <p className={`text-xs leading-relaxed line-clamp-2 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                              {exercise.setup}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Progressions - conditional */}
+                        {detailPrefs.showProgressions && exercise.progressions && exercise.progressions.length > 0 && (
+                          <div className="space-y-1">
+                            <span className={`text-xs font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                              Progressions:
+                            </span>
+                            <p className={`text-xs leading-relaxed line-clamp-1 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                              {exercise.progressions.length} available
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Regressions - conditional */}
+                        {detailPrefs.showRegressions && exercise.regressions && exercise.regressions.length > 0 && (
+                          <div className="space-y-1">
+                            <span className={`text-xs font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                              Regressions:
+                            </span>
+                            <p className={`text-xs leading-relaxed line-clamp-1 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                              {exercise.regressions.length} available
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Modifications - conditional */}
+                        {detailPrefs.showModifications && exercise.modifications && exercise.modifications.length > 0 && (
+                          <div className="space-y-1">
+                            <span className={`text-xs font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
+                              Modifications:
+                            </span>
+                            <p className={`text-xs leading-relaxed line-clamp-1 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                              {exercise.modifications.length} available
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Safety notes - conditional */}
+                        {detailPrefs.showSafetyNotes && exercise.contraindications && exercise.contraindications.length > 0 && (
+                          <div className="space-y-1">
+                            <span className={`text-xs font-medium text-red-600`}>
+                              Safety Notes:
+                            </span>
+                            <p className={`text-xs leading-relaxed line-clamp-1 text-red-600`}>
+                              {exercise.contraindications.length} contraindications
+                            </p>
+                          </div>
+                        )}
 
                         <div className="pt-2">
                           <SmartAddButton
