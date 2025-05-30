@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,9 +53,10 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   };
 
   const handleAddToClass = (exercise: Exercise) => {
-    console.log('Add to class clicked for:', exercise.name);
+    console.log('🔵 ExerciseLibrary handleAddToClass called with:', exercise);
     
     try {
+      // Create unique instance for the class plan
       const timestamp = Date.now();
       const randomId = Math.random().toString(36).substr(2, 9);
       const uniqueId = `${exercise.id}-${timestamp}-${randomId}`;
@@ -66,17 +66,12 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
         id: uniqueId,
       };
       
-      console.log('Calling onAddExercise with:', exerciseToAdd);
+      console.log('🔵 Calling onAddExercise with unique exercise:', exerciseToAdd);
       onAddExercise(exerciseToAdd);
       
-      toast({
-        title: "Added to class",
-        description: `"${exercise.name}" has been added to your class plan.`,
-      });
-      
-      console.log('Exercise added successfully');
+      console.log('🔵 Exercise added successfully');
     } catch (error) {
-      console.error('Error adding exercise to class:', error);
+      console.error('🔴 Error adding exercise to class:', error);
       toast({
         title: "Error",
         description: "Failed to add exercise to class.",

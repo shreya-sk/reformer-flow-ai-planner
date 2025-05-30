@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -76,7 +75,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     return count;
   }, [showPregnancySafe, showHidden, selectedCategory, selectedMuscleGroup]);
 
-  // Debug: Add to class function
+  // Updated debug: Add to class function
   const handleAddToClass = useCallback((exercise: Exercise) => {
     console.log('🔵 MobileOptimizedExerciseLibrary handleAddToClass called with:', exercise);
     console.log('🔵 Current user:', user?.id);
@@ -84,26 +83,29 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     
     try {
       if (onExerciseSelect) {
-        console.log('🔵 Calling onExerciseSelect prop');
-        onExerciseSelect(exercise);
+        console.log('🔵 Calling onExerciseSelect prop (should add to class)');
+        
+        // Create unique instance for the class plan
+        const timestamp = Date.now();
+        const randomId = Math.random().toString(36).substr(2, 9);
+        const uniqueId = `${exercise.id}-${timestamp}-${randomId}`;
+        
+        const exerciseToAdd = {
+          ...exercise,
+          id: uniqueId,
+        };
+        
+        console.log('🔵 Calling onExerciseSelect with unique exercise:', exerciseToAdd);
+        onExerciseSelect(exerciseToAdd);
+        
+        console.log('🔵 Exercise added successfully via onExerciseSelect');
       } else {
-        console.log('🔵 Using addExercise from usePersistedClassPlan');
-        console.log('🔵 Exercise being added:', {
-          id: exercise.id,
-          name: exercise.name,
-          duration: exercise.duration,
-          category: exercise.category
-        });
-        
-        addExercise(exercise);
-        
+        console.log('🔴 No onExerciseSelect prop provided - exercise cannot be added to class');
         toast({
-          title: "Added to class",
-          description: `"${exercise.name}" has been added to your class plan.`,
+          title: "Error",
+          description: "Cannot add exercise to class - no handler provided.",
+          variant: "destructive",
         });
-        
-        console.log('🔵 Exercise added successfully, navigating to plan');
-        navigate('/plan');
       }
     } catch (error) {
       console.error('🔴 Error in MobileOptimizedExerciseLibrary handleAddToClass:', error);
@@ -113,7 +115,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
         variant: "destructive",
       });
     }
-  }, [onExerciseSelect, addExercise, navigate, user]);
+  }, [onExerciseSelect, user]);
 
   const handleExerciseSelect = useCallback((exercise: Exercise) => {
     console.log('🔵 Exercise selected:', exercise.name);
