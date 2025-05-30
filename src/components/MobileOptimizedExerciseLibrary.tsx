@@ -1,9 +1,8 @@
-
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, RefreshCw, Download, Wifi, WifiOff, Plus, Heart, Filter, Check } from 'lucide-react';
+import { Search, RefreshCw, Download, Wifi, WifiOff, Plus, Heart, Filter, Check, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw } from 'lucide-react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { useTouchGestures } from '@/hooks/useTouchGestures';
 import { useLazyLoading } from '@/hooks/usePerformanceOptimization';
@@ -13,6 +12,7 @@ import { useExercises } from '@/hooks/useExercises';
 import { MobileFilterPanel } from './MobileFilterPanel';
 import { MobileExerciseModal } from './MobileExerciseModal';
 import { toast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface MobileOptimizedExerciseLibraryProps {
   exercises: Exercise[];
@@ -33,8 +33,8 @@ export const MobileOptimizedExerciseLibrary = ({
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
-  const { preferences, toggleFavoriteExercise } = useUserPreferences();
-  const { duplicateExercise, updateUserExercise, customizeSystemExercise } = useExercises();
+  const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
+  const { duplicateExercise, updateUserExercise, customizeSystemExercise, deleteUserExercise, resetSystemExerciseToOriginal } = useExercises();
   const { observeImage } = useLazyLoading();
   const { isOnline, isInstallable, installApp } = usePWA();
 
@@ -112,13 +112,71 @@ export const MobileOptimizedExerciseLibrary = ({
     toggleFavoriteExercise(exerciseId);
   };
 
+  const handleToggleHidden = (exerciseId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleHiddenExercise(exerciseId);
+  };
+
+  const handleEditExercise = (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedExercise(exercise);
+    setShowDetailModal(true);
+  };
+
+  const handleDuplicateExercise = async (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await duplicateExercise(exercise);
+      toast({
+        title: "Exercise duplicated",
+        description: `"${exercise.name} (Copy)" has been created.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to duplicate exercise.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteExercise = async (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!exercise.isCustom) return;
+    
+    try {
+      await deleteUserExercise(exercise.id);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete exercise.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleResetToOriginal = async (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!exercise.isSystemExercise || !exercise.isCustomized) return;
+    
+    try {
+      await resetSystemExerciseToOriginal(exercise.id);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reset exercise.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const clearAllFilters = () => {
     setSelectedCategory('all');
     setSelectedMuscleGroup('all');
     setShowHidden(false);
   };
 
-  const handleEditExercise = async (updatedExercise: Exercise) => {
+  const handleEditExerciseUpdate = async (updatedExercise: Exercise) => {
     try {
       if (updatedExercise.isSystemExercise) {
         await customizeSystemExercise(updatedExercise.id, {
@@ -237,8 +295,14 @@ export const MobileOptimizedExerciseLibrary = ({
                 onSelect={handleCardClick}
                 onAddToClass={handleAddToClass}
                 onToggleFavorite={handleToggleFavorite}
+                onToggleHidden={handleToggleHidden}
+                onEdit={handleEditExercise}
+                onDuplicate={handleDuplicateExercise}
+                onDelete={handleDeleteExercise}
+                onResetToOriginal={handleResetToOriginal}
                 observeImage={observeImage}
                 isFavorite={preferences.favoriteExercises?.includes(exercise.id) || false}
+                isHidden={preferences.hiddenExercises?.includes(exercise.id) || false}
                 darkMode={preferences.darkMode}
               />
             ))}
@@ -291,7 +355,7 @@ export const MobileOptimizedExerciseLibrary = ({
           setSelectedExercise(null);
         }}
         onAddToClass={handleAddToClass}
-        onEdit={handleEditExercise}
+        onEdit={handleEditExerciseUpdate}
       />
     </>
   );
@@ -302,8 +366,14 @@ interface ExerciseCardProps {
   onSelect: (exercise: Exercise) => void;
   onAddToClass: (exercise: Exercise) => void;
   onToggleFavorite: (exerciseId: string, e: React.MouseEvent) => void;
+  onToggleHidden: (exerciseId: string, e: React.MouseEvent) => void;
+  onEdit: (exercise: Exercise, e: React.MouseEvent) => void;
+  onDuplicate: (exercise: Exercise, e: React.MouseEvent) => void;
+  onDelete: (exercise: Exercise, e: React.MouseEvent) => void;
+  onResetToOriginal: (exercise: Exercise, e: React.MouseEvent) => void;
   observeImage: (element: HTMLImageElement, src: string) => void;
   isFavorite: boolean;
+  isHidden: boolean;
   darkMode: boolean;
 }
 
@@ -311,13 +381,24 @@ const ExerciseCard = ({
   exercise, 
   onSelect, 
   onAddToClass, 
-  onToggleFavorite, 
+  onToggleFavorite,
+  onToggleHidden,
+  onEdit,
+  onDuplicate,
+  onDelete,
+  onResetToOriginal,
   observeImage, 
-  isFavorite, 
+  isFavorite,
+  isHidden,
   darkMode 
 }: ExerciseCardProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+
+  const isCustom = exercise.isCustom || false;
+  const isSystemExercise = exercise.isSystemExercise || false;
+  const isCustomized = exercise.isCustomized || false;
 
   useEffect(() => {
     if (imageRef.current && exercise.image) {
@@ -338,9 +419,14 @@ const ExerciseCard = ({
     }, 1500);
   };
 
+  const toggleActions = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowActions(!showActions);
+  };
+
   return (
     <div 
-      className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transition-all duration-300 active:scale-95 hover:shadow-lg"
+      className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transition-all duration-300 active:scale-95 hover:shadow-lg ${isHidden ? 'opacity-60' : ''}`}
       onClick={() => onSelect(exercise)}
     >
       {/* Image container with overlay elements */}
@@ -363,6 +449,25 @@ const ExerciseCard = ({
           </div>
         )}
         
+        {/* Status indicators - top left */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {isHidden && (
+            <Badge variant="secondary" className="text-xs bg-gray-500 text-white">
+              Hidden
+            </Badge>
+          )}
+          {isCustomized && isSystemExercise && (
+            <Badge className="text-xs bg-orange-500 text-white">
+              Modified
+            </Badge>
+          )}
+          {isCustom && (
+            <Badge className="text-xs bg-blue-500 text-white">
+              Custom
+            </Badge>
+          )}
+        </div>
+
         {/* Favorite heart - top right */}
         <button
           onClick={(e) => onToggleFavorite(exercise.id, e)}
@@ -383,17 +488,102 @@ const ExerciseCard = ({
           </div>
         )}
 
-        {/* Custom exercise indicator */}
-        {exercise.isCustom && (
-          <div className="absolute bottom-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
-            Custom
-          </div>
-        )}
+        {/* Action menu button - bottom left */}
+        <button
+          onClick={toggleActions}
+          className="absolute bottom-2 left-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center transition-all duration-200 hover:bg-black/80"
+        >
+          <Edit className="h-4 w-4" />
+        </button>
 
-        {/* Modified exercise indicator */}
-        {exercise.isCustomized && (
-          <div className="absolute bottom-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
-            Modified
+        {/* Action menu overlay */}
+        {showActions && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <div className="bg-white rounded-xl p-3 flex gap-2 shadow-lg">
+              {/* Edit button */}
+              <button
+                onClick={(e) => onEdit(exercise, e)}
+                className="w-10 h-10 rounded-lg bg-sage-600 text-white flex items-center justify-center hover:bg-sage-700"
+              >
+                <Edit className="h-4 w-4" />
+              </button>
+
+              {/* Duplicate button */}
+              <button
+                onClick={(e) => onDuplicate(exercise, e)}
+                className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"
+              >
+                <Copy className="h-4 w-4" />
+              </button>
+
+              {/* Hide/Show button */}
+              <button
+                onClick={(e) => onToggleHidden(exercise.id, e)}
+                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  isHidden 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-gray-600 hover:bg-gray-700 text-white'
+                }`}
+              >
+                {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              </button>
+
+              {/* Reset button for modified system exercises */}
+              {isCustomized && isSystemExercise && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button className="w-10 h-10 rounded-lg bg-orange-600 text-white flex items-center justify-center hover:bg-orange-700">
+                      <RotateCcw className="h-4 w-4" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Reset to Original</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to reset "{exercise.name}" to its original system version? All your customizations will be lost.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={(e) => onResetToOriginal(exercise, e)}
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        Reset
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+
+              {/* Delete button for custom exercises */}
+              {isCustom && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button className="w-10 h-10 rounded-lg bg-red-600 text-white flex items-center justify-center hover:bg-red-700">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Exercise</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to permanently delete "{exercise.name}"? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={(e) => onDelete(exercise, e)}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
           </div>
         )}
       </div>

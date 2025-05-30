@@ -762,3 +762,5 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     </>
   );
 };
+
+export default Library;
