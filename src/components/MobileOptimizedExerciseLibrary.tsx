@@ -1,8 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Search, RefreshCw, Download, Wifi, WifiOff, Plus, Heart, Filter, Check, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw } from 'lucide-react';
+
+import { useState, useMemo } from 'react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { useTouchGestures } from '@/hooks/useTouchGestures';
 import { useLazyLoading } from '@/hooks/usePerformanceOptimization';
@@ -11,8 +8,10 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
 import { MobileFilterPanel } from './MobileFilterPanel';
 import { MobileExerciseModal } from './MobileExerciseModal';
+import { MobileLibraryHeader } from './mobile/MobileLibraryHeader';
+import { MobilePullToRefresh } from './mobile/MobilePullToRefresh';
+import { MobileExerciseGrid } from './mobile/MobileExerciseGrid';
 import { toast } from '@/hooks/use-toast';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface MobileOptimizedExerciseLibraryProps {
   exercises: Exercise[];
@@ -33,6 +32,7 @@ export const MobileOptimizedExerciseLibrary = ({
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
+  
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
   const { duplicateExercise, updateUserExercise, customizeSystemExercise, deleteUserExercise, resetSystemExerciseToOriginal } = useExercises();
   const { observeImage } = useLazyLoading();
@@ -207,124 +207,43 @@ export const MobileOptimizedExerciseLibrary = ({
     <>
       <div className={`h-full flex flex-col ${preferences.darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         {/* Pull to refresh indicator */}
-        {isPulling && (
-          <div 
-            className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-sage-600 text-white transition-all duration-300"
-            style={{ 
-              height: `${Math.min(pullDistance, 60)}px`,
-              opacity: pullDistance / 60 
-            }}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            <span className="text-sm">
-              {pullDistance >= 60 ? 'Release to refresh' : 'Pull to refresh'}
-            </span>
-          </div>
-        )}
+        <MobilePullToRefresh 
+          isPulling={isPulling}
+          pullDistance={pullDistance}
+          isRefreshing={isRefreshing}
+        />
 
-        {/* Status bar */}
-        <div className="flex items-center justify-between p-3 border-b bg-sage-50 text-xs">
-          <div className="flex items-center gap-2">
-            {isOnline ? (
-              <><Wifi className="h-3 w-3 text-green-600" /><span>Online</span></>
-            ) : (
-              <><WifiOff className="h-3 w-3 text-red-600" /><span>Offline</span></>
-            )}
-          </div>
-          
-          {isInstallable && (
-            <Button 
-              onClick={handleInstallClick}
-              size="sm" 
-              variant="outline" 
-              className="h-6 text-xs py-1 px-2"
-            >
-              <Download className="h-3 w-3 mr-1" />
-              Install App
-            </Button>
-          )}
-        </div>
-
-        {/* Search and filter header */}
-        <div className="p-4 border-b bg-white sticky top-0 z-20 space-y-4">
-          {/* Search bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search exercises..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-12 text-base rounded-xl border-gray-200 focus:border-sage-400"
-            />
-          </div>
-          
-          {/* Filter button and results */}
-          <div className="flex items-center justify-between">
-            <Button
-              variant="outline"
-              onClick={() => setShowFilterPanel(true)}
-              className="h-10 px-4 rounded-xl border-gray-200 flex items-center gap-2"
-            >
-              <Filter className="h-4 w-4" />
-              <span>Filters</span>
-              {activeFiltersCount > 0 && (
-                <Badge className="bg-sage-600 text-white text-xs">
-                  {activeFiltersCount}
-                </Badge>
-              )}
-            </Button>
-            
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600">
-                {filteredExercises.length} exercises
-              </span>
-              <Button variant="ghost" size="sm" onClick={onRefresh} disabled={isRefreshing}>
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              </Button>
-            </div>
-          </div>
-        </div>
+        {/* Header */}
+        <MobileLibraryHeader
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          isOnline={isOnline}
+          isInstallable={isInstallable}
+          onInstallClick={handleInstallClick}
+          onFilterClick={() => setShowFilterPanel(true)}
+          activeFiltersCount={activeFiltersCount}
+          exerciseCount={filteredExercises.length}
+          onRefresh={onRefresh}
+          isRefreshing={isRefreshing}
+        />
 
         {/* Exercise grid */}
-        <div className="flex-1 overflow-y-auto p-3">
-          <div className="grid grid-cols-2 gap-3">
-            {filteredExercises.map((exercise) => (
-              <ExerciseCard
-                key={exercise.id}
-                exercise={exercise}
-                onSelect={handleCardClick}
-                onAddToClass={handleAddToClass}
-                onToggleFavorite={handleToggleFavorite}
-                onToggleHidden={handleToggleHidden}
-                onEdit={handleEditExercise}
-                onDuplicate={handleDuplicateExercise}
-                onDelete={handleDeleteExercise}
-                onResetToOriginal={handleResetToOriginal}
-                observeImage={observeImage}
-                isFavorite={preferences.favoriteExercises?.includes(exercise.id) || false}
-                isHidden={preferences.hiddenExercises?.includes(exercise.id) || false}
-                darkMode={preferences.darkMode}
-              />
-            ))}
-          </div>
-
-          {filteredExercises.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <Search className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {showHidden ? 'No hidden exercises' : 'No exercises found'}
-              </h3>
-              <p className="text-gray-500 text-sm">
-                {showHidden 
-                  ? 'You haven\'t hidden any exercises yet.'
-                  : 'Try adjusting your search or filters'
-                }
-              </p>
-            </div>
-          )}
-        </div>
+        <MobileExerciseGrid
+          exercises={filteredExercises}
+          showHidden={showHidden}
+          onExerciseSelect={handleCardClick}
+          onAddToClass={handleAddToClass}
+          onToggleFavorite={handleToggleFavorite}
+          onToggleHidden={handleToggleHidden}
+          onEdit={handleEditExercise}
+          onDuplicate={handleDuplicateExercise}
+          onDelete={handleDeleteExercise}
+          onResetToOriginal={handleResetToOriginal}
+          observeImage={observeImage}
+          favoriteExercises={preferences.favoriteExercises || []}
+          hiddenExercises={preferences.hiddenExercises || []}
+          darkMode={preferences.darkMode}
+        />
       </div>
 
       {/* Filter Panel */}
@@ -358,266 +277,5 @@ export const MobileOptimizedExerciseLibrary = ({
         onEdit={handleEditExerciseUpdate}
       />
     </>
-  );
-};
-
-interface ExerciseCardProps {
-  exercise: Exercise;
-  onSelect: (exercise: Exercise) => void;
-  onAddToClass: (exercise: Exercise) => void;
-  onToggleFavorite: (exerciseId: string, e: React.MouseEvent) => void;
-  onToggleHidden: (exerciseId: string, e: React.MouseEvent) => void;
-  onEdit: (exercise: Exercise, e: React.MouseEvent) => void;
-  onDuplicate: (exercise: Exercise, e: React.MouseEvent) => void;
-  onDelete: (exercise: Exercise, e: React.MouseEvent) => void;
-  onResetToOriginal: (exercise: Exercise, e: React.MouseEvent) => void;
-  observeImage: (element: HTMLImageElement, src: string) => void;
-  isFavorite: boolean;
-  isHidden: boolean;
-  darkMode: boolean;
-}
-
-const ExerciseCard = ({ 
-  exercise, 
-  onSelect, 
-  onAddToClass, 
-  onToggleFavorite,
-  onToggleHidden,
-  onEdit,
-  onDuplicate,
-  onDelete,
-  onResetToOriginal,
-  observeImage, 
-  isFavorite,
-  isHidden,
-  darkMode 
-}: ExerciseCardProps) => {
-  const imageRef = useRef<HTMLImageElement>(null);
-  const [isAdding, setIsAdding] = useState(false);
-  const [showActions, setShowActions] = useState(false);
-
-  const isCustom = exercise.isCustom || false;
-  const isSystemExercise = exercise.isSystemExercise || false;
-  const isCustomized = exercise.isCustomized || false;
-
-  useEffect(() => {
-    if (imageRef.current && exercise.image) {
-      observeImage(imageRef.current, exercise.image);
-    }
-  }, [exercise.image, observeImage]);
-
-  const handleAddClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isAdding) return;
-    
-    setIsAdding(true);
-    onAddToClass(exercise);
-    
-    // Reset button after animation
-    setTimeout(() => {
-      setIsAdding(false);
-    }, 1500);
-  };
-
-  const toggleActions = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowActions(!showActions);
-  };
-
-  return (
-    <div 
-      className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transition-all duration-300 active:scale-95 hover:shadow-lg ${isHidden ? 'opacity-60' : ''}`}
-      onClick={() => onSelect(exercise)}
-    >
-      {/* Image container with overlay elements */}
-      <div className="relative aspect-square overflow-hidden">
-        {/* Exercise image */}
-        {exercise.image ? (
-          <img
-            ref={imageRef}
-            alt={exercise.name}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-sage-100 to-sage-200 flex items-center justify-center">
-            <img 
-              src="/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png" 
-              alt="Default exercise"
-              className="w-full h-full object-cover opacity-50"
-            />
-          </div>
-        )}
-        
-        {/* Status indicators - top left */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {isHidden && (
-            <Badge variant="secondary" className="text-xs bg-gray-500 text-white">
-              Hidden
-            </Badge>
-          )}
-          {isCustomized && isSystemExercise && (
-            <Badge className="text-xs bg-orange-500 text-white">
-              Modified
-            </Badge>
-          )}
-          {isCustom && (
-            <Badge className="text-xs bg-blue-500 text-white">
-              Custom
-            </Badge>
-          )}
-        </div>
-
-        {/* Favorite heart - top right */}
-        <button
-          onClick={(e) => onToggleFavorite(exercise.id, e)}
-          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
-            isFavorite 
-              ? 'bg-white/90 text-red-500 scale-110' 
-              : 'bg-black/20 text-white hover:bg-white/90 hover:text-red-500'
-          }`}
-        >
-          <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
-        </button>
-
-        {/* Pregnancy safe indicator */}
-        {exercise.isPregnancySafe && (
-          <div className="absolute top-2 left-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
-            <span className="text-[10px]">👶</span>
-            <span>Safe</span>
-          </div>
-        )}
-
-        {/* Action menu button - bottom left */}
-        <button
-          onClick={toggleActions}
-          className="absolute bottom-2 left-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center transition-all duration-200 hover:bg-black/80"
-        >
-          <Edit className="h-4 w-4" />
-        </button>
-
-        {/* Action menu overlay */}
-        {showActions && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <div className="bg-white rounded-xl p-3 flex gap-2 shadow-lg">
-              {/* Edit button */}
-              <button
-                onClick={(e) => onEdit(exercise, e)}
-                className="w-10 h-10 rounded-lg bg-sage-600 text-white flex items-center justify-center hover:bg-sage-700"
-              >
-                <Edit className="h-4 w-4" />
-              </button>
-
-              {/* Duplicate button */}
-              <button
-                onClick={(e) => onDuplicate(exercise, e)}
-                className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"
-              >
-                <Copy className="h-4 w-4" />
-              </button>
-
-              {/* Hide/Show button */}
-              <button
-                onClick={(e) => onToggleHidden(exercise.id, e)}
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  isHidden 
-                    ? 'bg-green-600 hover:bg-green-700 text-white' 
-                    : 'bg-gray-600 hover:bg-gray-700 text-white'
-                }`}
-              >
-                {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-              </button>
-
-              {/* Reset button for modified system exercises */}
-              {isCustomized && isSystemExercise && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <button className="w-10 h-10 rounded-lg bg-orange-600 text-white flex items-center justify-center hover:bg-orange-700">
-                      <RotateCcw className="h-4 w-4" />
-                    </button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Reset to Original</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to reset "{exercise.name}" to its original system version? All your customizations will be lost.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={(e) => onResetToOriginal(exercise, e)}
-                        className="bg-orange-600 hover:bg-orange-700"
-                      >
-                        Reset
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-
-              {/* Delete button for custom exercises */}
-              {isCustom && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <button className="w-10 h-10 rounded-lg bg-red-600 text-white flex items-center justify-center hover:bg-red-700">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Exercise</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to permanently delete "{exercise.name}"? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={(e) => onDelete(exercise, e)}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {/* Exercise info */}
-      <div className="p-3 bg-white">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm text-gray-900 truncate">
-              {exercise.name}
-            </h3>
-            <p className="text-xs text-gray-500 mt-0.5">
-              {exercise.duration}min • {exercise.category}
-            </p>
-          </div>
-          
-          {/* Add button with enhanced animation */}
-          <button
-            onClick={handleAddClick}
-            disabled={isAdding}
-            className={`ml-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-md active:scale-95 ${
-              isAdding
-                ? 'bg-green-500 text-white scale-110'
-                : 'bg-sage-600 hover:bg-sage-700 text-white hover:scale-110'
-            }`}
-          >
-            {isAdding ? (
-              <Check className="h-4 w-4 animate-bounce" />
-            ) : (
-              <Plus className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
   );
 };
