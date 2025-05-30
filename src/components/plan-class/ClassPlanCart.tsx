@@ -41,6 +41,7 @@ export const ClassPlanCart = ({
   const [expandedExercise, setExpandedExercise] = useState<string | null>(null);
   const [editingExercise, setEditingExercise] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<Exercise>>({});
+  const [isCalloutDialogOpen, setIsCalloutDialogOpen] = useState(false);
 
   const addCallout = (index: number, type: 'warm-up' | 'legs' | 'arms' | 'cool-down') => {
     const calloutExercise: Exercise = {
@@ -62,6 +63,40 @@ export const ClassPlanCart = ({
     const newExercises = [...currentClass.exercises];
     newExercises.splice(index, 0, calloutExercise);
     onReorderExercises(newExercises);
+  };
+
+  const handleAddCallout = () => {
+    const calloutExercise: Exercise = {
+      id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: `Note ${Date.now()}`,
+      category: 'callout',
+      difficulty: 'beginner',
+      intensityLevel: 'low',
+      duration: 0,
+      muscleGroups: [],
+      equipment: [],
+      springs: 'none',
+      isPregnancySafe: true,
+      description: 'Section divider',
+      cues: [],
+      notes: '',
+      image: '',
+      videoUrl: '',
+      setup: '',
+      repsOrDuration: '',
+      tempo: '',
+      targetAreas: [],
+      breathingCues: [],
+      teachingFocus: [],
+      modifications: [],
+      progressions: [],
+      regressions: [],
+      transitions: [],
+      contraindications: []
+    };
+    
+    onAddExercise(calloutExercise);
+    setIsCalloutDialogOpen(false);
   };
 
   const handleExerciseClick = (exerciseId: string) => {

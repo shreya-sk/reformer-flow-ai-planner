@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -325,6 +324,35 @@ export const useExercises = () => {
     }
   };
 
+  const duplicateExercise = async (exercise: Exercise) => {
+    try {
+      const duplicatedExercise: Omit<Exercise, 'id'> = {
+        ...exercise,
+        name: `${exercise.name} (Copy)`,
+        isCustom: true,
+        isSystemExercise: false,
+        isCustomized: false,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      
+      await createUserExercise(duplicatedExercise);
+      await fetchExercises();
+      
+      toast({
+        title: "Exercise duplicated",
+        description: `"${duplicatedExercise.name}" has been created.`,
+      });
+    } catch (error) {
+      console.error('Error duplicating exercise:', error);
+      toast({
+        title: "Error",
+        description: "Failed to duplicate exercise.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const refetchExercises = fetchExercises;
 
   useEffect(() => {
@@ -335,11 +363,11 @@ export const useExercises = () => {
     exercises,
     loading,
     fetchExercises,
-    refetchExercises,
+    refetchExercises: fetchExercises,
     createUserExercise,
+    updateUserExercise,
     deleteUserExercise,
     customizeSystemExercise,
-    updateUserExercise,
-    resetSystemExerciseToOriginal,
+    duplicateExercise
   };
 };

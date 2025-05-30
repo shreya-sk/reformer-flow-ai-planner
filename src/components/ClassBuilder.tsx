@@ -208,7 +208,20 @@ export const ClassBuilder = ({
         description: `${callout.name} section divider`,
         calloutColor: callout.color,
         cues: [],
-        notes: ''
+        notes: '',
+        image: '',
+        videoUrl: '',
+        setup: '',
+        repsOrDuration: '',
+        tempo: '',
+        targetAreas: [],
+        breathingCues: [],
+        teachingFocus: [],
+        modifications: [],
+        progressions: [],
+        regressions: [],
+        transitions: [],
+        contraindications: []
       };
 
       const newExercises = [...currentClass.exercises];
@@ -234,7 +247,20 @@ export const ClassBuilder = ({
         description: 'Section divider',
         calloutColor: 'amber',
         cues: [],
-        notes: ''
+        notes: '',
+        image: '',
+        videoUrl: '',
+        setup: '',
+        repsOrDuration: '',
+        tempo: '',
+        targetAreas: [],
+        breathingCues: [],
+        teachingFocus: [],
+        modifications: [],
+        progressions: [],
+        regressions: [],
+        transitions: [],
+        contraindications: []
       };
 
       const newExercises = [...currentClass.exercises];

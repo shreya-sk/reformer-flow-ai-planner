@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { CustomCallout } from '@/types/reformer';
 
@@ -52,29 +51,31 @@ export const useUserPreferences = () => {
     setPreferences(prev => ({ ...prev, ...updates }));
   };
 
-  const addCustomCallout = (name: string, color: CustomCallout['color'] = 'amber') => {
+  const addCustomCallout = (name: string, color: string) => {
     const newCallout: CustomCallout = {
       id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name,
+      text: '',
       color,
-      createdAt: new Date()
+      backgroundColor: `${color}-50`,
+      fontSize: 16,
+      fontWeight: 'medium',
+      textAlign: 'left',
+      duration: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isDefault: false
     };
-    
-    setPreferences(prev => ({
-      ...prev,
-      customCallouts: [...(prev.customCallouts || []), newCallout]
-    }));
-    
-    return newCallout;
+
+    const updatedCallouts = [...(preferences.customCallouts || []), newCallout];
+    updatePreferences({ customCallouts: updatedCallouts });
   };
 
   const updateCustomCallout = (id: string, updates: Partial<Pick<CustomCallout, 'name' | 'color'>>) => {
-    setPreferences(prev => ({
-      ...prev,
-      customCallouts: (prev.customCallouts || []).map(callout =>
-        callout.id === id ? { ...callout, ...updates } : callout
-      )
-    }));
+    const updatedCallouts = (preferences.customCallouts || []).map(callout =>
+      callout.id === id ? { ...callout, ...updates, updatedAt: new Date() } : callout
+    );
+    updatePreferences({ customCallouts: updatedCallouts });
   };
 
   const deleteCustomCallout = (id: string) => {

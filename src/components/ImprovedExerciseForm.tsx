@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +10,8 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { X, Plus, Sparkles, Clock, Target, Settings } from 'lucide-react';
 import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment } from '@/types/reformer';
+import { z } from 'zod';
+import { exerciseSchema } from '@/schemas/exercise';
 
 interface ImprovedExerciseFormProps {
   exercise?: Exercise;
@@ -103,16 +104,38 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim() || formData.muscleGroups.length === 0) return;
-
-    const newExercise: Exercise = {
-      id: exercise?.id || `custom-${Date.now()}`,
-      ...formData,
+  const handleSubmit = (values: z.infer<typeof exerciseSchema>) => {
+    const exerciseData: Exercise = {
+      name: values.name,
+      category: values.category,
+      duration: values.duration,
+      springs: values.springs,
+      difficulty: values.difficulty,
+      intensityLevel: values.intensityLevel,
+      muscleGroups: values.muscleGroups,
+      equipment: values.equipment,
+      description: values.description || '',
+      image: values.image || '',
+      videoUrl: values.videoUrl || '',
+      notes: values.notes || '',
+      cues: values.cues || [],
+      setup: values.setup || '',
+      repsOrDuration: values.repsOrDuration || '',
+      tempo: values.tempo || '',
+      targetAreas: values.targetAreas || [],
+      breathingCues: values.breathingCues || [],
+      teachingFocus: values.teachingFocus || [],
+      modifications: values.modifications || [],
+      progressions: values.progressions || [],
+      regressions: values.regressions || [],
+      transitions: values.transitions || [],
+      contraindications: values.contraindications || [],
+      isPregnancySafe: values.isPregnancySafe || false,
+      isCustom: true,
+      id: Date.now().toString()
     };
 
-    onSave(newExercise);
+    onSave(exerciseData);
   };
 
   return (

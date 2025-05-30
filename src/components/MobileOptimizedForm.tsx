@@ -1,397 +1,341 @@
-
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { X, Plus, Sparkles, Clock, Target } from 'lucide-react';
-import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment } from '@/types/reformer';
-import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { useNavigate } from 'react-router-dom';
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
+
+import { Button } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
+import { cn } from "@/lib/utils"
+import { ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment, TeachingFocus, Exercise } from '@/types/reformer';
 
 interface MobileOptimizedFormProps {
-  exercise?: Exercise;
-  onSave: (exercise: Exercise) => void;
-  onCancel: () => void;
+  onSubmit: (exercise: Exercise) => void;
+  onClose: () => void;
+  initialValues?: Exercise;
 }
 
-export const MobileOptimizedForm = ({ exercise, onSave, onCancel }: MobileOptimizedFormProps) => {
-  const { preferences } = useUserPreferences();
-  const [formData, setFormData] = useState({
-    name: exercise?.name || '',
-    category: exercise?.category || 'supine' as ExerciseCategory,
-    duration: exercise?.duration || 3,
-    springs: exercise?.springs || 'medium' as SpringSetting,
-    difficulty: exercise?.difficulty || 'beginner' as DifficultyLevel,
-    intensityLevel: exercise?.intensityLevel || 'medium' as IntensityLevel,
-    muscleGroups: exercise?.muscleGroups || [] as MuscleGroup[],
-    equipment: exercise?.equipment || [] as Equipment[],
-    description: exercise?.description || '',
-    image: exercise?.image || '',
-    videoUrl: exercise?.videoUrl || '',
-    notes: exercise?.notes || '',
-    cues: exercise?.cues || [] as string[],
-    isPregnancySafe: exercise?.isPregnancySafe || false,
-  });
+const exerciseSchema = z.object({
+  name: z.string().min(2, {
+    message: "Exercise name must be at least 2 characters.",
+  }),
+  category: z.enum([
+    'supine', 'prone', 'sitting', 'side-lying', 'kneeling', 'standing', 'warm-up', 'cool-down', 'callout', 'other'
+  ]),
+  duration: z.number().min(1, {
+    message: "Duration must be at least 1 minute.",
+  }),
+  springs: z.enum(['light', 'medium', 'heavy', 'mixed', 'none']),
+  difficulty: z.enum(['beginner', 'intermediate', 'advanced']),
+  intensityLevel: z.enum(['low', 'medium', 'high']),
+  muscleGroups: z.array(z.enum([
+    'core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body', 'quadriceps', 'hamstrings', 'calves', 'lower-abs', 'upper-abs', 'obliques', 'transverse-abdominis', 'traps', 'deltoids', 'biceps', 'triceps', 'lats', 'chest', 'rhomboids', 'erector-spinae', 'hip-flexors', 'adductors', 'abductors', 'pelvic-floor', 'deep-stabilizers', 'spinal-extensors', 'neck', 'forearms', 'wrists', 'ankles', 'feet', 'hip-abductors', 'hip-adductors', 'rotator-cuff', 'serratus-anterior', 'psoas', 'iliotibial-band', 'thoracic-spine', 'lumbar-spine', 'cervical-spine', 'diaphragm', 'intercostals'
+  ])).optional(),
+  equipment: z.array(z.enum([
+    'reformer', 'mat', 'magic-circle', 'weights', 'resistance-band', 'foam-roller', 'pilates-ball', 'bosu-ball', 'chair', 'cadillac', 'straps', 'theraband', 'soft-ball', 'short-box', 'long-box', 'jump-board', 'platform-extender', 'tower', 'pole', 'none', 'other'
+  ])).optional(),
+  description: z.string().optional(),
+  image: z.string().optional(),
+  videoUrl: z.string().optional(),
+  notes: z.string().optional(),
+  cues: z.array(z.string()).optional(),
+  setup: z.string().optional(),
+  repsOrDuration: z.string().optional(),
+  tempo: z.string().optional(),
+  targetAreas: z.array(z.string()).optional(),
+  breathingCues: z.array(z.string()).optional(),
+  teachingFocus: z.array(z.enum([
+    'alignment', 'core-engagement', 'breath', 'precision', 'control', 'flow', 'stability', 'mobility', 'balance', 'strength', 'coordination'
+  ])).optional(),
+  modifications: z.array(z.string()).optional(),
+  progressions: z.array(z.string()).optional(),
+  regressions: z.array(z.string()).optional(),
+  transitions: z.array(z.string()).optional(),
+  contraindications: z.array(z.string()).optional(),
+  isPregnancySafe: z.boolean().optional(),
+});
 
-  const [newCue, setNewCue] = useState('');
-  const [activeSection, setActiveSection] = useState('basics');
+export const MobileOptimizedForm = ({ onSubmit, onClose, initialValues }: MobileOptimizedFormProps) => {
+  const navigate = useNavigate();
+  const [isAdding, setIsAdding] = useState(false);
 
-  const muscleGroupOptions: MuscleGroup[] = ['core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body'];
-  const equipmentOptions: Equipment[] = ['straps', 'weights', 'magic-circle', 'theraband', 'none'];
+  const form = useForm<z.infer<typeof exerciseSchema>>({
+    resolver: zodResolver(exerciseSchema),
+    defaultValues: {
+      name: initialValues?.name || "",
+      category: initialValues?.category || "supine",
+      duration: initialValues?.duration || 1,
+      springs: initialValues?.springs || "medium",
+      difficulty: initialValues?.difficulty || "beginner",
+      intensityLevel: initialValues?.intensityLevel || "medium",
+      muscleGroups: initialValues?.muscleGroups || [],
+      equipment: initialValues?.equipment || [],
+      description: initialValues?.description || '',
+      image: initialValues?.image || '',
+      videoUrl: initialValues?.videoUrl || '',
+      notes: initialValues?.notes || '',
+      cues: initialValues?.cues || [],
+      setup: initialValues?.setup || '',
+      repsOrDuration: initialValues?.repsOrDuration || '',
+      tempo: initialValues?.tempo || '',
+      targetAreas: initialValues?.targetAreas || [],
+      breathingCues: initialValues?.breathingCues || [],
+      teachingFocus: initialValues?.teachingFocus || [],
+      modifications: initialValues?.modifications || [],
+      progressions: initialValues?.progressions || [],
+      regressions: initialValues?.regressions || [],
+      transitions: initialValues?.transitions || [],
+      contraindications: initialValues?.contraindications || [],
+      isPregnancySafe: initialValues?.isPregnancySafe || false,
+    },
+  })
 
-  const toggleMuscleGroup = (group: MuscleGroup) => {
-    setFormData(prev => ({
-      ...prev,
-      muscleGroups: prev.muscleGroups.includes(group)
-        ? prev.muscleGroups.filter(g => g !== group)
-        : [...prev.muscleGroups, group]
-    }));
-  };
-
-  const toggleEquipment = (equip: Equipment) => {
-    setFormData(prev => ({
-      ...prev,
-      equipment: prev.equipment.includes(equip)
-        ? prev.equipment.filter(e => e !== equip)
-        : [...prev.equipment, equip]
-    }));
-  };
-
-  const addCue = () => {
-    if (newCue.trim()) {
-      setFormData(prev => ({
-        ...prev,
-        cues: [...prev.cues, newCue.trim()]
-      }));
-      setNewCue('');
-    }
-  };
-
-  const removeCue = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      cues: prev.cues.filter((_, i) => i !== index)
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim() || formData.muscleGroups.length === 0) return;
-
-    const newExercise: Exercise = {
-      id: exercise?.id || `custom-${Date.now()}`,
-      ...formData,
+  const handleSubmit = (values: any) => {
+    const exerciseData: Exercise = {
+      name: values.name,
+      category: values.category,
+      duration: values.duration,
+      springs: values.springs,
+      difficulty: values.difficulty,
+      intensityLevel: values.intensityLevel,
+      muscleGroups: values.muscleGroups || [],
+      equipment: values.equipment || [],
+      description: values.description || '',
+      image: values.image || '',
+      videoUrl: values.videoUrl || '',
+      notes: values.notes || '',
+      cues: values.cues || [],
+      setup: values.setup || '',
+      repsOrDuration: values.repsOrDuration || '',
+      tempo: values.tempo || '',
+      targetAreas: values.targetAreas || [],
+      breathingCues: values.breathingCues || [],
+      teachingFocus: values.teachingFocus || [],
+      modifications: values.modifications || [],
+      progressions: values.progressions || [],
+      regressions: values.regressions || [],
+      transitions: values.transitions || [],
+      contraindications: values.contraindications || [],
+      isPregnancySafe: values.isPregnancySafe || false,
+      isCustom: true,
+      id: Date.now().toString()
     };
 
-    onSave(newExercise);
+    onSubmit(exerciseData);
   };
 
-  const sections = [
-    { id: 'basics', title: 'Basics', icon: Target },
-    { id: 'details', title: 'Details', icon: Clock },
-    { id: 'cues', title: 'Cues', icon: Sparkles },
-  ];
-
   return (
-    <div className="h-full flex flex-col">
-      {/* Mobile navigation */}
-      <div className="flex border-b bg-white sticky top-0 z-10">
-        {sections.map((section) => (
-          <button
-            key={section.id}
-            onClick={() => setActiveSection(section.id)}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 px-2 text-sm font-medium transition-colors ${
-              activeSection === section.id
-                ? 'border-b-2 border-sage-600 text-sage-600 bg-sage-50'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <section.icon className="h-4 w-4" />
-            <span className="hidden sm:inline">{section.title}</span>
-          </button>
-        ))}
-      </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Exercise Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Bicep Curls" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      {/* Form content */}
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
-              {exercise ? 'Edit Exercise' : 'Create Exercise'}
-            </h2>
-            <Button variant="ghost" size="sm" onClick={onCancel}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+        <FormField
+          control={form.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="supine">Supine</SelectItem>
+                  <SelectItem value="prone">Prone</SelectItem>
+                  <SelectItem value="sitting">Sitting</SelectItem>
+                  <SelectItem value="side-lying">Side-lying</SelectItem>
+                  <SelectItem value="kneeling">Kneeling</SelectItem>
+                  <SelectItem value="standing">Standing</SelectItem>
+                  <SelectItem value="warm-up">Warm-up</SelectItem>
+                  <SelectItem value="cool-down">Cool-down</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          {/* Basics Section */}
-          {activeSection === 'basics' && (
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="name" className="text-sm font-medium mb-2 block">
-                  Exercise Name *
-                </Label>
+        <FormField
+          control={form.control}
+          name="duration"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Duration (minutes)</FormLabel>
+              <FormControl>
                 <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g., Footwork - Parallel"
-                  className="h-12 text-base"
-                  required
+                  type="number"
+                  placeholder="5"
+                  {...field}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
                 />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="springs"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Spring Setting</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a spring setting" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="light">Light</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="heavy">Heavy</SelectItem>
+                  <SelectItem value="mixed">Mixed</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="difficulty"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Difficulty Level</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select difficulty" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="intermediate">Intermediate</SelectItem>
+                  <SelectItem value="advanced">Advanced</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="intensityLevel"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Intensity Level</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select intensity" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Enter a description"
+                  className="resize-none"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="isPregnancySafe"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+              <div className="space-y-0.5">
+                <FormLabel>Pregnancy Safe</FormLabel>
+                <FormDescription>
+                  Indicate if this exercise is safe for pregnant individuals.
+                </FormDescription>
               </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Position</Label>
-                  <Select value={formData.category} onValueChange={(value: ExerciseCategory) => setFormData(prev => ({ ...prev, category: value }))}>
-                    <SelectTrigger className="h-12">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="supine">Supine</SelectItem>
-                      <SelectItem value="prone">Prone</SelectItem>
-                      <SelectItem value="sitting">Sitting</SelectItem>
-                      <SelectItem value="side-lying">Side-lying</SelectItem>
-                      <SelectItem value="kneeling">Kneeling</SelectItem>
-                      <SelectItem value="standing">Standing</SelectItem>
-                      <SelectItem value="warm-up">Warm-up</SelectItem>
-                      <SelectItem value="cool-down">Cool-down</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium mb-2 flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    Duration (min)
-                  </Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="15"
-                    value={formData.duration}
-                    onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) || 3 }))}
-                    className="h-12 text-base"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Springs</Label>
-                  <Select value={formData.springs} onValueChange={(value: SpringSetting) => setFormData(prev => ({ ...prev, springs: value }))}>
-                    <SelectTrigger className="h-12">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="heavy">Heavy</SelectItem>
-                      <SelectItem value="mixed">Mixed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Difficulty</Label>
-                  <Select value={formData.difficulty} onValueChange={(value: DifficultyLevel) => setFormData(prev => ({ ...prev, difficulty: value }))}>
-                    <SelectTrigger className="h-12">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="beginner">Beginner</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="advanced">Advanced</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Intensity</Label>
-                  <Select value={formData.intensityLevel} onValueChange={(value: IntensityLevel) => setFormData(prev => ({ ...prev, intensityLevel: value }))}>
-                    <SelectTrigger className="h-12">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3 p-4 bg-pink-50 rounded-lg border border-pink-200">
+              <FormControl>
                 <Switch
-                  checked={formData.isPregnancySafe}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPregnancySafe: checked }))}
-                  className="data-[state=checked]:bg-pink-500"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
                 />
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-pink-800">Pregnancy Safe</span>
-                  <div className="text-pink-600">👶✓</div>
-                </div>
-              </div>
-            </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
+        />
 
-          {/* Details Section */}
-          {activeSection === 'details' && (
-            <div className="space-y-4">
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Muscle Groups *</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {muscleGroupOptions.map(group => (
-                    <Button
-                      key={group}
-                      type="button"
-                      variant={formData.muscleGroups.includes(group) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => toggleMuscleGroup(group)}
-                      className="h-12 text-sm"
-                    >
-                      {group}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Equipment</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {equipmentOptions.map(equip => (
-                    <Button
-                      key={equip}
-                      type="button"
-                      variant={formData.equipment.includes(equip) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => toggleEquipment(equip)}
-                      className="h-12 text-sm"
-                    >
-                      {equip}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Description</Label>
-                <Textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Brief description of the exercise..."
-                  rows={4}
-                  className="text-base"
-                />
-              </div>
-
-              <div>
-                <Label className="text-sm font-medium mb-2 block">Notes</Label>
-                <Textarea
-                  value={formData.notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                  placeholder="Additional notes or modifications..."
-                  rows={3}
-                  className="text-base"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Image URL</Label>
-                  <Input
-                    value={formData.image}
-                    onChange={(e) => setFormData(prev => ({ ...prev, image: e.target.value }))}
-                    placeholder="https://example.com/image.jpg"
-                    className="h-12 text-base"
-                  />
-                </div>
-                
-                <div>
-                  <Label className="text-sm font-medium mb-2 block">Video URL</Label>
-                  <Input
-                    value={formData.videoUrl}
-                    onChange={(e) => setFormData(prev => ({ ...prev, videoUrl: e.target.value }))}
-                    placeholder="https://youtube.com/watch?v=..."
-                    className="h-12 text-base"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Cues Section */}
-          {activeSection === 'cues' && (
-            <div className="space-y-4">
-              <div className="space-y-3">
-                {formData.cues.map((cue, index) => (
-                  <div key={index} className="flex gap-3 p-3 bg-sage-50 rounded-lg">
-                    <div className="w-8 h-8 rounded-full bg-sage-200 flex items-center justify-center text-sm font-bold text-sage-700 flex-shrink-0">
-                      {index + 1}
-                    </div>
-                    <Input
-                      value={cue}
-                      onChange={(e) => {
-                        const newCues = [...formData.cues];
-                        newCues[index] = e.target.value;
-                        setFormData(prev => ({ ...prev, cues: newCues }));
-                      }}
-                      className="flex-1 h-10 text-base"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeCue(index)}
-                      className="text-red-600 hover:text-red-800 flex-shrink-0 h-10 w-10"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="flex gap-2">
-                <Input
-                  value={newCue}
-                  onChange={(e) => setNewCue(e.target.value)}
-                  placeholder="Add a teaching cue..."
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCue())}
-                  className="flex-1 h-12 text-base"
-                />
-                <Button type="button" onClick={addCue} size="sm" className="h-12 w-12 bg-sage-600 hover:bg-sage-700">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Fixed bottom actions */}
-        <div className="sticky bottom-0 bg-white border-t p-4 space-y-3">
-          <Button 
-            type="submit" 
-            className="w-full h-12 bg-sage-600 hover:bg-sage-700 text-white text-base"
-            disabled={!formData.name.trim() || formData.muscleGroups.length === 0}
-          >
-            {exercise ? 'Update Exercise' : 'Create Exercise'}
-          </Button>
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onCancel} 
-            className="w-full h-12 border-sage-300 text-base"
-          >
-            Cancel
-          </Button>
-        </div>
+        <Button type="submit" disabled={isAdding} className="w-full">
+          {isAdding ? "Submitting..." : "Submit"}
+        </Button>
       </form>
-    </div>
+    </Form>
   );
 };
