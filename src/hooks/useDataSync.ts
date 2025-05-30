@@ -17,6 +17,16 @@ interface SyncStatus {
   hasPendingChanges: boolean;
 }
 
+interface UserSyncData {
+  id: string;
+  user_id: string;
+  class_plan: any;
+  preferences: any;
+  synced_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const useDataSync = () => {
   const { user } = useAuth();
   const [syncStatus, setSyncStatus] = useState<SyncStatus>({
@@ -65,9 +75,9 @@ export const useDataSync = () => {
         synced_at: new Date().toISOString(),
       };
 
-      // Upsert sync data to Supabase
+      // Use type assertion to work with the table
       const { error } = await supabase
-        .from('user_sync_data')
+        .from('user_sync_data' as any)
         .upsert(syncData, { onConflict: 'user_id' });
 
       if (error) throw error;
@@ -100,7 +110,7 @@ export const useDataSync = () => {
 
     try {
       const { data, error } = await supabase
-        .from('user_sync_data')
+        .from('user_sync_data' as any)
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -108,16 +118,18 @@ export const useDataSync = () => {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
+        const syncData = data as UserSyncData;
+        
         // Get current localStorage data
         const localClassPlan = localStorage.getItem('reformerly_class_plan');
         const localPreferences = localStorage.getItem('user-preferences');
 
         // Parse cloud data
-        const cloudClassPlan = data.class_plan;
-        const cloudPreferences = data.preferences;
+        const cloudClassPlan = syncData.class_plan;
+        const cloudPreferences = syncData.preferences;
 
         // Merge strategy: Use cloud data if it's newer, otherwise keep local
-        const cloudSyncTime = new Date(data.synced_at);
+        const cloudSyncTime = new Date(syncData.synced_at);
         const localSyncTime = localStorage.getItem('last_sync_time') 
           ? new Date(localStorage.getItem('last_sync_time')!)
           : new Date(0);

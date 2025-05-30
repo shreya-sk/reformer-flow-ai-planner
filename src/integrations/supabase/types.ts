@@ -468,6 +468,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sync_data: {
+        Row: {
+          class_plan: Json | null
+          created_at: string
+          id: string
+          preferences: Json | null
+          synced_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          class_plan?: Json | null
+          created_at?: string
+          id?: string
+          preferences?: Json | null
+          synced_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          class_plan?: Json | null
+          created_at?: string
+          id?: string
+          preferences?: Json | null
+          synced_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
