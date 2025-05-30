@@ -88,9 +88,9 @@ const PlanClass = () => {
     navigate('/library');
   };
 
-  const handleAddCallout = (position: number) => {
-    console.log('PlanClass handleAddCallout called with position:', position);
-    addCallout(`Note ${Date.now()}`, position);
+  const handleAddCallout = (name: string, position: number) => {
+    console.log('PlanClass handleAddCallout called with name:', name, 'position:', position);
+    addCallout(name, position);
   };
 
   const handleUpdateCallout = (calloutId: string, newName: string) => {
@@ -225,15 +225,8 @@ const PlanClass = () => {
               onUpdateExercise={handleUpdateExercise}
               onAddExercise={handleAddExercise}
               onAddCallout={handleAddCallout}
-              onUpdateCallout={handleUpdateCallout}
-              onDeleteCallout={handleDeleteCallout}
-              onAddToShortlist={addToShortlist}
               onUpdateClassName={updateClassName}
-              onUpdateClassDuration={updateClassDuration}
-              onUpdateClassNotes={updateClassNotes}
-              onUpdateClassImage={updateClassImage}
-              collapsedSections={collapsedSections}
-              onToggleSectionCollapse={toggleSectionCollapse}
+              onSaveClass={handleSaveClass}
             />
           </TabsContent>
           

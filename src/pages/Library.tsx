@@ -57,7 +57,7 @@ const Library = () => {
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20 safe-area-pb`}>
       <div className="min-h-screen flex flex-col">
-        <ExerciseLibrary onAddExercise={handleAddExercise} />
+        <ExerciseLibrary />
       </div>
 
       <BottomNavigation onPlanClass={() => navigate('/plan')} />

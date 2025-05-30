@@ -506,6 +506,7 @@ export const ClassBuilder = ({
           setSelectedExercise(null);
         }}
         onAddToClass={() => {}} // Not used in this context
+        onSave={handleUpdateExercise}
       />
     </div>
   );

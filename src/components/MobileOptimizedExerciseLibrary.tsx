@@ -147,7 +147,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     setIsCreating(true);
   }, []);
 
-  const handleSaveExercise = useCallback((exercise: Exercise) => {
+  const handleSaveExercise = useCallback(async (exercise: Exercise) => {
     // Handle save logic here
     setIsCreating(false);
     setEditingExercise(null);
@@ -271,6 +271,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
           onClose={handleCloseModal}
           onAddToClass={handleAddToClass}
           onEditExercise={handleEditExercise}
+          onSave={handleSaveExercise}
         />
       )}
 

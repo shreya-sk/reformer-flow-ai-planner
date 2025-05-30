@@ -12,7 +12,7 @@ interface TabbedPlanViewProps {
   onUpdateClassNotes: (notes: string) => void;
   onUpdateClassImage: (image: string) => void;
   onAddExercise: () => void;
-  onAddCallout: (position: number) => void;
+  onAddCallout: (name: string, position: number) => void;
   onUpdateCallout: (calloutId: string, newName: string) => void;
   onDeleteCallout: (calloutId: string) => void;
   onReorderExercises: (exercises: Exercise[]) => void;
@@ -64,15 +64,7 @@ export const TabbedPlanView = ({
       onUpdateExercise={updateExercise}
       onAddExercise={onAddExercise}
       onAddCallout={onAddCallout}
-      onUpdateCallout={onUpdateCallout}
-      onDeleteCallout={onDeleteCallout}
-      onAddToShortlist={onAddToShortlist}
-      onUpdateClassName={onUpdateClassName}
-      onUpdateClassDuration={onUpdateClassDuration}
-      onUpdateClassNotes={onUpdateClassNotes}
-      onUpdateClassImage={onUpdateClassImage}
-      collapsedSections={collapsedSections}
-      onToggleSectionCollapse={onToggleSectionCollapse}
+      onSaveClass={() => {}}
     />
   );
 };
