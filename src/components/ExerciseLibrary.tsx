@@ -22,7 +22,7 @@ interface ExerciseLibraryProps {
 export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const navigate = useNavigate();
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
-  const { exercises, loading, createUserExercise, updateUserExercise } = useExercises();
+  const { exercises, loading, createUserExercise, updateUserExercise, deleteUserExercise, customizeSystemExercise } = useExercises();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const [selectedPosition, setSelectedPosition] = useState<ExerciseCategory | 'all'>('all');
@@ -40,7 +40,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   }, [exercises]);
 
   const filteredExercises = localExercises.filter(exercise => {
-    // Filter hidden exercises unless explicitly showing them
     const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
     if (!showHidden && isHidden) return false;
     if (showHidden && !isHidden) return false;
@@ -97,13 +96,27 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const handleSaveExercise = async (exercise: Exercise) => {
     try {
       if (editingExercise) {
-        await updateUserExercise(exercise.id, exercise);
-        // Update local state immediately
-        setLocalExercises(prev => prev.map(ex => ex.id === exercise.id ? exercise : ex));
+        if (exercise.isSystemExercise) {
+          await customizeSystemExercise(exercise.id, {
+            custom_name: exercise.name,
+            custom_duration: exercise.duration,
+            custom_springs: exercise.springs,
+            custom_cues: exercise.cues,
+            custom_notes: exercise.notes,
+            custom_difficulty: exercise.difficulty,
+            custom_setup: exercise.setup,
+            custom_reps_or_duration: exercise.repsOrDuration,
+            custom_tempo: exercise.tempo,
+            custom_target_areas: exercise.targetAreas,
+            custom_breathing_cues: exercise.breathingCues,
+            custom_teaching_focus: exercise.teachingFocus,
+            custom_modifications: exercise.modifications,
+          });
+        } else {
+          await updateUserExercise(exercise.id, exercise);
+        }
       } else {
         await createUserExercise(exercise);
-        // Add to local state immediately
-        setLocalExercises(prev => [...prev, exercise]);
       }
       setShowForm(false);
       setEditingExercise(null);
@@ -125,12 +138,11 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
       id: `${exercise.id}-copy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: `${exercise.name} (Copy)`,
       isCustom: true,
+      isSystemExercise: false,
     };
     
     try {
       await createUserExercise(duplicated);
-      // Add to local state immediately for instant UI update
-      setLocalExercises(prev => [...prev, duplicated]);
       toast({
         title: "Exercise duplicated",
         description: `"${duplicated.name}" has been created.`,
@@ -148,7 +160,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
   const handleDeleteExercise = async (exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    // Only allow deleting custom exercises
     if (!exercise.isCustom) {
       toast({
         title: "Cannot delete",
@@ -159,12 +170,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
     }
 
     try {
-      // For now, we'll just remove from local state since there's no delete method in useExercises
-      setLocalExercises(prev => prev.filter(ex => ex.id !== exercise.id));
-      toast({
-        title: "Exercise deleted",
-        description: `"${exercise.name}" has been permanently deleted.`,
-      });
+      await deleteUserExercise(exercise.id);
     } catch (error) {
       console.error('Error deleting exercise:', error);
     }
@@ -189,8 +195,25 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
 
   const handleUpdateExercise = async (updatedExercise: Exercise) => {
     try {
-      await updateUserExercise(updatedExercise.id, updatedExercise);
-      setLocalExercises(prev => prev.map(ex => ex.id === updatedExercise.id ? updatedExercise : ex));
+      if (updatedExercise.isSystemExercise) {
+        await customizeSystemExercise(updatedExercise.id, {
+          custom_name: updatedExercise.name,
+          custom_duration: updatedExercise.duration,
+          custom_springs: updatedExercise.springs,
+          custom_cues: updatedExercise.cues,
+          custom_notes: updatedExercise.notes,
+          custom_difficulty: updatedExercise.difficulty,
+          custom_setup: updatedExercise.setup,
+          custom_reps_or_duration: updatedExercise.repsOrDuration,
+          custom_tempo: updatedExercise.tempo,
+          custom_target_areas: updatedExercise.targetAreas,
+          custom_breathing_cues: updatedExercise.breathingCues,
+          custom_teaching_focus: updatedExercise.teachingFocus,
+          custom_modifications: updatedExercise.modifications,
+        });
+      } else {
+        await updateUserExercise(updatedExercise.id, updatedExercise);
+      }
       setSelectedExercise(updatedExercise);
     } catch (error) {
       console.error('Error updating exercise:', error);
@@ -417,7 +440,6 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
                               </span>
                             </div>
                             
-                            {/* Pregnancy Safe Indicator */}
                             {exercise.isPregnancySafe && (
                               <div className="flex items-center gap-1">
                                 <Baby className="h-3 w-3 text-pink-500" />

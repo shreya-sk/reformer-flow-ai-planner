@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,7 +20,7 @@ const PlanClass = () => {
   const { user } = useAuth();
   const { saveClassPlan, savedClasses } = useClassPlans();
   const { preferences, toggleFavoriteExercise } = useUserPreferences();
-  const { exercises } = useExercises();
+  const { exercises, updateUserExercise, customizeSystemExercise } = useExercises();
   const {
     currentClass,
     removeExercise,
@@ -36,7 +37,6 @@ const PlanClass = () => {
   const [isTeachingMode, setIsTeachingMode] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
-  // Connect shortlist to favorites from user preferences
   const shortlistedExercises = exercises.filter(ex => 
     preferences.favoriteExercises?.includes(ex.id)
   );
@@ -88,7 +88,6 @@ const PlanClass = () => {
     navigate('/library');
   };
 
-  // Create wrapper function that converts position to callout name and position
   const handleAddCallout = (position: number) => {
     addCallout(`Note ${Date.now()}`, position);
   };
@@ -134,6 +133,50 @@ const PlanClass = () => {
     });
   };
 
+  // Improved exercise update handler that persists changes correctly
+  const handleUpdateExercise = async (updatedExercise: any) => {
+    try {
+      // Save to database based on exercise type
+      if (updatedExercise.isSystemExercise) {
+        await customizeSystemExercise(updatedExercise.id, {
+          custom_name: updatedExercise.name,
+          custom_duration: updatedExercise.duration,
+          custom_springs: updatedExercise.springs,
+          custom_cues: updatedExercise.cues,
+          custom_notes: updatedExercise.notes,
+          custom_difficulty: updatedExercise.difficulty,
+          custom_setup: updatedExercise.setup,
+          custom_reps_or_duration: updatedExercise.repsOrDuration,
+          custom_tempo: updatedExercise.tempo,
+          custom_target_areas: updatedExercise.targetAreas,
+          custom_breathing_cues: updatedExercise.breathingCues,
+          custom_teaching_focus: updatedExercise.teachingFocus,
+          custom_modifications: updatedExercise.modifications,
+        });
+      } else {
+        await updateUserExercise(updatedExercise.id, updatedExercise);
+      }
+
+      // Update local class state
+      const updatedExercises = currentClass.exercises.map(ex => 
+        ex.id === updatedExercise.id ? updatedExercise : ex
+      );
+      reorderExercises(updatedExercises);
+
+      toast({
+        title: "Exercise updated",
+        description: "Changes have been saved successfully.",
+      });
+    } catch (error) {
+      console.error('Error updating exercise:', error);
+      toast({
+        title: "Update failed",
+        description: "Could not save exercise changes.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-50 via-white to-sage-100'} pb-20`}>
       <ClassHeader
@@ -163,12 +206,7 @@ const PlanClass = () => {
               currentClass={currentClass}
               onRemoveExercise={removeExercise}
               onReorderExercises={reorderExercises}
-              onUpdateExercise={(exercise) => {
-                const updatedExercises = currentClass.exercises.map(ex => 
-                  ex.id === exercise.id ? exercise : ex
-                );
-                reorderExercises(updatedExercises);
-              }}
+              onUpdateExercise={handleUpdateExercise}
               onAddExercise={handleAddExercise}
               onAddCallout={handleAddCallout}
               onUpdateCallout={handleUpdateCallout}

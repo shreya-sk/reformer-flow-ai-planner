@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,7 +34,6 @@ export const useExercises = () => {
         if (userError) throw userError;
         userExercises = userExercisesData || [];
 
-        // Fetch user customizations
         const { data: customizationsData, error: customError } = await supabase
           .from('user_exercise_customizations')
           .select('*')
@@ -88,7 +88,6 @@ export const useExercises = () => {
         };
       });
 
-      // Transform user exercises
       const transformedUserExercises: Exercise[] = userExercises.map(exercise => ({
         id: exercise.id,
         name: exercise.name,
@@ -183,6 +182,36 @@ export const useExercises = () => {
       return data;
     } catch (error) {
       console.error('Error creating user exercise:', error);
+      throw error;
+    }
+  };
+
+  const deleteUserExercise = async (exerciseId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_exercises')
+        .delete()
+        .eq('id', exerciseId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      // Update local state immediately
+      setExercises(prev => prev.filter(ex => ex.id !== exerciseId));
+      
+      toast({
+        title: "Exercise deleted",
+        description: "Exercise has been permanently deleted.",
+      });
+    } catch (error) {
+      console.error('Error deleting user exercise:', error);
+      toast({
+        title: "Delete failed",
+        description: "Could not delete exercise.",
+        variant: "destructive",
+      });
       throw error;
     }
   };
@@ -296,7 +325,6 @@ export const useExercises = () => {
     }
   };
 
-  // Add refetchExercises as an alias to fetchExercises for backward compatibility
   const refetchExercises = fetchExercises;
 
   useEffect(() => {
@@ -307,8 +335,9 @@ export const useExercises = () => {
     exercises,
     loading,
     fetchExercises,
-    refetchExercises, // Add this property
+    refetchExercises,
     createUserExercise,
+    deleteUserExercise,
     customizeSystemExercise,
     updateUserExercise,
     resetSystemExerciseToOriginal,

@@ -29,6 +29,7 @@ import { ExerciseSuggestions } from './ExerciseSuggestions';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
 import { SpringVisual } from '@/components/SpringVisual';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { useExercises } from '@/hooks/useExercises';
 
 interface ClassBuilderProps {
   currentClass: ClassPlan;
@@ -87,6 +88,7 @@ export const ClassBuilder = ({
   onToggleSectionCollapse
 }: ClassBuilderProps) => {
   const { preferences } = useUserPreferences();
+  const { updateUserExercise, customizeSystemExercise } = useExercises();
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
@@ -157,6 +159,37 @@ export const ClassBuilder = ({
   const handleRemoveExercise = (exerciseId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     onRemoveExercise(exerciseId);
+  };
+
+  const handleUpdateExerciseFromModal = async (updatedExercise: Exercise) => {
+    try {
+      // Save to database first
+      if (updatedExercise.isSystemExercise) {
+        await customizeSystemExercise(updatedExercise.id, {
+          custom_name: updatedExercise.name,
+          custom_duration: updatedExercise.duration,
+          custom_springs: updatedExercise.springs,
+          custom_cues: updatedExercise.cues,
+          custom_notes: updatedExercise.notes,
+          custom_difficulty: updatedExercise.difficulty,
+          custom_setup: updatedExercise.setup,
+          custom_reps_or_duration: updatedExercise.repsOrDuration,
+          custom_tempo: updatedExercise.tempo,
+          custom_target_areas: updatedExercise.targetAreas,
+          custom_breathing_cues: updatedExercise.breathingCues,
+          custom_teaching_focus: updatedExercise.teachingFocus,
+          custom_modifications: updatedExercise.modifications,
+        });
+      } else {
+        await updateUserExercise(updatedExercise.id, updatedExercise);
+      }
+
+      // Then update local state
+      onUpdateExercise(updatedExercise);
+      setSelectedExercise(updatedExercise);
+    } catch (error) {
+      console.error('Error updating exercise:', error);
+    }
   };
 
   const handleAddCustomCallout = (callout: CustomCallout, position: number) => {
@@ -790,7 +823,7 @@ export const ClassBuilder = ({
             setShowDetailModal(false);
             setSelectedExercise(null);
           }}
-          onEditExercise={onUpdateExercise}
+          onEditExercise={handleUpdateExerciseFromModal}
         />
       )}
     </>
