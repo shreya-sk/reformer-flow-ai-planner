@@ -10,6 +10,7 @@ import { useTouchGestures } from '@/hooks/useTouchGestures';
 import { useLazyLoading, useVirtualScrolling } from '@/hooks/usePerformanceOptimization';
 import { usePWA } from '@/hooks/usePWA';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { ExerciseDetailModal } from '@/components/ExerciseDetailModal';
 
 interface MobileOptimizedExerciseLibraryProps {
   exercises: Exercise[];
@@ -24,6 +25,8 @@ export const MobileOptimizedExerciseLibrary = ({
 }: MobileOptimizedExerciseLibraryProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const { preferences } = useUserPreferences();
   const { observeImage } = useLazyLoading();
   const { isOnline, isInstallable, installApp } = usePWA();
@@ -62,105 +65,127 @@ export const MobileOptimizedExerciseLibrary = ({
     }
   };
 
-  return (
-    <div className={`h-full flex flex-col ${preferences.darkMode ? 'bg-gray-900' : 'bg-white'}`}>
-      {/* Pull to refresh indicator */}
-      {isPulling && (
-        <div 
-          className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-sage-600 text-white transition-all duration-300"
-          style={{ 
-            height: `${Math.min(pullDistance, 60)}px`,
-            opacity: pullDistance / 60 
-          }}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          <span className="text-sm">
-            {pullDistance >= 60 ? 'Release to refresh' : 'Pull to refresh'}
-          </span>
-        </div>
-      )}
+  const handleCardClick = (exercise: Exercise) => {
+    setSelectedExercise(exercise);
+    setShowDetailModal(true);
+  };
 
-      {/* Status bar */}
-      <div className="flex items-center justify-between p-3 border-b bg-sage-50 text-xs">
-        <div className="flex items-center gap-2">
-          {isOnline ? (
-            <><Wifi className="h-3 w-3 text-green-600" /><span>Online</span></>
-          ) : (
-            <><WifiOff className="h-3 w-3 text-red-600" /><span>Offline</span></>
+  return (
+    <>
+      <div className={`h-full flex flex-col ${preferences.darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+        {/* Pull to refresh indicator */}
+        {isPulling && (
+          <div 
+            className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-sage-600 text-white transition-all duration-300"
+            style={{ 
+              height: `${Math.min(pullDistance, 60)}px`,
+              opacity: pullDistance / 60 
+            }}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="text-sm">
+              {pullDistance >= 60 ? 'Release to refresh' : 'Pull to refresh'}
+            </span>
+          </div>
+        )}
+
+        {/* Status bar */}
+        <div className="flex items-center justify-between p-3 border-b bg-sage-50 text-xs">
+          <div className="flex items-center gap-2">
+            {isOnline ? (
+              <><Wifi className="h-3 w-3 text-green-600" /><span>Online</span></>
+            ) : (
+              <><WifiOff className="h-3 w-3 text-red-600" /><span>Offline</span></>
+            )}
+          </div>
+          
+          {isInstallable && (
+            <Button 
+              onClick={handleInstallClick}
+              size="sm" 
+              variant="outline" 
+              className="h-6 text-xs py-1 px-2"
+            >
+              <Download className="h-3 w-3 mr-1" />
+              Install App
+            </Button>
           )}
         </div>
-        
-        {isInstallable && (
-          <Button 
-            onClick={handleInstallClick}
-            size="sm" 
-            variant="outline" 
-            className="h-6 text-xs py-1 px-2"
-          >
-            <Download className="h-3 w-3 mr-1" />
-            Install App
-          </Button>
-        )}
-      </div>
 
-      {/* Search header */}
-      <div className="p-4 border-b bg-white sticky top-0 z-20">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search exercises..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-12 text-base"
-          />
+        {/* Search header */}
+        <div className="p-4 border-b bg-white sticky top-0 z-20">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search exercises..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-12 text-base"
+            />
+          </div>
+          
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-sm text-gray-600">
+              {filteredExercises.length} exercises
+            </span>
+            <Button variant="ghost" size="sm" onClick={onRefresh} disabled={isRefreshing}>
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         </div>
-        
-        <div className="flex items-center justify-between mt-3">
-          <span className="text-sm text-gray-600">
-            {filteredExercises.length} exercises
-          </span>
-          <Button variant="ghost" size="sm" onClick={onRefresh} disabled={isRefreshing}>
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </Button>
-        </div>
-      </div>
 
-      {/* Virtual scrolled exercise list */}
-      <div 
-        ref={containerRef}
-        className="flex-1 overflow-auto"
-        onScroll={handleScroll}
-        style={{ height: '100%' }}
-      >
-        <div style={{ height: totalHeight, position: 'relative' }}>
-          <div style={{ transform: `translateY(${offsetY}px)` }}>
-            {visibleItems.map((exercise, index) => {
-              const actualIndex = visibleStart + index;
-              return (
-                <ExerciseCard
-                  key={exercise.id}
-                  exercise={exercise}
-                  onSelect={onExerciseSelect}
-                  observeImage={observeImage}
-                  darkMode={preferences.darkMode}
-                />
-              );
-            })}
+        {/* Virtual scrolled exercise list */}
+        <div 
+          ref={containerRef}
+          className="flex-1 overflow-auto"
+          onScroll={handleScroll}
+          style={{ height: '100%' }}
+        >
+          <div style={{ height: totalHeight, position: 'relative' }}>
+            <div style={{ transform: `translateY(${offsetY}px)` }}>
+              {visibleItems.map((exercise, index) => {
+                const actualIndex = visibleStart + index;
+                return (
+                  <ExerciseCard
+                    key={exercise.id}
+                    exercise={exercise}
+                    onSelect={handleCardClick}
+                    onAddToClass={onExerciseSelect}
+                    observeImage={observeImage}
+                    darkMode={preferences.darkMode}
+                  />
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Exercise Detail Modal */}
+      {selectedExercise && (
+        <ExerciseDetailModal
+          exercise={selectedExercise}
+          isOpen={showDetailModal}
+          onClose={() => {
+            setShowDetailModal(false);
+            setSelectedExercise(null);
+          }}
+          onAddToClass={onExerciseSelect}
+        />
+      )}
+    </>
   );
 };
 
 interface ExerciseCardProps {
   exercise: Exercise;
   onSelect: (exercise: Exercise) => void;
+  onAddToClass: (exercise: Exercise) => void;
   observeImage: (element: HTMLImageElement, src: string) => void;
   darkMode: boolean;
 }
 
-const ExerciseCard = ({ exercise, onSelect, observeImage, darkMode }: ExerciseCardProps) => {
+const ExerciseCard = ({ exercise, onSelect, onAddToClass, observeImage, darkMode }: ExerciseCardProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
