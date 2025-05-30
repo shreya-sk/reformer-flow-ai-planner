@@ -29,21 +29,31 @@ export const ExerciseDetailModal = ({
   showEditButton = false
 }: ExerciseDetailModalProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const { updateCustomExercise, isCustomExercise } = useCustomExercises();
+  const { customExercises, saveCustomExercise } = useCustomExercises();
   const { preferences } = useUserPreferences();
 
   if (!exercise) return null;
+
+  const isCustomExercise = (exerciseId: string) => {
+    return customExercises.some(ex => ex.id === exerciseId);
+  };
 
   const handleEdit = () => {
     setIsEditing(true);
   };
 
-  const handleSaveEdit = (updatedExercise: Exercise) => {
-    updateCustomExercise(updatedExercise);
-    if (onEditExercise) {
-      onEditExercise(updatedExercise);
+  const handleSaveEdit = async (updatedExercise: Exercise) => {
+    try {
+      if (isCustomExercise(updatedExercise.id)) {
+        await saveCustomExercise(updatedExercise);
+      }
+      if (onEditExercise) {
+        onEditExercise(updatedExercise);
+      }
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving exercise:', error);
     }
-    setIsEditing(false);
   };
 
   const handleCancelEdit = () => {
@@ -105,7 +115,7 @@ export const ExerciseDetailModal = ({
               <span className={`text-sm font-medium ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>
                 Springs:
               </span>
-              <SpringVisual setting={exercise.springs} size="sm" />
+              <SpringVisual springs={exercise.springs} className="flex items-center gap-1" />
             </div>
 
             {/* Muscle groups - wrap on mobile */}

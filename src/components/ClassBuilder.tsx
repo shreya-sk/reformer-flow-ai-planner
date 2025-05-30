@@ -790,7 +790,7 @@ export const ClassBuilder = ({
             setShowDetailModal(false);
             setSelectedExercise(null);
           }}
-          onUpdate={onUpdateExercise}
+          onEditExercise={onUpdateExercise}
         />
       )}
     </>

@@ -514,7 +514,7 @@ export const ExerciseLibrary = ({ onAddExercise }: ExerciseLibraryProps) => {
             setShowDetailModal(false);
             setSelectedExercise(null);
           }}
-          onUpdate={handleUpdateExercise}
+          onEditExercise={handleUpdateExercise}
         />
       )}
     </>
