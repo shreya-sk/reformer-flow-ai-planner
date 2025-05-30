@@ -34,6 +34,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Trigger sync when user logs in
+        if (event === 'SIGNED_IN' && session?.user) {
+          // The useDataSync hook will handle the sync automatically
+          console.log('User signed in, sync will be triggered by useDataSync hook');
+        }
       }
     );
 
@@ -65,6 +71,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    // Clear localStorage on sign out
+    localStorage.removeItem('reformerly_class_plan');
+    localStorage.removeItem('user-preferences');
+    localStorage.removeItem('last_sync_time');
   };
 
   const value = {

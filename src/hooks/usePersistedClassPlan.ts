@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { Exercise, ClassPlan } from '@/types/reformer';
+import { useDataSync } from './useDataSync';
 
 const CLASS_PLAN_KEY = 'reformerly_class_plan';
 
@@ -19,6 +19,7 @@ const getInitialClassPlan = (): ClassPlan => ({
 
 export const usePersistedClassPlan = () => {
   const [currentClass, setCurrentClass] = useState<ClassPlan>(getInitialClassPlan());
+  const { markPendingChanges } = useDataSync();
 
   useEffect(() => {
     const storedClassPlan = localStorage.getItem(CLASS_PLAN_KEY);
@@ -40,7 +41,8 @@ export const usePersistedClassPlan = () => {
   useEffect(() => {
     console.log('Saving class plan to localStorage:', currentClass);
     localStorage.setItem(CLASS_PLAN_KEY, JSON.stringify(currentClass));
-  }, [currentClass]);
+    markPendingChanges(); // Mark for sync
+  }, [currentClass, markPendingChanges]);
 
   const updateClass = (updatedClass: Partial<ClassPlan>) => {
     console.log('Updating class with:', updatedClass);

@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { CustomCallout } from '@/types/reformer';
+import { useDataSync } from './useDataSync';
 
 interface ExerciseDetailPreferences {
   showSpringsEquipment: boolean;
@@ -45,6 +45,7 @@ const defaultDetailPreferences: ExerciseDetailPreferences = {
 };
 
 export const useUserPreferences = () => {
+  const { markPendingChanges } = useDataSync();
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
     try {
       const saved = localStorage.getItem(PREFERENCES_KEY);
@@ -79,10 +80,11 @@ export const useUserPreferences = () => {
   useEffect(() => {
     try {
       localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
+      markPendingChanges(); // Mark for sync
     } catch (error) {
       console.error('Failed to save user preferences:', error);
     }
-  }, [preferences]);
+  }, [preferences, markPendingChanges]);
 
   const updatePreferences = (updates: Partial<UserPreferences>) => {
     setPreferences(prev => ({ ...prev, ...updates }));

@@ -64,6 +64,7 @@ export const TabbedPlanView = ({
       onUpdateExercise={updateExercise}
       onAddExercise={onAddExercise}
       onAddCallout={onAddCallout}
+      onUpdateClassName={onUpdateClassName}
       onSaveClass={() => {}}
     />
   );
