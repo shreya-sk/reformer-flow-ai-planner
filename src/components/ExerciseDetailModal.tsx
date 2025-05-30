@@ -12,6 +12,7 @@ import { useExercises } from '@/hooks/useExercises';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/hooks/use-toast';
+
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface ExerciseDetailModalProps {
@@ -20,6 +21,7 @@ interface ExerciseDetailModalProps {
   onClose: () => void;
   onAddToClass?: (exercise: Exercise) => void;
   onEditExercise?: (exercise: Exercise) => void;
+  onSave: (updatedExercise: Exercise) => Promise<void>;
   showEditButton?: boolean;
 }
 
@@ -37,6 +39,7 @@ const defaultDetailPreferences = {
   showDescription: true,
   showMedia: true,
   showPregnancySafety: true,
+
 };
 
 export const ExerciseDetailModal = ({ 
@@ -49,6 +52,7 @@ export const ExerciseDetailModal = ({
 }: ExerciseDetailModalProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  
   const { exercises, updateUserExercise, customizeSystemExercise, duplicateExercise, deleteUserExercise } = useExercises();
   const { preferences, toggleHiddenExercise, toggleFavoriteExercise } = useUserPreferences();
   const isMobile = useIsMobile();

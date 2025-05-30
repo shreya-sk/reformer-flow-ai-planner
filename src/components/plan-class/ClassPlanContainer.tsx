@@ -124,7 +124,7 @@ export const ClassPlanContainer = () => {
 
   const handleLibraryAddExercise = (exercise: Exercise) => {
     addExerciseToClass(exercise);
-    setShowLibrary(false);
+    
   };
 
   if (!user) {
@@ -146,7 +146,7 @@ export const ClassPlanContainer = () => {
           showBackButton={true}
           onBack={() => setShowLibrary(false)}
         />
-        <ExerciseLibrary onAddExercise={handleLibraryAddExercise} />
+        <ExerciseLibrary />
       </div>
     );
   }
