@@ -221,6 +221,8 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
         showPregnancySafe={showPregnancySafe}
         onPregnancySafeToggle={() => setShowPregnancySafe(prev => !prev)}
         onAddExercise={handleCreateExercise}
+        showFilters={showFilters}
+        onClearFilters={handleClearFilters}
       />
 
       {/* Filter Panel */}
