@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 
@@ -152,7 +153,7 @@ export const usePersistedClassPlan = () => {
 
     const newExercises = [...currentClass.exercises];
     newExercises.splice(position, 0, calloutExercise);
-    updateClass({ exercises: newExercises });
+    reorderExercises(newExercises);
   };
 
   return {

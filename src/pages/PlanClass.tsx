@@ -22,6 +22,7 @@ const PlanClass = () => {
   const { exercises, updateUserExercise, customizeSystemExercise } = useExercises();
   const {
     currentClass,
+    addExercise,
     removeExercise,
     updateClassName,
     updateClassDuration,
@@ -88,10 +89,12 @@ const PlanClass = () => {
   };
 
   const handleAddCallout = (position: number) => {
+    console.log('PlanClass handleAddCallout called with position:', position);
     addCallout(`Note ${Date.now()}`, position);
   };
 
   const handleUpdateCallout = (calloutId: string, newName: string) => {
+    console.log('PlanClass handleUpdateCallout called:', calloutId, newName);
     const updatedExercises = currentClass.exercises.map(exercise => 
       exercise.id === calloutId && exercise.category === 'callout'
         ? { ...exercise, name: newName }
@@ -101,6 +104,7 @@ const PlanClass = () => {
   };
 
   const handleDeleteCallout = (calloutId: string) => {
+    console.log('PlanClass handleDeleteCallout called:', calloutId);
     const updatedExercises = currentClass.exercises.filter(exercise => 
       !(exercise.id === calloutId && exercise.category === 'callout')
     );
@@ -116,8 +120,8 @@ const PlanClass = () => {
   };
 
   const addShortlistedToClass = (exercise: any) => {
-    const updatedExercises = [...currentClass.exercises, exercise];
-    reorderExercises(updatedExercises);
+    console.log('Adding shortlisted exercise to class:', exercise);
+    addExercise(exercise);
   };
 
   const toggleSectionCollapse = (sectionId: string) => {
@@ -178,7 +182,7 @@ const PlanClass = () => {
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-50 via-white to-sage-100'} pb-20`}>
-      {/* Simplified Header - removed teach button */}
+      {/* Header */}
       <div className="bg-white/90 backdrop-blur-sm border-b border-sage-200 p-3 sm:p-4 sticky top-0 z-10">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

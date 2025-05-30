@@ -8,6 +8,7 @@ import { AuthPage } from '@/components/AuthPage';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
 import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
+import { toast } from '@/hooks/use-toast';
 
 const Library = () => {
   const navigate = useNavigate();
@@ -32,14 +33,33 @@ const Library = () => {
     console.log('Library handleAddExercise called with:', exercise);
     
     try {
-      // Add exercise to the persisted class plan
-      addExercise(exercise);
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substr(2, 9);
+      const uniqueId = `${exercise.id}-${timestamp}-${randomId}`;
+      
+      const exerciseToAdd = {
+        ...exercise,
+        id: uniqueId,
+      };
+      
+      console.log('Calling addExercise with:', exerciseToAdd);
+      addExercise(exerciseToAdd);
       console.log('Exercise added to class plan successfully');
+      
+      toast({
+        title: "Added to class",
+        description: `"${exercise.name}" has been added to your class plan.`,
+      });
       
       // Navigate to plan page to show the updated class
       navigate('/plan');
     } catch (error) {
       console.error('Error in Library handleAddExercise:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add exercise to class.",
+        variant: "destructive",
+      });
     }
   };
 
