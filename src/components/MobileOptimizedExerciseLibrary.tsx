@@ -20,9 +20,9 @@ interface MobileOptimizedExerciseLibraryProps {
 export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptimizedExerciseLibraryProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { preferences } = useUserPreferences();
-  const { exercises, loading } = useExercises();
-  const { addExercise, currentClass } = usePersistedClassPlan(); // Get currentClass for debug
+  const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
+  const { exercises, loading, duplicateExercise, deleteUserExercise, resetSystemExerciseToOriginal, createUserExercise } = useExercises();
+  const { addExercise } = usePersistedClassPlan();
   const isMobile = useIsMobile();
 
   // State
@@ -75,33 +75,34 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     return count;
   }, [showPregnancySafe, showHidden, selectedCategory, selectedMuscleGroup]);
 
-  // Enhanced add to class function with better error handling
+  // Debug: Add to class function
   const handleAddToClass = useCallback((exercise: Exercise) => {
-    console.log('🔵 MobileOptimizedExerciseLibrary handleAddToClass called with:', exercise.name);
+    console.log('🔵 MobileOptimizedExerciseLibrary handleAddToClass called with:', exercise);
     console.log('🔵 Current user:', user?.id);
-    console.log('🔵 onExerciseSelect prop exists:', !!onExerciseSelect);
-    console.log('🔵 Current class state:', {
-      exerciseCount: currentClass.exercises.length,
-      totalDuration: currentClass.totalDuration
-    });
+    console.log('🔵 onExerciseSelect prop:', !!onExerciseSelect);
     
     try {
       if (onExerciseSelect) {
-        console.log('🔵 Using onExerciseSelect prop');
+        console.log('🔵 Calling onExerciseSelect prop');
         onExerciseSelect(exercise);
       } else {
         console.log('🔵 Using addExercise from usePersistedClassPlan');
+        console.log('🔵 Exercise being added:', {
+          id: exercise.id,
+          name: exercise.name,
+          duration: exercise.duration,
+          category: exercise.category
+        });
         
-        // Add exercise to the persisted state
         addExercise(exercise);
         
-        // Show immediate feedback
         toast({
           title: "Added to class",
           description: `"${exercise.name}" has been added to your class plan.`,
         });
         
-        console.log('🔵 Exercise added successfully');
+        console.log('🔵 Exercise added successfully, navigating to plan');
+        navigate('/plan');
       }
     } catch (error) {
       console.error('🔴 Error in MobileOptimizedExerciseLibrary handleAddToClass:', error);
@@ -111,7 +112,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
         variant: "destructive",
       });
     }
-  }, [onExerciseSelect, addExercise, user, currentClass]);
+  }, [onExerciseSelect, addExercise, navigate, user]);
 
   const handleExerciseSelect = useCallback((exercise: Exercise) => {
     console.log('🔵 Exercise selected:', exercise.name);
@@ -146,53 +147,135 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   }, []);
 
   const handleSaveExercise = useCallback(async (exercise: Exercise) => {
-    // Handle save logic here
+    try {
+      await createUserExercise(exercise);
+      toast({
+        title: "Exercise created",
+        description: `"${exercise.name}" has been added to your library.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create exercise.",
+        variant: "destructive",
+      });
+    }
     setIsCreating(false);
     setEditingExercise(null);
-    toast({
-      title: "Exercise saved",
-      description: `"${exercise.name}" has been saved.`,
-    });
-  }, []);
+  }, [createUserExercise]);
 
   const handleCancelExercise = useCallback(() => {
     setIsCreating(false);
     setEditingExercise(null);
   }, []);
 
-  // Mock functions for MobileExerciseGrid props that aren't used in this simplified view
+  // FIXED: Proper favorite functionality
   const handleToggleFavorite = useCallback((exerciseId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    // TODO: Implement favorite functionality
-  }, []);
+    console.log('❤️ Toggling favorite for exercise:', exerciseId);
+    
+    const isFavorite = preferences.favoriteExercises?.includes(exerciseId) || false;
+    const exerciseName = exercises.find(ex => ex.id === exerciseId)?.name || 'Exercise';
+    
+    toggleFavoriteExercise(exerciseId);
+    
+    toast({
+      title: isFavorite ? "Removed from favorites" : "Added to favorites",
+      description: `"${exerciseName}" ${isFavorite ? 'removed from' : 'added to'} your favorites.`,
+    });
+  }, [preferences.favoriteExercises, exercises, toggleFavoriteExercise]);
 
+  // FIXED: Proper hidden functionality
   const handleToggleHidden = useCallback((exerciseId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    // TODO: Implement hide functionality
-  }, []);
+    console.log('👁️ Toggling hidden for exercise:', exerciseId);
+    
+    const isHidden = preferences.hiddenExercises?.includes(exerciseId) || false;
+    const exerciseName = exercises.find(ex => ex.id === exerciseId)?.name || 'Exercise';
+    
+    toggleHiddenExercise(exerciseId);
+    
+    toast({
+      title: isHidden ? "Exercise unhidden" : "Exercise hidden",
+      description: isHidden 
+        ? `"${exerciseName}" is now visible in your library.`
+        : `"${exerciseName}" has been hidden from your library.`,
+    });
+  }, [preferences.hiddenExercises, exercises, toggleHiddenExercise]);
 
   const handleEdit = useCallback((exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
     handleEditExercise(exercise);
   }, [handleEditExercise]);
 
-  const handleDuplicate = useCallback((exercise: Exercise, e: React.MouseEvent) => {
+  const handleDuplicate = useCallback(async (exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
-    // TODO: Implement duplicate functionality
-  }, []);
+    try {
+      await duplicateExercise(exercise);
+      toast({
+        title: "Exercise duplicated",
+        description: `"${exercise.name} (Copy)" has been created.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to duplicate exercise.",
+        variant: "destructive",
+      });
+    }
+  }, [duplicateExercise]);
 
-  const handleDelete = useCallback((exercise: Exercise, e: React.MouseEvent) => {
+  const handleDelete = useCallback(async (exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
-    // TODO: Implement delete functionality
-  }, []);
+    if (!exercise.isCustom) return;
+    
+    try {
+      await deleteUserExercise(exercise.id);
+      toast({
+        title: "Exercise deleted",
+        description: `"${exercise.name}" has been permanently deleted.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete exercise.",
+        variant: "destructive",
+      });
+    }
+  }, [deleteUserExercise]);
 
-  const handleResetToOriginal = useCallback((exercise: Exercise, e: React.MouseEvent) => {
+  const handleResetToOriginal = useCallback(async (exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
-    // TODO: Implement reset functionality
-  }, []);
+    if (!exercise.isSystemExercise || !exercise.isCustomized) return;
+    
+    try {
+      await resetSystemExerciseToOriginal(exercise.id);
+      toast({
+        title: "Exercise reset",
+        description: `"${exercise.name}" has been reset to its original version.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reset exercise.",
+        variant: "destructive",
+      });
+    }
+  }, [resetSystemExerciseToOriginal]);
 
   const observeImage = useCallback((element: HTMLImageElement, src: string) => {
-    // TODO: Implement image lazy loading
+    // Simple lazy loading implementation
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target as HTMLImageElement;
+          img.src = src;
+          observer.unobserve(img);
+        }
+      });
+    });
+    
+    observer.observe(element);
   }, []);
 
   if (!user) {
@@ -213,13 +296,6 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
-      {/* Debug info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="bg-yellow-100 p-2 text-xs">
-          <strong>Library Debug:</strong> Class has {currentClass.exercises.length} exercises, {currentClass.totalDuration}min
-        </div>
-      )}
-
       {/* Header - Fixed at top */}
       <MobileLibraryHeader
         searchTerm={searchTerm}

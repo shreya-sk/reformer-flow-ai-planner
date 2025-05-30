@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CustomCallout } from '@/types/reformer';
 import { useDataSync } from './useDataSync';
 
@@ -46,11 +46,13 @@ const defaultDetailPreferences: ExerciseDetailPreferences = {
 
 export const useUserPreferences = () => {
   const { markPendingChanges } = useDataSync();
+  
   const [preferences, setPreferences] = useState<UserPreferences>(() => {
     try {
       const saved = localStorage.getItem(PREFERENCES_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
+        console.log('🔵 Loading preferences from localStorage:', parsed);
         return {
           ...parsed,
           exerciseDetailPreferences: {
@@ -60,13 +62,16 @@ export const useUserPreferences = () => {
           customCallouts: (parsed.customCallouts || []).map((callout: any) => ({
             ...callout,
             createdAt: new Date(callout.createdAt)
-          }))
+          })),
+          favoriteExercises: parsed.favoriteExercises || [],
+          hiddenExercises: parsed.hiddenExercises || []
         };
       }
     } catch (error) {
       console.error('Failed to load user preferences:', error);
     }
-    return { 
+    
+    const defaultPrefs = { 
       darkMode: false, 
       showPregnancySafeOnly: false,
       profileImage: '',
@@ -75,22 +80,37 @@ export const useUserPreferences = () => {
       hiddenExercises: [],
       exerciseDetailPreferences: defaultDetailPreferences
     };
+    
+    console.log('🔵 Using default preferences:', defaultPrefs);
+    return defaultPrefs;
   });
 
-  useEffect(() => {
+  // Save to localStorage immediately when preferences change
+  const saveToLocalStorage = useCallback((newPreferences: UserPreferences) => {
     try {
-      localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
+      console.log('💾 Saving preferences to localStorage:', newPreferences);
+      localStorage.setItem(PREFERENCES_KEY, JSON.stringify(newPreferences));
       markPendingChanges(); // Mark for sync
     } catch (error) {
       console.error('Failed to save user preferences:', error);
     }
-  }, [preferences, markPendingChanges]);
+  }, [markPendingChanges]);
 
-  const updatePreferences = (updates: Partial<UserPreferences>) => {
-    setPreferences(prev => ({ ...prev, ...updates }));
-  };
+  // Effect to save when preferences change
+  useEffect(() => {
+    saveToLocalStorage(preferences);
+  }, [preferences, saveToLocalStorage]);
 
-  const updateDetailPreferences = (updates: Partial<ExerciseDetailPreferences>) => {
+  const updatePreferences = useCallback((updates: Partial<UserPreferences>) => {
+    console.log('🔄 Updating preferences with:', updates);
+    setPreferences(prev => {
+      const newPrefs = { ...prev, ...updates };
+      console.log('🔄 New preferences state:', newPrefs);
+      return newPrefs;
+    });
+  }, []);
+
+  const updateDetailPreferences = useCallback((updates: Partial<ExerciseDetailPreferences>) => {
     setPreferences(prev => ({
       ...prev,
       exerciseDetailPreferences: {
@@ -99,9 +119,9 @@ export const useUserPreferences = () => {
         ...updates
       }
     }));
-  };
+  }, []);
 
-  const addCustomCallout = (name: string, color: string) => {
+  const addCustomCallout = useCallback((name: string, color: string) => {
     const newCallout: CustomCallout = {
       id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name,
@@ -119,56 +139,104 @@ export const useUserPreferences = () => {
 
     const updatedCallouts = [...(preferences.customCallouts || []), newCallout];
     updatePreferences({ customCallouts: updatedCallouts });
-  };
+  }, [preferences.customCallouts, updatePreferences]);
 
-  const updateCustomCallout = (id: string, updates: Partial<Pick<CustomCallout, 'name' | 'color'>>) => {
+  const updateCustomCallout = useCallback((id: string, updates: Partial<Pick<CustomCallout, 'name' | 'color'>>) => {
     const updatedCallouts = (preferences.customCallouts || []).map(callout =>
       callout.id === id ? { ...callout, ...updates, updatedAt: new Date() } : callout
     );
     updatePreferences({ customCallouts: updatedCallouts });
-  };
+  }, [preferences.customCallouts, updatePreferences]);
 
-  const deleteCustomCallout = (id: string) => {
+  const deleteCustomCallout = useCallback((id: string) => {
     setPreferences(prev => ({
       ...prev,
       customCallouts: (prev.customCallouts || []).filter(callout => callout.id !== id)
     }));
-  };
+  }, []);
 
-  const toggleFavoriteExercise = (exerciseId: string) => {
+  const toggleFavoriteExercise = useCallback((exerciseId: string) => {
+    console.log('⭐ Toggling favorite for:', exerciseId);
+    console.log('⭐ Current favorites:', preferences.favoriteExercises);
+    
     setPreferences(prev => {
       const favorites = prev.favoriteExercises || [];
       const isAlreadyFavorite = favorites.includes(exerciseId);
       
-      return {
+      const newFavorites = isAlreadyFavorite
+        ? favorites.filter(id => id !== exerciseId)
+        : [...favorites, exerciseId];
+      
+      console.log('⭐ New favorites:', newFavorites);
+      console.log('⭐ Action:', isAlreadyFavorite ? 'REMOVED' : 'ADDED');
+      
+      const newPrefs = {
         ...prev,
-        favoriteExercises: isAlreadyFavorite
-          ? favorites.filter(id => id !== exerciseId)
-          : [...favorites, exerciseId]
+        favoriteExercises: newFavorites
       };
+      
+      // Immediately save to localStorage
+      setTimeout(() => {
+        try {
+          localStorage.setItem(PREFERENCES_KEY, JSON.stringify(newPrefs));
+          console.log('⭐ Favorites saved to localStorage immediately');
+        } catch (error) {
+          console.error('Failed to save favorites immediately:', error);
+        }
+      }, 0);
+      
+      return newPrefs;
     });
-  };
+  }, [preferences.favoriteExercises]);
 
-  const toggleHiddenExercise = (exerciseId: string) => {
+  const toggleHiddenExercise = useCallback((exerciseId: string) => {
+    console.log('👁️ Toggling hidden for:', exerciseId);
+    console.log('👁️ Current hidden:', preferences.hiddenExercises);
+    
     setPreferences(prev => {
       const hidden = prev.hiddenExercises || [];
       const isAlreadyHidden = hidden.includes(exerciseId);
       
-      return {
+      const newHidden = isAlreadyHidden
+        ? hidden.filter(id => id !== exerciseId)
+        : [...hidden, exerciseId];
+      
+      console.log('👁️ New hidden:', newHidden);
+      console.log('👁️ Action:', isAlreadyHidden ? 'UNHIDDEN' : 'HIDDEN');
+      
+      const newPrefs = {
         ...prev,
-        hiddenExercises: isAlreadyHidden
-          ? hidden.filter(id => id !== exerciseId)
-          : [...hidden, exerciseId]
+        hiddenExercises: newHidden
       };
+      
+      // Immediately save to localStorage
+      setTimeout(() => {
+        try {
+          localStorage.setItem(PREFERENCES_KEY, JSON.stringify(newPrefs));
+          console.log('👁️ Hidden exercises saved to localStorage immediately');
+        } catch (error) {
+          console.error('Failed to save hidden exercises immediately:', error);
+        }
+      }, 0);
+      
+      return newPrefs;
     });
-  };
+  }, [preferences.hiddenExercises]);
 
-  const togglePregnancySafeOnly = () => {
+  const togglePregnancySafeOnly = useCallback(() => {
     setPreferences(prev => ({
       ...prev,
       showPregnancySafeOnly: !prev.showPregnancySafeOnly
     }));
-  };
+  }, []);
+
+  // Debug: Log current preferences
+  console.log('🎯 Current preferences state:', {
+    favoritesCount: preferences.favoriteExercises?.length || 0,
+    hiddenCount: preferences.hiddenExercises?.length || 0,
+    favorites: preferences.favoriteExercises,
+    darkMode: preferences.darkMode
+  });
 
   return {
     preferences,

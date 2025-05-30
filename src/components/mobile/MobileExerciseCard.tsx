@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Heart, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw, Check } from 'lucide-react';
@@ -68,6 +67,14 @@ export const MobileExerciseCard = ({
     setShowActions(!showActions);
   };
 
+  // Fix the favorite click handler to ensure it works properly
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('❤️ Favorite clicked for:', exercise.name, 'Current favorite state:', isFavorite);
+    onToggleFavorite(exercise.id, e);
+  };
+
   return (
     <div 
       className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transition-all duration-300 active:scale-95 hover:shadow-lg ${isHidden ? 'opacity-60' : ''}`}
@@ -112,37 +119,38 @@ export const MobileExerciseCard = ({
           )}
         </div>
 
-        {/* Favorite heart - top right */}
+        {/* Favorite heart - top right - FIXED */}
         <button
-          onClick={(e) => onToggleFavorite(exercise.id, e)}
-          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
+          onClick={handleFavoriteClick}
+          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 z-10 ${
             isFavorite 
-              ? 'bg-white/90 text-red-500 scale-110' 
-              : 'bg-black/20 text-white hover:bg-white/90 hover:text-red-500'
+              ? 'bg-white/90 text-red-500 scale-110 shadow-md' 
+              : 'bg-black/30 text-white hover:bg-white/90 hover:text-red-500 hover:scale-110'
           }`}
+          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         >
           <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
         </button>
 
         {/* Pregnancy safe indicator */}
         {exercise.isPregnancySafe && (
-          <div className="absolute top-2 left-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+          <div className="absolute bottom-2 left-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
             <span className="text-[10px]">👶</span>
             <span>Safe</span>
           </div>
         )}
 
-        {/* Action menu button - bottom left */}
+        {/* Action menu button - bottom right */}
         <button
           onClick={toggleActions}
-          className="absolute bottom-2 left-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center transition-all duration-200 hover:bg-black/80"
+          className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center transition-all duration-200 hover:bg-black/80"
         >
           <Edit className="h-4 w-4" />
         </button>
 
         {/* Action menu overlay */}
         {showActions && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
             <div className="bg-white rounded-xl p-3 flex gap-2 shadow-lg">
               {/* Edit button */}
               <button

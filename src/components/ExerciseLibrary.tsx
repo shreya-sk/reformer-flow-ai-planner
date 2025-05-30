@@ -1,23 +1,24 @@
+// src/components/ExerciseLibrary.tsx - Fixed version with working favorites
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Filter, Heart, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw, Plus } from 'lucide-react';
+import { Search, Filter, Heart, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw, Plus, Star } from 'lucide-react';
 import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
-import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
 import { toast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ImprovedExerciseForm } from './ImprovedExerciseForm';
+import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 
 interface ExerciseLibraryProps {
-  onExerciseSelect?: (exercise: Exercise) => void;
+  // Empty interface for now
 }
 
-export const ExerciseLibrary = ({ onExerciseSelect }: ExerciseLibraryProps) => {
+export const ExerciseLibrary = ({}: ExerciseLibraryProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | 'all'>('all');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
@@ -26,17 +27,20 @@ export const ExerciseLibrary = ({ onExerciseSelect }: ExerciseLibraryProps) => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const { addExercise } = usePersistedClassPlan();
   
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
   const { exercises, duplicateExercise, updateUserExercise, customizeSystemExercise, deleteUserExercise, resetSystemExerciseToOriginal, createUserExercise } = useExercises();
-  const { addExercise, currentClass } = usePersistedClassPlan();
 
   const filteredExercises = useMemo(() => {
     return exercises.filter(exercise => {
       const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
+      const isFavorite = preferences.favoriteExercises?.includes(exercise.id) || false;
+      
       if (!showHidden && isHidden) return false;
       if (showHidden && !isHidden) return false;
+      if (showFavoritesOnly && !isFavorite) return false;
 
       const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         exercise.muscleGroups.some(group => 
@@ -49,7 +53,7 @@ export const ExerciseLibrary = ({ onExerciseSelect }: ExerciseLibraryProps) => {
       
       return matchesSearch && matchesCategory && matchesMuscleGroup && matchesPregnancy;
     });
-  }, [exercises, searchTerm, selectedCategory, selectedMuscleGroup, showPregnancySafe, preferences.hiddenExercises, showHidden]);
+  }, [exercises, searchTerm, selectedCategory, selectedMuscleGroup, showPregnancySafe, preferences.hiddenExercises, preferences.favoriteExercises, showHidden, showFavoritesOnly]);
 
   const handleExerciseClick = (exercise: Exercise) => {
     setSelectedExercise(exercise);
@@ -57,28 +61,29 @@ export const ExerciseLibrary = ({ onExerciseSelect }: ExerciseLibraryProps) => {
   };
 
   const handleAddToClass = (exercise: Exercise) => {
-    console.log('🔵 ExerciseLibrary: Add to class clicked for:', exercise.name);
+    console.log('Add to class clicked for:', exercise.name);
     
     try {
-      if (onExerciseSelect) {
-        // If callback provided, use it
-        onExerciseSelect(exercise);
-      } else {
-        // Otherwise use the persisted class plan
-        addExercise(exercise);
-        
-        toast({
-          title: "Added to class",
-          description: `"${exercise.name}" has been added to your class plan.`,
-        });
-      }
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substr(2, 9);
+      const uniqueId = `${exercise.id}-${timestamp}-${randomId}`;
       
-      console.log('🔵 Exercise added successfully. Current class state:', {
-        exerciseCount: currentClass.exercises.length,
-        totalDuration: currentClass.totalDuration
+      const exerciseToAdd = {
+        ...exercise,
+        id: uniqueId,
+      };
+      
+      console.log('Calling addExercise with:', exerciseToAdd);
+      addExercise(exerciseToAdd);
+      
+      toast({
+        title: "Added to class",
+        description: `"${exercise.name}" has been added to your class plan.`,
       });
+      
+      console.log('Exercise added successfully');
     } catch (error) {
-      console.error('🔴 Error adding exercise to class:', error);
+      console.error('Error adding exercise to class:', error);
       toast({
         title: "Error",
         description: "Failed to add exercise to class.",
@@ -87,14 +92,39 @@ export const ExerciseLibrary = ({ onExerciseSelect }: ExerciseLibraryProps) => {
     }
   };
 
+  // FIXED: Properly handle favorite toggling with toast feedback
   const handleToggleFavorite = (exerciseId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    const wasFavorite = preferences.favoriteExercises?.includes(exerciseId) || false;
+    
     toggleFavoriteExercise(exerciseId);
+    
+    const exercise = exercises.find(ex => ex.id === exerciseId);
+    const exerciseName = exercise?.name || 'Exercise';
+    
+    toast({
+      title: wasFavorite ? "Removed from favorites" : "Added to favorites",
+      description: `"${exerciseName}" ${wasFavorite ? 'removed from' : 'added to'} your favorites list.`,
+      duration: 2000,
+    });
   };
 
   const handleToggleHidden = (exerciseId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    const wasHidden = preferences.hiddenExercises?.includes(exerciseId) || false;
+    
     toggleHiddenExercise(exerciseId);
+    
+    const exercise = exercises.find(ex => ex.id === exerciseId);
+    const exerciseName = exercise?.name || 'Exercise';
+    
+    toast({
+      title: wasHidden ? "Exercise unhidden" : "Exercise hidden",
+      description: wasHidden 
+        ? `"${exerciseName}" is now visible in your library.`
+        : `"${exerciseName}" has been hidden from your library.`,
+      duration: 2000,
+    });
   };
 
   const handleDuplicateExercise = async (exercise: Exercise, e: React.MouseEvent) => {
@@ -155,26 +185,24 @@ export const ExerciseLibrary = ({ onExerciseSelect }: ExerciseLibraryProps) => {
     setSelectedMuscleGroup('all');
     setShowPregnancySafe(false);
     setShowHidden(false);
+    setShowFavoritesOnly(false);
   };
+
+  const [isCreating, setIsCreating] = useState(false);
 
   const activeFiltersCount = (selectedCategory !== 'all' ? 1 : 0) + 
                             (selectedMuscleGroup !== 'all' ? 1 : 0) + 
                             (showPregnancySafe ? 1 : 0) + 
-                            (showHidden ? 1 : 0);
+                            (showHidden ? 1 : 0) +
+                            (showFavoritesOnly ? 1 : 0);
+
+  const favoriteCount = preferences.favoriteExercises?.length || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-3 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="bg-yellow-100 p-2 text-xs mb-4">
-            <strong>Library Debug:</strong> Class has {currentClass.exercises.length} exercises, {currentClass.totalDuration}min
-          </div>
-        )}
-
-        {/* Simplified Header */}
+        {/* Header with Favorites Toggle */}
         <div className="flex flex-col gap-4 mb-6">
-          {/* Search and Action Buttons */}
           <div className="flex items-center gap-3">
             {/* Search bar */}
             <div className="relative flex-1 max-w-lg">
@@ -186,6 +214,21 @@ export const ExerciseLibrary = ({ onExerciseSelect }: ExerciseLibraryProps) => {
                 className="pl-10 h-10"
               />
             </div>
+            
+            {/* Favorites toggle - NEW */}
+            <Button
+              variant={showFavoritesOnly ? "default" : "outline"}
+              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              className="flex items-center gap-2 h-10 px-3"
+            >
+              <Star className={`h-5 w-5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+              <span className="hidden sm:inline">Favorites</span>
+              {favoriteCount > 0 && (
+                <Badge className="bg-red-500 text-white text-xs ml-1">
+                  {favoriteCount}
+                </Badge>
+              )}
+            </Button>
             
             {/* Action buttons */}
             <Button
@@ -218,6 +261,20 @@ export const ExerciseLibrary = ({ onExerciseSelect }: ExerciseLibraryProps) => {
               <Plus className="h-5 w-5" />
               <span className="hidden sm:inline">Add Exercise</span>
             </Button>
+            
+            {isCreating && (
+              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <ImprovedExerciseForm
+                    onSave={async (exercise) => {
+                      await createUserExercise(exercise);
+                      setIsCreating(false);
+                    }}
+                    onCancel={() => setIsCreating(false)}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Expandable Filter Panel */}
@@ -305,27 +362,18 @@ export const ExerciseLibrary = ({ onExerciseSelect }: ExerciseLibraryProps) => {
 
         {filteredExercises.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-gray-500 mb-4">No exercises found</div>
-            <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
-          </div>
-        )}
-
-        {/* Create Exercise Form */}
-        {isCreating && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <ImprovedExerciseForm
-                onSave={async (exercise) => {
-                  await createUserExercise(exercise);
-                  setIsCreating(false);
-                  toast({
-                    title: "Exercise created",
-                    description: `"${exercise.name}" has been created.`,
-                  });
-                }}
-                onCancel={() => setIsCreating(false)}
-              />
+            <div className="text-gray-500 mb-4">
+              {showFavoritesOnly && favoriteCount === 0 
+                ? "No favorite exercises yet" 
+                : "No exercises found"
+              }
             </div>
+            <p className="text-sm text-gray-400">
+              {showFavoritesOnly && favoriteCount === 0
+                ? "Add exercises to your favorites by clicking the heart icon"
+                : "Try adjusting your search or filters"
+              }
+            </p>
           </div>
         )}
 
@@ -368,7 +416,7 @@ export const ExerciseLibrary = ({ onExerciseSelect }: ExerciseLibraryProps) => {
   );
 };
 
-// Exercise Card Component (unchanged from original)
+// Exercise Card Component - UPDATED with better favorite handling
 interface ExerciseCardProps {
   exercise: Exercise;
   onSelect: (exercise: Exercise) => void;
@@ -459,13 +507,13 @@ const ExerciseCard = ({
             )}
           </div>
 
-          {/* Favorite heart */}
+          {/* FIXED: Better favorite heart with improved visual feedback */}
           <button
             onClick={(e) => onToggleFavorite(exercise.id, e)}
             className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
               isFavorite 
-                ? 'bg-white/90 text-red-500 scale-110' 
-                : 'bg-black/20 text-white hover:bg-white/90 hover:text-red-500'
+                ? 'bg-red-100 text-red-600 scale-110 shadow-md' 
+                : 'bg-black/20 text-white hover:bg-red-100 hover:text-red-600 hover:scale-110'
             }`}
           >
             <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />

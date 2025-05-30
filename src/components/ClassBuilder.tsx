@@ -1,4 +1,4 @@
-
+// src/components/ClassBuilder.tsx - Fixed version with consistent callout options
 import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, GripVertical, X, Clock, Save, Edit, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
+import { Plus, GripVertical, X, Clock, Save, Edit, ChevronDown, ChevronRight, Trash2, Palette } from 'lucide-react';
 import { Exercise, ClassPlan, CustomCallout } from '@/types/reformer';
 import { ExerciseDetailModal } from '@/components/ExerciseDetailModal';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
@@ -26,6 +26,30 @@ interface ClassBuilderProps {
   onAddCallout?: (name: string, position: number) => void;
 }
 
+// Default callout options that match the profile preferences
+const defaultCalloutOptions = [
+  { name: 'Warm Up', color: 'green' as const },
+  { name: 'Main Workout', color: 'blue' as const },
+  { name: 'Cool Down', color: 'purple' as const },
+  { name: 'Break', color: 'amber' as const },
+  { name: 'Transition', color: 'orange' as const },
+  { name: 'Focus Section', color: 'red' as const },
+];
+
+// Color mapping for consistency
+const getColorClasses = (color: string) => {
+  const colorMap = {
+    amber: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-800', badge: 'bg-amber-100 text-amber-800 border-amber-200' },
+    blue: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', badge: 'bg-blue-100 text-blue-800 border-blue-200' },
+    green: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-800', badge: 'bg-green-100 text-green-800 border-green-200' },
+    purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-800', badge: 'bg-purple-100 text-purple-800 border-purple-200' },
+    red: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800', badge: 'bg-red-100 text-red-800 border-red-200' },
+    orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-800', badge: 'bg-orange-100 text-orange-800 border-orange-200' },
+    gray: { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-800', badge: 'bg-gray-100 text-gray-800 border-gray-200' },
+  };
+  return colorMap[color as keyof typeof colorMap] || colorMap.amber;
+};
+
 export const ClassBuilder = ({
   currentClass,
   onUpdateClassName,
@@ -41,18 +65,20 @@ export const ClassBuilder = ({
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   
+  // Callout dialog state
   const [isCalloutDialogOpen, setIsCalloutDialogOpen] = useState(false);
   const [newCalloutName, setNewCalloutName] = useState('');
   const [newCalloutPosition, setNewCalloutPosition] = useState(0);
-  const [selectedCalloutColor, setSelectedCalloutColor] = useState('amber');
+  const [selectedCalloutColor, setSelectedCalloutColor] = useState<string>('amber');
 
-  // Default callouts
-  const defaultCallouts = [
-    { name: 'Warm Up', color: 'green' },
-    { name: 'Main Workout', color: 'blue' },
-    { name: 'Cool Down', color: 'purple' },
-    { name: 'Break', color: 'gray' },
-    { name: 'Transition', color: 'orange' }
+  // Get all available callout options (defaults + user custom)
+  const allCalloutOptions = [
+    ...defaultCalloutOptions,
+    ...(preferences.customCallouts || []).map(callout => ({
+      name: callout.name,
+      color: callout.color,
+      isCustom: true
+    }))
   ];
 
   const handleDragEnd = (result: DropResult) => {
@@ -88,6 +114,8 @@ export const ClassBuilder = ({
 
   const handleAddSection = (position: number) => {
     setNewCalloutPosition(position);
+    setNewCalloutName('');
+    setSelectedCalloutColor('amber');
     setIsCalloutDialogOpen(true);
   };
 
@@ -103,8 +131,19 @@ export const ClassBuilder = ({
     }
   };
 
+  const handleQuickSelectCallout = (calloutOption: typeof allCalloutOptions[0]) => {
+    setNewCalloutName(calloutOption.name);
+    setSelectedCalloutColor(calloutOption.color);
+  };
+
   const groupExercisesBySection = () => {
-    const sections: Array<{ name: string; exercises: Exercise[]; color: string; isCallout: boolean }> = [];
+    const sections: Array<{ 
+      name: string; 
+      exercises: Exercise[]; 
+      color: string; 
+      isCallout: boolean;
+      colorClasses: ReturnType<typeof getColorClasses>;
+    }> = [];
     let currentSection: Exercise[] = [];
     let currentSectionName = '';
     let currentSectionColor = 'gray';
@@ -117,22 +156,25 @@ export const ClassBuilder = ({
             name: currentSectionName || 'Exercises',
             exercises: currentSection,
             color: currentSectionColor,
-            isCallout: false
+            isCallout: false,
+            colorClasses: getColorClasses(currentSectionColor)
           });
         }
         
         // Add the callout as a section
+        const calloutColor = exercise.calloutColor || 'amber';
         sections.push({
           name: exercise.name,
           exercises: [exercise],
-          color: exercise.calloutColor || 'amber',
-          isCallout: true
+          color: calloutColor,
+          isCallout: true,
+          colorClasses: getColorClasses(calloutColor)
         });
         
         // Reset for next section
         currentSection = [];
         currentSectionName = exercise.name;
-        currentSectionColor = exercise.calloutColor || 'gray';
+        currentSectionColor = calloutColor;
       } else {
         currentSection.push(exercise);
       }
@@ -144,7 +186,8 @@ export const ClassBuilder = ({
         name: currentSectionName || 'Exercises',
         exercises: currentSection,
         color: currentSectionColor,
-        isCallout: false
+        isCallout: false,
+        colorClasses: getColorClasses(currentSectionColor)
       });
     }
 
@@ -161,18 +204,18 @@ export const ClassBuilder = ({
           <Input
             value={currentClass.name}
             onChange={(e) => onUpdateClassName(e.target.value)}
-            className="text-xl font-semibold border-none shadow-none p-0 h-auto"
+            className="text-xl font-semibold border-none shadow-none p-0 h-auto focus-visible:ring-0"
             placeholder="Class Name"
           />
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Clock className="h-4 w-4" />
             <span>{currentClass.totalDuration} min</span>
             <span>•</span>
-            <span>{currentClass.exercises.length} exercises</span>
+            <span>{currentClass.exercises.filter(ex => ex.category !== 'callout').length} exercises</span>
           </div>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button onClick={onAddExercise} className="bg-sage-600 hover:bg-sage-700">
             <Plus className="h-4 w-4 mr-2" />
             Add Exercise
@@ -212,19 +255,19 @@ export const ClassBuilder = ({
                             {...provided.draggableProps}
                             className={`rounded-lg border-2 border-dashed transition-colors ${
                               snapshot.isDragging 
-                                ? `border-${section.color}-400 bg-${section.color}-50` 
-                                : `border-${section.color}-200 bg-${section.color}-25`
+                                ? `${section.colorClasses.border} ${section.colorClasses.bg}` 
+                                : `${section.colorClasses.border} ${section.colorClasses.bg}/50`
                             }`}
                           >
                             <div className="p-4">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                   <div {...provided.dragHandleProps}>
-                                    <GripVertical className="h-5 w-5 text-gray-400 cursor-grab" />
+                                    <GripVertical className="h-5 w-5 text-gray-400 cursor-grab hover:text-gray-600" />
                                   </div>
                                   <button
                                     onClick={() => toggleSectionCollapse(section.name)}
-                                    className="flex items-center gap-2 text-lg font-semibold text-gray-800"
+                                    className={`flex items-center gap-2 text-lg font-semibold ${section.colorClasses.text}`}
                                   >
                                     {collapsedSections.has(section.name) ? (
                                       <ChevronRight className="h-5 w-5" />
@@ -233,9 +276,7 @@ export const ClassBuilder = ({
                                     )}
                                     {section.name}
                                   </button>
-                                  <Badge 
-                                    className={`bg-${section.color}-100 text-${section.color}-800 border-${section.color}-200`}
-                                  >
+                                  <Badge className={section.colorClasses.badge}>
                                     Section
                                   </Badge>
                                 </div>
@@ -244,12 +285,13 @@ export const ClassBuilder = ({
                                     size="sm"
                                     variant="ghost"
                                     onClick={() => handleExerciseClick(section.exercises[0])}
+                                    className="h-8 w-8 p-0"
                                   >
                                     <Edit className="h-4 w-4" />
                                   </Button>
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
-                                      <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700">
+                                      <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700 h-8 w-8 p-0">
                                         <Trash2 className="h-4 w-4" />
                                       </Button>
                                     </AlertDialogTrigger>
@@ -302,7 +344,7 @@ export const ClassBuilder = ({
                                     <CardContent className="p-4">
                                       <div className="flex items-center gap-4">
                                         <div {...provided.dragHandleProps}>
-                                          <GripVertical className="h-5 w-5 text-gray-400 cursor-grab" />
+                                          <GripVertical className="h-5 w-5 text-gray-400 cursor-grab hover:text-gray-600" />
                                         </div>
                                         
                                         <div className="flex-1 min-w-0">
@@ -334,12 +376,13 @@ export const ClassBuilder = ({
                                             size="sm"
                                             variant="ghost"
                                             onClick={() => handleExerciseClick(exercise)}
+                                            className="h-8 w-8 p-0"
                                           >
                                             <Edit className="h-4 w-4" />
                                           </Button>
                                           <AlertDialog>
                                             <AlertDialogTrigger asChild>
-                                              <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700">
+                                              <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700 h-8 w-8 p-0">
                                                 <X className="h-4 w-4" />
                                               </Button>
                                             </AlertDialogTrigger>
@@ -373,7 +416,9 @@ export const ClassBuilder = ({
                           {/* Add section button after each section */}
                           <div className="flex justify-center py-2">
                             <Button
-                              onClick={() => handleAddSection(currentClass.exercises.findIndex(ex => ex.id === section.exercises[section.exercises.length - 1].id) + 1)}
+                              onClick={() => handleAddSection(
+                                currentClass.exercises.findIndex(ex => ex.id === section.exercises[section.exercises.length - 1].id) + 1
+                              )}
                               variant="outline"
                               size="sm"
                               className="text-sage-600 border-sage-200 hover:bg-sage-50"
@@ -408,21 +453,59 @@ export const ClassBuilder = ({
 
       {/* Callout Creation Dialog */}
       <Dialog open={isCalloutDialogOpen} onOpenChange={setIsCalloutDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Add Section</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5" />
+              Add Section
+            </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Quick Select from Available Options */}
             <div>
-              <label className="block text-sm font-medium mb-2">Section Name</label>
+              <label className="block text-sm font-medium mb-3">Quick Select</label>
+              <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+                {allCalloutOptions.map((option, index) => {
+                  const colorClasses = getColorClasses(option.color);
+                  return (
+                    <Button
+                      key={`${option.name}-${index}`}
+                      variant="outline"
+                      onClick={() => handleQuickSelectCallout(option)}
+                      className={`text-left justify-start h-auto p-3 ${
+                        newCalloutName === option.name && selectedCalloutColor === option.color
+                          ? `${colorClasses.bg} ${colorClasses.border}`
+                          : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 w-full">
+                        <div className={`w-4 h-4 rounded-full ${colorClasses.bg} ${colorClasses.border} border-2`} />
+                        <div className="flex-1">
+                          <div className="font-medium">{option.name}</div>
+                          {(option as any).isCustom && (
+                            <div className="text-xs text-gray-500">Custom</div>
+                          )}
+                        </div>
+                      </div>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Custom Section Name */}
+            <div>
+              <label className="block text-sm font-medium mb-2">Custom Section Name</label>
               <Input
                 value={newCalloutName}
                 onChange={(e) => setNewCalloutName(e.target.value)}
-                placeholder="Enter section name"
+                placeholder="Enter custom section name..."
+                className="w-full"
               />
             </div>
             
+            {/* Color Selection */}
             <div>
               <label className="block text-sm font-medium mb-2">Color</label>
               <Select value={selectedCalloutColor} onValueChange={setSelectedCalloutColor}>
@@ -430,57 +513,29 @@ export const ClassBuilder = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="amber">Amber</SelectItem>
-                  <SelectItem value="blue">Blue</SelectItem>
-                  <SelectItem value="green">Green</SelectItem>
-                  <SelectItem value="purple">Purple</SelectItem>
-                  <SelectItem value="red">Red</SelectItem>
-                  <SelectItem value="gray">Gray</SelectItem>
-                  <SelectItem value="orange">Orange</SelectItem>
+                  {['amber', 'blue', 'green', 'purple', 'red', 'orange', 'gray'].map((color) => {
+                    const colorClasses = getColorClasses(color);
+                    return (
+                      <SelectItem key={color} value={color}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-4 h-4 rounded border-2 ${colorClasses.bg} ${colorClasses.border}`} />
+                          <span className="capitalize">{color}</span>
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Quick Select Buttons */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Quick Select</label>
-              <div className="grid grid-cols-2 gap-2">
-                {defaultCallouts.map((callout) => (
-                  <Button
-                    key={callout.name}
-                    variant="outline"
-                    onClick={() => {
-                      setNewCalloutName(callout.name);
-                      setSelectedCalloutColor(callout.color);
-                    }}
-                    className="text-left justify-start"
-                  >
-                    <div className={`w-3 h-3 rounded-full bg-${callout.color}-500 mr-2`} />
-                    {callout.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {/* Custom Callouts */}
-            {preferences.customCallouts && preferences.customCallouts.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium mb-2">Your Custom Sections</label>
-                <div className="grid grid-cols-1 gap-2">
-                  {preferences.customCallouts.map((callout) => (
-                    <Button
-                      key={callout.id}
-                      variant="outline"
-                      onClick={() => {
-                        setNewCalloutName(callout.name);
-                        setSelectedCalloutColor(callout.color);
-                      }}
-                      className="text-left justify-start"
-                    >
-                      <div className={`w-3 h-3 rounded-full bg-${callout.color}-500 mr-2`} />
-                      {callout.name}
-                    </Button>
-                  ))}
+            {/* Preview */}
+            {newCalloutName && (
+              <div className="border rounded-lg p-3">
+                <p className="text-sm text-gray-600 mb-2">Preview:</p>
+                <div className={`border-l-4 pl-3 py-2 rounded-r-lg ${getColorClasses(selectedCalloutColor).border} ${getColorClasses(selectedCalloutColor).bg}`}>
+                  <span className={`font-medium ${getColorClasses(selectedCalloutColor).text}`}>
+                    {newCalloutName}
+                  </span>
                 </div>
               </div>
             )}
@@ -490,7 +545,11 @@ export const ClassBuilder = ({
             <Button variant="outline" onClick={() => setIsCalloutDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateSection} disabled={!newCalloutName.trim()}>
+            <Button 
+              onClick={handleCreateSection} 
+              disabled={!newCalloutName.trim()}
+              className="bg-sage-600 hover:bg-sage-700"
+            >
               Add Section
             </Button>
           </DialogFooter>

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +31,7 @@ export const MobileExerciseModal = ({
 
   if (!exercise || !isOpen) return null;
 
+  // Get current favorite and hidden status
   const isFavorite = preferences.favoriteExercises?.includes(exercise.id) || false;
   const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
   const isCustom = exercise.isCustom || false;
@@ -64,6 +64,7 @@ export const MobileExerciseModal = ({
   };
 
   const handleToggleFavorite = () => {
+    console.log('🔵 MobileExerciseModal: Toggling favorite for:', exercise.id, 'Current state:', isFavorite);
     toggleFavoriteExercise(exercise.id);
     toast({
       title: isFavorite ? "Removed from favorites" : "Added to favorites",
@@ -149,6 +150,11 @@ export const MobileExerciseModal = ({
                     👶 Safe
                   </Badge>
                 )}
+                {isHidden && (
+                  <Badge className="text-xs bg-gray-100 text-gray-700 border-gray-200">
+                    Hidden
+                  </Badge>
+                )}
               </div>
               <h2 className="text-xl font-bold text-sage-900 leading-tight">
                 {exercise.name}
@@ -165,13 +171,15 @@ export const MobileExerciseModal = ({
               </div>
             </div>
 
-            {/* Favorite button */}
+            {/* Favorite button - Fixed to use current state */}
             <Button
               variant="ghost"
               size="sm"
               onClick={handleToggleFavorite}
-              className={`h-10 w-10 p-0 rounded-full ${
-                isFavorite ? 'text-red-500 bg-red-50' : 'text-sage-400 hover:text-red-500'
+              className={`h-10 w-10 p-0 rounded-full transition-all duration-200 ${
+                isFavorite 
+                  ? 'text-red-500 bg-red-50 hover:bg-red-100 scale-110' 
+                  : 'text-sage-400 hover:text-red-500 hover:bg-red-50'
               }`}
             >
               <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
