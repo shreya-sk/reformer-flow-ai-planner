@@ -367,6 +367,7 @@ export const ClassBuilder = ({
     </div>
   );
 
+  // Helper component for Exercise Cards with improved mobile touch targets
   const ExerciseCard = ({ exercise, index }: { exercise: Exercise; index: number }) => {
     return (
       <>
@@ -375,18 +376,18 @@ export const ClassBuilder = ({
           draggable
           onDragStart={(e) => handleDragStart(e, index)}
           onDragEnd={handleDragEnd}
-          className={`group mb-3 transition-all duration-300 ${
+          className={`group mb-3 transition-all duration-300 active:scale-95 ${
             !isDragging || draggedIndex !== index ? 'cursor-pointer' : 'cursor-grabbing'
           } ${
             draggedIndex === index ? 'opacity-50 scale-95' : ''
           }`}
           onClick={() => handleExerciseClick(exercise)}
         >
-          <Card className="border-sage-200 hover:shadow-lg hover:border-sage-300 transition-all duration-300 overflow-hidden rounded-xl mx-2 sm:ml-6">
-            <CardContent className="p-3">
+          <Card className="border-sage-200 hover:shadow-lg hover:border-sage-300 transition-all duration-300 overflow-hidden rounded-xl mx-1 sm:mx-2 lg:ml-6">
+            <CardContent className="p-2 sm:p-3">
               <div className="flex items-start gap-2 sm:gap-3">
                 <div 
-                  className="flex-shrink-0 cursor-grab active:cursor-grabbing opacity-40 group-hover:opacity-100 transition-opacity pt-1"
+                  className="flex-shrink-0 cursor-grab active:cursor-grabbing opacity-40 group-hover:opacity-100 transition-opacity pt-1 touch-manipulation"
                   onMouseDown={(e) => e.stopPropagation()}
                 >
                   <GripVertical className="h-4 w-4 sm:h-5 sm:w-5 text-sage-500" />
@@ -409,7 +410,7 @@ export const ClassBuilder = ({
                           size="sm"
                           variant="ghost"
                           onClick={(e) => handleShortlistExercise(exercise, e)}
-                          className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-6 w-6 p-0"
+                          className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 h-8 w-8 sm:h-6 sm:w-6 p-0 touch-manipulation"
                         >
                           <Heart className="h-3 w-3" />
                         </Button>
@@ -418,7 +419,7 @@ export const ClassBuilder = ({
                         size="sm"
                         variant="ghost"
                         onClick={(e) => handleRemoveExercise(exercise.id, e)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50 h-6 w-6 p-0"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8 sm:h-6 sm:w-6 p-0 touch-manipulation"
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -459,37 +460,37 @@ export const ClassBuilder = ({
   return (
     <>
       <div className="flex-1 overflow-hidden">
-        <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 p-3 h-full">
-          {/* Class Settings Sidebar - Full width on mobile */}
+        <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 p-2 sm:p-3 h-full">
+          {/* Class Settings Sidebar - Stack on mobile, sidebar on desktop */}
           <div className="lg:col-span-1 space-y-4 order-2 lg:order-1">
             <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden">
-              <CardHeader className="border-b border-sage-100 bg-gradient-to-r from-sage-50 to-white p-3">
-                <CardTitle className="text-base text-sage-800 font-medium flex items-center gap-2">
+              <CardHeader className="border-b border-sage-100 bg-gradient-to-r from-sage-50 to-white p-2 sm:p-3">
+                <CardTitle className="text-sm sm:text-base text-sage-800 font-medium flex items-center gap-2">
                   <Settings2 className="h-4 w-4" />
                   Class Settings
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 space-y-4">
+              <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
                 {/* Class Name */}
                 <div>
-                  <Label className="text-sm font-medium text-sage-700 mb-2 block">
+                  <Label className="text-xs sm:text-sm font-medium text-sage-700 mb-2 block">
                     Class Name
                   </Label>
                   <Input
                     value={currentClass.name}
                     onChange={(e) => onUpdateClassName(e.target.value)}
                     placeholder="Enter class name..."
-                    className="border-sage-300 focus:border-sage-500"
+                    className="border-sage-300 focus:border-sage-500 text-sm"
                   />
                 </div>
 
                 {/* Class Duration */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <Label className="text-sm font-medium text-sage-700">
+                    <Label className="text-xs sm:text-sm font-medium text-sage-700">
                       Duration
                     </Label>
-                    <span className="text-sm font-medium text-sage-800">{currentClass.classDuration || 45} min</span>
+                    <span className="text-xs sm:text-sm font-medium text-sage-800">{currentClass.classDuration || 45} min</span>
                   </div>
                   <Slider
                     value={[currentClass.classDuration || 45]}
@@ -508,7 +509,7 @@ export const ClassBuilder = ({
 
                 {/* Class Image */}
                 <div>
-                  <Label className="text-sm font-medium text-sage-700 mb-2 block">
+                  <Label className="text-xs sm:text-sm font-medium text-sage-700 mb-2 block">
                     Class Image
                   </Label>
                   <div className="flex items-center gap-3">
@@ -516,17 +517,17 @@ export const ClassBuilder = ({
                       <img 
                         src={currentClass.image} 
                         alt="Class thumbnail" 
-                        className="w-12 h-12 object-cover rounded-lg border border-sage-200"
+                        className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg border border-sage-200"
                       />
                     ) : (
-                      <div className="w-12 h-12 bg-sage-50 rounded-lg border border-sage-200 flex items-center justify-center">
-                        <ImageIcon className="h-4 w-4 text-sage-400" />
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-sage-50 rounded-lg border border-sage-200 flex items-center justify-center">
+                        <ImageIcon className="h-3 w-3 sm:h-4 sm:w-4 text-sage-400" />
                       </div>
                     )}
                     
                     <Dialog open={showImageSelector} onOpenChange={setShowImageSelector}>
                       <DialogTrigger asChild>
-                        <Button variant="outline" size="sm" className="border-sage-300 text-sage-600">
+                        <Button variant="outline" size="sm" className="border-sage-300 text-sage-600 text-xs sm:text-sm">
                           Select
                         </Button>
                       </DialogTrigger>
@@ -556,7 +557,7 @@ export const ClassBuilder = ({
 
                 {/* Class Notes */}
                 <div>
-                  <Label className="text-sm font-medium text-sage-700 mb-2 block">
+                  <Label className="text-xs sm:text-sm font-medium text-sage-700 mb-2 block">
                     Notes
                   </Label>
                   <Textarea
@@ -564,7 +565,7 @@ export const ClassBuilder = ({
                     onChange={(e) => onUpdateClassNotes(e.target.value)}
                     placeholder="Add class notes..."
                     rows={3}
-                    className="border-sage-300 focus:border-sage-500"
+                    className="border-sage-300 focus:border-sage-500 text-sm"
                   />
                 </div>
               </CardContent>
@@ -574,10 +575,10 @@ export const ClassBuilder = ({
           {/* Class Timeline - Full width on mobile */}
           <div className="lg:col-span-3 order-1 lg:order-2 flex flex-col min-h-0">
             <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden flex-1 flex flex-col">
-              <CardHeader className="border-b border-sage-100 bg-gradient-to-r from-sage-50 to-white p-3 flex-shrink-0">
+              <CardHeader className="border-b border-sage-100 bg-gradient-to-r from-sage-50 to-white p-2 sm:p-3 flex-shrink-0">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                    <CardTitle className="text-lg text-sage-800">Class Timeline</CardTitle>
+                    <CardTitle className="text-base sm:text-lg text-sage-800">Class Timeline</CardTitle>
                     
                     {/* Inline Class Stats - Stack on mobile */}
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -606,9 +607,9 @@ export const ClassBuilder = ({
                     onClick={onAddExercise}
                     variant="outline"
                     size="sm" 
-                    className="border-sage-300 hover:bg-sage-100 text-sage-700 rounded-full w-full sm:w-auto"
+                    className="border-sage-300 hover:bg-sage-100 text-sage-700 rounded-full w-full sm:w-auto text-xs sm:text-sm"
                   >
-                    <Plus className="h-4 w-4 mr-1" />
+                    <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                     Add Exercise
                   </Button>
                 </div>
@@ -620,18 +621,18 @@ export const ClassBuilder = ({
                 )}
               </CardHeader>
               
-              <div className="flex-1 overflow-y-auto px-3 py-2">
+              <div className="flex-1 overflow-y-auto px-2 sm:px-3 py-2">
                 {currentClass.exercises.length === 0 ? (
-                  <div className="text-center py-8 sm:py-12">
+                  <div className="text-center py-6 sm:py-8 lg:py-12">
                     <div className="bg-sage-50 rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-4">
                       <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 text-sage-400" />
                     </div>
-                    <h3 className="text-base sm:text-lg font-medium text-sage-700 mb-2">Start Building Your Class</h3>
-                    <p className="text-sage-500 text-sm max-w-sm mx-auto mb-4 px-4">
+                    <h3 className="text-sm sm:text-base lg:text-lg font-medium text-sage-700 mb-2">Start Building Your Class</h3>
+                    <p className="text-sage-500 text-xs sm:text-sm max-w-sm mx-auto mb-4 px-4">
                       Add exercises from the library to create your perfect Reformer flow.
                     </p>
-                    <Button onClick={onAddExercise} className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-full px-6 py-2 transform hover:scale-105 transition-all duration-300 shadow-lg">
-                      <Plus className="h-4 w-4 mr-2" />
+                    <Button onClick={onAddExercise} className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-full px-4 sm:px-6 py-2 transform hover:scale-105 transition-all duration-300 shadow-lg text-xs sm:text-sm">
+                      <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                       Add First Exercise
                     </Button>
                   </div>
@@ -664,7 +665,7 @@ export const ClassBuilder = ({
                             onOpenChange={() => onToggleSectionCollapse(group.callout.id)}
                           >
                             {/* Callout header */}
-                            <div className="relative mb-2 px-4">
+                            <div className="relative mb-2 px-2 sm:px-4">
                               <div className={`border-l-4 pl-3 py-2 rounded-r-lg ${getCalloutColorClasses(group.callout.calloutColor).border} ${getCalloutColorClasses(group.callout.calloutColor).bg}`}>
                                 <div className="flex items-center justify-between">
                                   <CollapsibleTrigger asChild>
@@ -688,7 +689,7 @@ export const ClassBuilder = ({
                                           onClick={(e) => e.stopPropagation()}
                                         />
                                       ) : (
-                                        <span className="font-medium">{group.callout.name}</span>
+                                        <span className="font-medium text-xs sm:text-sm">{group.callout.name}</span>
                                       )}
                                       <Badge variant="secondary" className={`text-xs ml-2 ${getCalloutColorClasses(group.callout.calloutColor).bg} ${getCalloutColorClasses(group.callout.calloutColor).text}`}>
                                         {group.exercises?.length || 0}
@@ -726,7 +727,7 @@ export const ClassBuilder = ({
                             
                             {/* Exercises inside CollapsibleContent */}
                             <CollapsibleContent>
-                              <div className={`ml-4 border-l-2 pl-4 ${getCalloutColorClasses(group.callout.calloutColor).leftBorder}`}>
+                              <div className={`ml-2 sm:ml-4 border-l-2 pl-2 sm:pl-4 ${getCalloutColorClasses(group.callout.calloutColor).leftBorder}`}>
                                 {group.exercises?.map((exercise) => {
                                   const actualIndex = currentClass.exercises.findIndex(ex => ex.id === exercise.id);
                                   return (

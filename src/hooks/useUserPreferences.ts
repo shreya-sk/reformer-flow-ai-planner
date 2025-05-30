@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { CustomCallout } from '@/types/reformer';
 
@@ -91,8 +92,8 @@ export const useUserPreferences = () => {
     setPreferences(prev => ({
       ...prev,
       exerciseDetailPreferences: {
-        ...prev.exerciseDetailPreferences,
         ...defaultDetailPreferences,
+        ...prev.exerciseDetailPreferences,
         ...updates
       }
     }));
