@@ -4,35 +4,51 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Clock, GripVertical, Trash2, Plus } from 'lucide-react';
-import { Exercise } from '@/types/reformer';
+import { Exercise, ClassPlan } from '@/types/reformer';
 import { SpringVisual } from '../SpringVisual';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 interface ClassPlanCartProps {
-  exercises: Exercise[];
-  onRemove: (exerciseId: string) => void;
-  onReorder: (exercises: Exercise[]) => void;
+  exercises?: Exercise[];
+  currentClass?: ClassPlan;
+  onRemove?: (exerciseId: string) => void;
+  onReorder?: (exercises: Exercise[]) => void;
   onAddCallout?: () => void;
-  totalDuration: number;
-  targetDuration: number;
+  totalDuration?: number;
+  targetDuration?: number;
+  onUpdateClassName?: (name: string) => void;
+  onReorderExercises?: (exercises: Exercise[]) => void;
+  onUpdateExercise?: (exercise: Exercise) => void;
+  onSaveClass?: () => Promise<void>;
+  onAddExercise?: () => void;
 }
 
 export const ClassPlanCart = ({ 
-  exercises, 
+  exercises = [],
+  currentClass,
   onRemove, 
-  onReorder, 
+  onReorder,
+  onReorderExercises,
   onAddCallout,
-  totalDuration, 
-  targetDuration 
+  totalDuration = 0, 
+  targetDuration = 45 
 }: ClassPlanCartProps) => {
+  const displayExercises = exercises.length > 0 ? exercises : currentClass?.exercises || [];
+  const displayDuration = totalDuration > 0 ? totalDuration : currentClass?.totalDuration || 0;
+  const displayTargetDuration = targetDuration !== 45 ? targetDuration : currentClass?.duration || 45;
+
   const handleDragEnd = (result: any) => {
     if (!result.destination) return;
 
-    const items = Array.from(exercises);
+    const items = Array.from(displayExercises);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    onReorder(items);
+    if (onReorder) {
+      onReorder(items);
+    } else if (onReorderExercises) {
+      onReorderExercises(items);
+    }
   };
 
   const addCallout = () => {
@@ -66,7 +82,12 @@ export const ClassPlanCart = ({
       calloutColor: 'amber'
     };
 
-    onReorder([...exercises, calloutExercise]);
+    const newExercises = [...displayExercises, calloutExercise];
+    if (onReorder) {
+      onReorder(newExercises);
+    } else if (onReorderExercises) {
+      onReorderExercises(newExercises);
+    }
   };
 
   return (
@@ -74,13 +95,13 @@ export const ClassPlanCart = ({
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Class Plan</span>
-          <Badge variant={totalDuration > targetDuration ? "destructive" : "secondary"}>
-            {totalDuration}/{targetDuration} min
+          <Badge variant={displayDuration > displayTargetDuration ? "destructive" : "secondary"}>
+            {displayDuration}/{displayTargetDuration} min
           </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {exercises.length === 0 ? (
+        {displayExercises.length === 0 ? (
           <p className="text-center text-gray-500 py-8">
             No exercises added yet. Browse the library to add exercises to your class.
           </p>
@@ -89,7 +110,7 @@ export const ClassPlanCart = ({
             <Droppable droppableId="class-plan">
               {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
-                  {exercises.map((exercise, index) => (
+                  {displayExercises.map((exercise, index) => (
                     <Draggable key={exercise.id} draggableId={exercise.id} index={index}>
                       {(provided) => (
                         <div
@@ -115,14 +136,16 @@ export const ClassPlanCart = ({
                             </div>
                           </div>
                           
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onRemove(exercise.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {onRemove && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onRemove(exercise.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       )}
                     </Draggable>

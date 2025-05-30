@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,35 +6,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { X } from 'lucide-react';
 import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment } from '@/types/reformer';
 
 interface ExerciseFormProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (exercise: Exercise) => void;
+  exercise?: Exercise;
+  onSave: (exercise: Exercise) => Promise<void>;
+  onCancel: () => void;
 }
 
-export const ExerciseForm = ({ isOpen, onClose, onSubmit }: ExerciseFormProps) => {
+export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) => {
   const [formData, setFormData] = useState({
-    name: '',
-    category: 'supine' as ExerciseCategory,
-    duration: 1,
-    springs: 'medium' as SpringSetting,
-    difficulty: 'beginner' as DifficultyLevel,
-    intensityLevel: 'medium' as IntensityLevel,
-    description: '',
-    isPregnancySafe: false
+    name: exercise?.name || '',
+    category: exercise?.category || 'supine' as ExerciseCategory,
+    duration: exercise?.duration || 1,
+    springs: exercise?.springs || 'medium' as SpringSetting,
+    difficulty: exercise?.difficulty || 'beginner' as DifficultyLevel,
+    intensityLevel: exercise?.intensityLevel || 'medium' as IntensityLevel,
+    description: exercise?.description || '',
+    isPregnancySafe: exercise?.isPregnancySafe || false
   });
   
-  const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<MuscleGroup[]>([]);
-  const [selectedEquipment, setSelectedEquipment] = useState<Equipment[]>([]);
+  const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<MuscleGroup[]>(exercise?.muscleGroups || []);
+  const [selectedEquipment, setSelectedEquipment] = useState<Equipment[]>(exercise?.equipment || []);
 
   const toggleMuscleGroup = (group: MuscleGroup) => {
     setSelectedMuscleGroups(prev =>
@@ -49,50 +43,47 @@ export const ExerciseForm = ({ isOpen, onClose, onSubmit }: ExerciseFormProps) =
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const exerciseData: Exercise = {
       ...formData,
-      id: Date.now().toString(),
+      id: exercise?.id || Date.now().toString(),
       muscleGroups: selectedMuscleGroups,
       equipment: selectedEquipment,
       isCustom: true,
-      createdAt: new Date(),
+      createdAt: exercise?.createdAt || new Date(),
       updatedAt: new Date(),
-      image: '',
-      videoUrl: '',
-      setup: '',
-      repsOrDuration: '',
-      tempo: '',
-      targetAreas: [],
-      breathingCues: [],
-      teachingFocus: [],
-      modifications: [],
-      progressions: [],
-      regressions: [],
-      transitions: [],
-      contraindications: [],
-      cues: [],
-      notes: ''
+      image: exercise?.image || '',
+      videoUrl: exercise?.videoUrl || '',
+      setup: exercise?.setup || '',
+      repsOrDuration: exercise?.repsOrDuration || '',
+      tempo: exercise?.tempo || '',
+      targetAreas: exercise?.targetAreas || [],
+      breathingCues: exercise?.breathingCues || [],
+      teachingFocus: exercise?.teachingFocus || [],
+      modifications: exercise?.modifications || [],
+      progressions: exercise?.progressions || [],
+      regressions: exercise?.regressions || [],
+      transitions: exercise?.transitions || [],
+      contraindications: exercise?.contraindications || [],
+      cues: exercise?.cues || [],
+      notes: exercise?.notes || ''
     };
     
-    onSubmit(exerciseData);
-    onClose();
+    await onSave(exerciseData);
   };
 
-  if (!isOpen) return null;
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create New Exercise</DialogTitle>
-          <DialogDescription>
-            Add a new custom exercise to your library.
-          </DialogDescription>
-        </DialogHeader>
-        
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>{exercise ? 'Edit Exercise' : 'Create New Exercise'}</CardTitle>
+        <Button variant="ghost" size="sm" onClick={onCancel}>
+          <X className="h-4 w-4" />
+        </Button>
+      </CardHeader>
+      
+      <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div>
@@ -228,15 +219,15 @@ export const ExerciseForm = ({ isOpen, onClose, onSubmit }: ExerciseFormProps) =
           </div>
 
           <div className="flex gap-3">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
               Cancel
             </Button>
             <Button type="submit" className="flex-1">
-              Create Exercise
+              {exercise ? 'Update Exercise' : 'Create Exercise'}
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </CardContent>
+    </Card>
   );
 };

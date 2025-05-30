@@ -19,7 +19,7 @@ export const useClassPlans = () => {
         .select(`
           id,
           name,
-          duration,
+          duration_minutes,
           notes,
           image_url,
           created_at,
@@ -127,10 +127,10 @@ export const useClassPlans = () => {
         return {
           id: plan.id,
           name: plan.name,
-          duration: plan.duration,
+          duration: plan.duration_minutes,
           exercises,
           totalDuration: exercises.reduce((sum, ex) => sum + ex.duration, 0),
-          classDuration: plan.duration,
+          classDuration: plan.duration_minutes,
           createdAt: new Date(plan.created_at),
           updatedAt: new Date(plan.updated_at),
           notes: plan.notes || '',
@@ -146,13 +146,72 @@ export const useClassPlans = () => {
     }
   };
 
+  const saveClassPlan = async (classPlan: ClassPlan) => {
+    if (!user) return;
+
+    try {
+      const { data: classPlanData, error: classPlanError } = await supabase
+        .from('class_plans')
+        .insert({
+          name: classPlan.name,
+          duration_minutes: classPlan.duration,
+          notes: classPlan.notes,
+          image_url: classPlan.image,
+          user_id: user.id
+        })
+        .select()
+        .single();
+
+      if (classPlanError) throw classPlanError;
+
+      // Insert exercises
+      if (classPlan.exercises.length > 0) {
+        const exerciseInserts = classPlan.exercises.map((exercise, index) => ({
+          class_plan_id: classPlanData.id,
+          exercise_id: exercise.id,
+          position: index,
+          exercise_type: exercise.isCustom ? 'user' : 'system'
+        }));
+
+        const { error: exerciseError } = await supabase
+          .from('class_plan_exercises')
+          .insert(exerciseInserts);
+
+        if (exerciseError) throw exerciseError;
+      }
+
+      await fetchClassPlans();
+    } catch (error) {
+      console.error('Error saving class plan:', error);
+      throw error;
+    }
+  };
+
+  const deleteClassPlan = async (classPlanId: string) => {
+    try {
+      const { error } = await supabase
+        .from('class_plans')
+        .delete()
+        .eq('id', classPlanId);
+
+      if (error) throw error;
+      await fetchClassPlans();
+    } catch (error) {
+      console.error('Error deleting class plan:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchClassPlans();
   }, [user]);
 
   return {
     classPlans,
+    savedClasses: classPlans, // Alias for compatibility
     loading,
-    refetch: fetchClassPlans
+    refetch: fetchClassPlans,
+    saveClassPlan,
+    deleteClassPlan
   };
 };
