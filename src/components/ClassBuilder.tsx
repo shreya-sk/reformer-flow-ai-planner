@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -324,28 +323,28 @@ export const ClassBuilder = ({
           }`}
           onClick={() => handleExerciseClick(exercise)}
         >
-          <Card className="border-sage-200 hover:shadow-lg hover:border-sage-300 transition-all duration-300 overflow-hidden rounded-xl ml-6">
+          <Card className="border-sage-200 hover:shadow-lg hover:border-sage-300 transition-all duration-300 overflow-hidden rounded-xl mx-2 sm:ml-6">
             <CardContent className="p-3">
-              <div className="flex items-center gap-3">
+              <div className="flex items-start gap-2 sm:gap-3">
                 <div 
-                  className="flex-shrink-0 cursor-grab active:cursor-grabbing opacity-40 group-hover:opacity-100 transition-opacity"
+                  className="flex-shrink-0 cursor-grab active:cursor-grabbing opacity-40 group-hover:opacity-100 transition-opacity pt-1"
                   onMouseDown={(e) => e.stopPropagation()}
                 >
-                  <GripVertical className="h-5 w-5 text-sage-500" />
+                  <GripVertical className="h-4 w-4 sm:h-5 sm:w-5 text-sage-500" />
                 </div>
 
-                <div className="flex-shrink-0">
-                  <div className="w-8 h-8 bg-gradient-to-br from-sage-100 to-sage-200 rounded-full flex items-center justify-center shadow-inner">
-                    <span className="text-sm font-bold text-sage-600">{index + 1}</span>
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-sage-100 to-sage-200 rounded-full flex items-center justify-center shadow-inner">
+                    <span className="text-xs sm:text-sm font-bold text-sage-600">{index + 1}</span>
                   </div>
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-medium text-sage-800 text-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-2">
+                    <h3 className="font-medium text-sage-800 text-sm sm:text-base leading-tight">
                       {exercise.name}
                     </h3>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-1 mt-2 sm:mt-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       {onAddToShortlist && (
                         <Button
                           size="sm"
@@ -367,29 +366,27 @@ export const ClassBuilder = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="flex items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-2 mb-2 text-xs">
+                    <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3 text-sage-500" />
-                      <span className="text-xs text-sage-600 font-medium">{exercise.duration}min</span>
+                      <span className="text-sage-600 font-medium">{exercise.duration}min</span>
                     </div>
                     
                     <div className="flex items-center gap-1">
-                      <span className="text-xs text-sage-500">Springs:</span>
+                      <span className="text-sage-500">Springs:</span>
                       <SpringVisual springs={exercise.springs} />
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-1">
                     <Badge variant="outline" className="text-xs border-sage-300 text-sage-700 rounded-full">
                       {exercise.category}
                     </Badge>
-                    <div className="flex gap-1">
-                      {exercise.muscleGroups.slice(0, 2).map(group => (
-                        <Badge key={group} variant="secondary" className="text-xs bg-sage-100 text-sage-700 rounded-full">
-                          {group}
-                        </Badge>
-                      ))}
-                    </div>
+                    {exercise.muscleGroups.slice(0, 2).map(group => (
+                      <Badge key={group} variant="secondary" className="text-xs bg-sage-100 text-sage-700 rounded-full">
+                        {group}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -402,11 +399,10 @@ export const ClassBuilder = ({
 
   return (
     <>
-      <div className="flex-1">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-3">
-          {/* Class Settings Sidebar */}
-          <div className="space-y-4">
-            {/* Class Info Card */}
+      <div className="flex-1 overflow-hidden">
+        <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 p-3 h-full">
+          {/* Class Settings Sidebar - Full width on mobile */}
+          <div className="lg:col-span-1 space-y-4 order-2 lg:order-1">
             <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden">
               <CardHeader className="border-b border-sage-100 bg-gradient-to-r from-sage-50 to-white p-3">
                 <CardTitle className="text-base text-sage-800 font-medium flex items-center gap-2">
@@ -475,11 +471,11 @@ export const ClassBuilder = ({
                           Select
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-md">
+                      <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle>Select Class Image</DialogTitle>
                         </DialogHeader>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                           {defaultImages.map((image, index) => (
                             <button
                               key={index}
@@ -516,16 +512,16 @@ export const ClassBuilder = ({
             </Card>
           </div>
 
-          {/* Class Timeline */}
-          <div className="md:col-span-3 space-y-3">
-            <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden">
-              <CardHeader className="border-b border-sage-100 bg-gradient-to-r from-sage-50 to-white p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+          {/* Class Timeline - Full width on mobile */}
+          <div className="lg:col-span-3 order-1 lg:order-2 flex flex-col min-h-0">
+            <Card className="shadow-sm border-sage-200 rounded-xl overflow-hidden flex-1 flex flex-col">
+              <CardHeader className="border-b border-sage-100 bg-gradient-to-r from-sage-50 to-white p-3 flex-shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <CardTitle className="text-lg text-sage-800">Class Timeline</CardTitle>
                     
-                    {/* Inline Class Stats */}
-                    <div className="flex items-center gap-3">
+                    {/* Inline Class Stats - Stack on mobile */}
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       <div className="flex items-center gap-1 bg-sage-100 px-2 py-1 rounded-full">
                         <Clock className="h-3 w-3 text-sage-600" />
                         <span className="text-xs font-medium text-sage-700">{currentClass.totalDuration}min</span>
@@ -551,7 +547,7 @@ export const ClassBuilder = ({
                     onClick={onAddExercise}
                     variant="outline"
                     size="sm" 
-                    className="border-sage-300 hover:bg-sage-100 text-sage-700 rounded-full"
+                    className="border-sage-300 hover:bg-sage-100 text-sage-700 rounded-full w-full sm:w-auto"
                   >
                     <Plus className="h-4 w-4 mr-1" />
                     Add Exercise
@@ -559,20 +555,20 @@ export const ClassBuilder = ({
                 </div>
                 
                 {currentClass.exercises.length > 0 && (
-                  <p className="text-xs text-sage-600 mt-1">
+                  <p className="text-xs text-sage-600 mt-2">
                     Drag to reorder exercises
                   </p>
                 )}
               </CardHeader>
               
-              <ScrollArea className="h-[calc(100vh-300px)] px-3 py-2">
+              <div className="flex-1 overflow-y-auto px-3 py-2">
                 {currentClass.exercises.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="bg-sage-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                      <BookOpen className="h-7 w-7 text-sage-400" />
+                  <div className="text-center py-8 sm:py-12">
+                    <div className="bg-sage-50 rounded-full w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center mx-auto mb-4">
+                      <BookOpen className="h-6 w-6 sm:h-7 sm:w-7 text-sage-400" />
                     </div>
-                    <h3 className="text-lg font-medium text-sage-700 mb-2">Start Building Your Class</h3>
-                    <p className="text-sage-500 text-sm max-w-sm mx-auto mb-4">
+                    <h3 className="text-base sm:text-lg font-medium text-sage-700 mb-2">Start Building Your Class</h3>
+                    <p className="text-sage-500 text-sm max-w-sm mx-auto mb-4 px-4">
                       Add exercises from the library to create your perfect Reformer flow.
                     </p>
                     <Button onClick={onAddExercise} className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-full px-6 py-2 transform hover:scale-105 transition-all duration-300 shadow-lg">
@@ -600,7 +596,7 @@ export const ClassBuilder = ({
                       onAddExercise={onAddExercise}
                     />
                     
-                    {/* Improved grouped exercises with proper collapsible sections */}
+                    {/* Exercise list with improved mobile layout */}
                     {groupedExercises().map((group, groupIndex) => (
                       <div key={groupIndex}>
                         {group.callout ? (
@@ -733,7 +729,7 @@ export const ClassBuilder = ({
                     <DropZone index={currentClass.exercises.length} className="mt-4" />
                   </div>
                 )}
-              </ScrollArea>
+              </div>
             </Card>
           </div>
         </div>
@@ -741,7 +737,7 @@ export const ClassBuilder = ({
 
       {/* Custom Callout Selector Dialog */}
       <Dialog open={showCalloutSelector} onOpenChange={setShowCalloutSelector}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5" />
@@ -770,7 +766,7 @@ export const ClassBuilder = ({
                   className="w-full justify-start h-auto p-3"
                   onClick={() => handleAddCustomCallout(callout, calloutInsertPosition)}
                 >
-                  <div className={`border-l-4 pl-3 py-2 rounded-r flex-1 text-left ${colorClasses.border} ${colorClasses.bg}`}>
+                  <div className={`border-l-4 ${colorClasses.border} pl-3 py-2 ${colorClasses.bg} rounded-r flex-1 text-left`}>
                     <span className={`font-medium ${colorClasses.text}`}>{callout.name}</span>
                   </div>
                 </Button>

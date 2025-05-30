@@ -30,9 +30,9 @@ const Library = () => {
   };
 
   return (
-    <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20`}>
-      {/* Full Width Exercise Library without duplicate header */}
-      <div className="h-screen">
+    <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20 safe-area-pb`}>
+      {/* Full Width Exercise Library */}
+      <div className="min-h-screen flex flex-col">
         <ExerciseLibrary onAddExercise={handleAddExercise} />
       </div>
 

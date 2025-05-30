@@ -61,31 +61,38 @@ export const ExerciseLibraryHeader = ({
   ];
 
   return (
-    <div className={`p-6 border-b ${preferences.darkMode ? 'border-gray-700 bg-gray-800' : 'border-sage-200 bg-white'}`}>
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4 flex-1">
-            {/* Search */}
-            <div className="relative w-80">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 h-4 w-4" />
-              <Input
-                placeholder="Search exercises..."
-                value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className={`pl-10 ${preferences.darkMode ? 'border-gray-600 focus:border-gray-500 bg-gray-700 text-white' : 'border-sage-300 focus:border-sage-500 bg-white'}`}
-              />
-            </div>
+    <div className="space-y-4">
+      {/* Main header row - Stack on mobile */}
+      <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:items-center lg:justify-between">
+        <div className="flex flex-col space-y-3 sm:space-y-4">
+          {/* Search */}
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 h-4 w-4" />
+            <Input
+              placeholder="Search exercises..."
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className={`pl-10 ${preferences.darkMode ? 'border-gray-600 focus:border-gray-500 bg-gray-700 text-white' : 'border-sage-300 focus:border-sage-500 bg-white'}`}
+            />
+          </div>
 
+          {/* Filter controls - Wrap on mobile */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4">
             {/* Show Hidden Toggle */}
             {onToggleShowHidden && (
               <Button
                 variant={showHidden ? "default" : "outline"}
                 size="sm"
                 onClick={onToggleShowHidden}
-                className="gap-2"
+                className="gap-2 text-xs sm:text-sm"
               >
                 {showHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                {showHidden ? `Showing Hidden (${hiddenCount})` : `Show Hidden (${hiddenCount})`}
+                <span className="hidden sm:inline">
+                  {showHidden ? `Showing Hidden (${hiddenCount})` : `Show Hidden (${hiddenCount})`}
+                </span>
+                <span className="sm:hidden">
+                  {showHidden ? `Hidden (${hiddenCount})` : `Hidden (${hiddenCount})`}
+                </span>
               </Button>
             )}
 
@@ -94,9 +101,9 @@ export const ExerciseLibraryHeader = ({
               variant="ghost"
               size="sm"
               onClick={onToggleFilters}
-              className={`${preferences.darkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'}`}
+              className={`${preferences.darkMode ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-sage-600 hover:text-sage-800 hover:bg-sage-100'} text-xs sm:text-sm`}
             >
-              <Filter className="h-4 w-4 mr-2" />
+              <Filter className="h-4 w-4 mr-1 sm:mr-2" />
               Filters {activeFiltersCount > 0 && `(${activeFiltersCount})`}
             </Button>
 
@@ -111,77 +118,78 @@ export const ExerciseLibraryHeader = ({
               </Button>
             )}
           </div>
-
-          <div className="flex items-center gap-4">
-            {/* Pregnancy Safe Toggle */}
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={preferences.showPregnancySafeOnly}
-                onChange={togglePregnancySafeOnly}
-                className="rounded"
-              />
-              <div className="flex items-center gap-1">
-                <Baby className={`h-4 w-4 ${preferences.darkMode ? 'text-pink-400' : 'text-pink-600'}`} />
-                <Check className={`h-3 w-3 ${preferences.darkMode ? 'text-green-400' : 'text-green-600'}`} />
-              </div>
-              <span className={preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}>
-                Pregnancy-safe only
-              </span>
-            </label>
-
-            <Button 
-              size="sm" 
-              onClick={onAddExercise}
-              className="bg-sage-600 hover:bg-sage-700 shadow-sm"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Exercise
-            </Button>
-          </div>
         </div>
 
-        {/* Collapsible Filters */}
-        {showFilters && (
-          <div className={`p-4 ${preferences.darkMode ? 'bg-gray-700/50' : 'bg-sage-50'} rounded-lg border ${preferences.darkMode ? 'border-gray-600' : 'border-sage-200'}`}>
-            <div className="flex gap-8">
-              <div>
-                <label className={`text-sm font-medium mb-2 block ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>Muscle Groups</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {muscleGroups.map(group => (
-                    <Button
-                      key={group.value}
-                      variant={selectedMuscleGroup === group.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => onMuscleGroupChange(group.value)}
-                      className={`text-xs h-7 ${preferences.darkMode ? 'border-gray-600 hover:border-gray-500' : 'border-sage-300 hover:border-sage-400'}`}
-                    >
-                      {group.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+        {/* Right side controls - Stack on mobile */}
+        <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:items-center sm:gap-4">
+          {/* Pregnancy Safe Toggle */}
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={preferences.showPregnancySafeOnly}
+              onChange={togglePregnancySafeOnly}
+              className="rounded"
+            />
+            <div className="flex items-center gap-1">
+              <Baby className={`h-4 w-4 ${preferences.darkMode ? 'text-pink-400' : 'text-pink-600'}`} />
+              <Check className={`h-3 w-3 ${preferences.darkMode ? 'text-green-400' : 'text-green-600'}`} />
+            </div>
+            <span className={`${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'} text-xs sm:text-sm`}>
+              Pregnancy-safe only
+            </span>
+          </label>
 
-              <div>
-                <label className={`text-sm font-medium mb-2 block ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>Position</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {positions.map(position => (
-                    <Button
-                      key={position.value}
-                      variant={selectedPosition === position.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => onPositionChange(position.value)}
-                      className={`text-xs h-7 ${preferences.darkMode ? 'border-gray-600 hover:border-gray-500' : 'border-sage-300 hover:border-sage-400'}`}
-                    >
-                      {position.label}
-                    </Button>
-                  ))}
-                </div>
+          <Button 
+            size="sm" 
+            onClick={onAddExercise}
+            className="bg-sage-600 hover:bg-sage-700 shadow-sm w-full sm:w-auto"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Exercise
+          </Button>
+        </div>
+      </div>
+
+      {/* Collapsible Filters */}
+      {showFilters && (
+        <div className={`p-4 ${preferences.darkMode ? 'bg-gray-700/50' : 'bg-sage-50'} rounded-lg border ${preferences.darkMode ? 'border-gray-600' : 'border-sage-200'}`}>
+          <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:gap-8">
+            <div className="flex-1">
+              <label className={`text-sm font-medium mb-2 block ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>Muscle Groups</label>
+              <div className="flex flex-wrap gap-1.5">
+                {muscleGroups.map(group => (
+                  <Button
+                    key={group.value}
+                    variant={selectedMuscleGroup === group.value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => onMuscleGroupChange(group.value)}
+                    className={`text-xs h-7 ${preferences.darkMode ? 'border-gray-600 hover:border-gray-500' : 'border-sage-300 hover:border-sage-400'}`}
+                  >
+                    {group.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex-1">
+              <label className={`text-sm font-medium mb-2 block ${preferences.darkMode ? 'text-gray-300' : 'text-sage-700'}`}>Position</label>
+              <div className="flex flex-wrap gap-1.5">
+                {positions.map(position => (
+                  <Button
+                    key={position.value}
+                    variant={selectedPosition === position.value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => onPositionChange(position.value)}
+                    className={`text-xs h-7 ${preferences.darkMode ? 'border-gray-600 hover:border-gray-500' : 'border-sage-300 hover:border-sage-400'}`}
+                  >
+                    {position.label}
+                  </Button>
+                ))}
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

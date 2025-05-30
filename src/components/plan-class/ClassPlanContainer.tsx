@@ -134,7 +134,7 @@ export const ClassPlanContainer = () => {
 
   if (showLibrary) {
     return (
-      <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20`}>
+      <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20 safe-area-pb`}>
         <ClassHeader
           currentClass={currentClass}
           onUpdateClassName={updateClassName}
@@ -152,7 +152,7 @@ export const ClassPlanContainer = () => {
   }
 
   return (
-    <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20`}>
+    <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20 safe-area-pb`}>
       <ClassHeader
         currentClass={currentClass}
         onUpdateClassName={updateClassName}
