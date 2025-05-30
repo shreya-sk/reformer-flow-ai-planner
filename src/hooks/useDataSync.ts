@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -118,7 +119,7 @@ export const useDataSync = () => {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        const syncData = data as UserSyncData;
+        const syncData = data as unknown as UserSyncData;
         
         // Get current localStorage data
         const localClassPlan = localStorage.getItem('reformerly_class_plan');
