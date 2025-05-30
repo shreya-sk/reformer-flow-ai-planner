@@ -6,9 +6,10 @@ import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ClassHeader } from './ClassHeader';
 import { ClassPlanCart } from './ClassPlanCart';
-import { ExerciseLibrary } from '@/components/ExerciseLibrary';
+import { MobileOptimizedExerciseLibrary } from '@/components/MobileOptimizedExerciseLibrary';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { toast } from '@/hooks/use-toast';
+import { Plus } from 'lucide-react';
 
 export const ClassPlanContainer = () => {
   const navigate = useNavigate();
@@ -18,15 +19,30 @@ export const ClassPlanContainer = () => {
   const { preferences } = useUserPreferences();
   const [showLibrary, setShowLibrary] = useState(false);
   
-  // Use the persisted class plan hook instead of undo/redo for now
+  // Use the persisted class plan hook - this is the source of truth
   const {
     currentClass,
     addExercise,
     removeExercise,
     reorderExercises,
     updateClassName,
-    clearClassPlan
+    clearClassPlan,
+    addCallout
   } = usePersistedClassPlan();
+
+  // Debug: Log whenever currentClass changes
+  useEffect(() => {
+    console.log('🔵 ClassPlanContainer: currentClass updated:', {
+      name: currentClass.name,
+      exerciseCount: currentClass.exercises.length,
+      totalDuration: currentClass.totalDuration,
+      exercises: currentClass.exercises.map(ex => ({ 
+        id: ex.id, 
+        name: ex.name, 
+        duration: ex.duration 
+      }))
+    });
+  }, [currentClass]);
 
   // Handle initial loading from navigation state
   useEffect(() => {
@@ -34,11 +50,9 @@ export const ClassPlanContainer = () => {
     const loadedClass = location.state?.loadedClass;
     
     if (loadedClass) {
-      // Load the class from navigation state
       console.log('🔵 Loading class from navigation:', loadedClass);
-      // We'd need to add a method to load a full class plan
+      // TODO: Implement loadClass method in usePersistedClassPlan
     } else if (cartExercises.length > 0) {
-      // Add cart exercises to the current class
       console.log('🔵 Loading cart exercises:', cartExercises.length);
       cartExercises.forEach((exercise: Exercise) => {
         addExercise(exercise);
@@ -96,15 +110,29 @@ export const ClassPlanContainer = () => {
     setShowLibrary(true);
   };
 
-  // Debug: Log current class state changes
-  useEffect(() => {
-    console.log('🔵 Current class state changed:', {
-      name: currentClass.name,
-      exerciseCount: currentClass.exercises.length,
-      totalDuration: currentClass.totalDuration,
-      exercises: currentClass.exercises.map(ex => ({ id: ex.id, name: ex.name }))
+  // Handle exercise selection from library - this is the key fix!
+  const handleExerciseSelection = (exercise: Exercise) => {
+    console.log('🔵 Exercise selected from library:', exercise.name);
+    addExercise(exercise);
+    // Don't close library immediately, let user add multiple exercises
+    toast({
+      title: "Added to class",
+      description: `"${exercise.name}" has been added to your class plan.`,
     });
-  }, [currentClass]);
+  };
+
+  const handleAddCallout = (name: string, position: number) => {
+    console.log('🔵 Adding callout:', name, 'at position:', position);
+    addCallout(name, position);
+  };
+
+  const handleUpdateExercise = (updatedExercise: Exercise) => {
+    console.log('🔵 Updating exercise:', updatedExercise.name);
+    const updatedExercises = currentClass.exercises.map(ex => 
+      ex.id === updatedExercise.id ? updatedExercise : ex
+    );
+    reorderExercises(updatedExercises);
+  };
 
   if (!user) {
     navigate('/');
@@ -128,8 +156,10 @@ export const ClassPlanContainer = () => {
             setShowLibrary(false);
           }}
         />
-        <div className="p-4">
-          <ExerciseLibrary />
+        <div className="pt-4">
+          <MobileOptimizedExerciseLibrary 
+            onExerciseSelect={handleExerciseSelection}
+          />
         </div>
       </div>
     );
@@ -147,16 +177,65 @@ export const ClassPlanContainer = () => {
         canRedo={false}
       />
 
-      <ClassPlanCart
-        currentClass={currentClass}
-        exercises={currentClass.exercises}
-        totalDuration={currentClass.totalDuration}
-        onUpdateClassName={updateClassName}
-        onRemoveExercise={removeExercise}
-        onReorderExercises={reorderExercises}
-        onAddExercise={handleAddExercise}
-        onSaveClass={handleSaveClass}
-      />
+      <div className="p-4 space-y-6">
+        {/* Current Class Summary */}
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-semibold text-sage-800">{currentClass.name}</h2>
+              <p className="text-sm text-sage-600">
+                {currentClass.exercises.length} exercises • {currentClass.totalDuration} min
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleAddExercise}
+                className="bg-sage-600 hover:bg-sage-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Exercise
+              </button>
+              <button
+                onClick={handleSaveClass}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                disabled={currentClass.exercises.length === 0}
+              >
+                Save Class
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Exercise List */}
+        <ClassPlanCart
+          currentClass={currentClass}
+          exercises={currentClass.exercises}
+          totalDuration={currentClass.totalDuration}
+          onUpdateClassName={updateClassName}
+          onRemoveExercise={removeExercise}
+          onReorderExercises={reorderExercises}
+          onAddExercise={handleAddExercise}
+          onSaveClass={handleSaveClass}
+        />
+
+        {/* Debug Info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-gray-100 p-4 rounded-lg text-xs">
+            <h3 className="font-bold mb-2">Debug Info:</h3>
+            <p>Exercises in state: {currentClass.exercises.length}</p>
+            <p>Total duration: {currentClass.totalDuration} min</p>
+            <p>Class name: {currentClass.name}</p>
+            <details>
+              <summary>Exercise Details</summary>
+              <pre>{JSON.stringify(currentClass.exercises.map(ex => ({
+                id: ex.id,
+                name: ex.name,
+                duration: ex.duration
+              })), null, 2)}</pre>
+            </details>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
