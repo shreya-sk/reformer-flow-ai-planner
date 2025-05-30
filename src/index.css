@@ -7,42 +7,29 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
-
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
 
   .dark {
@@ -52,7 +39,7 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 94 37% 70%;
+    --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -65,14 +52,11 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -80,7 +64,6 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
   }
@@ -88,93 +71,56 @@
 
 @layer utilities {
   .safe-area-pb {
-    padding-bottom: env(safe-area-inset-bottom, 0);
+    padding-bottom: env(safe-area-inset-bottom);
   }
   
-  .animate-scale-in {
-    animation: scale-in 0.2s ease-out;
-  }
-  
-  @keyframes scale-in {
-    0% {
-      transform: scale(0.8);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top);
   }
 }
 
-/* Enhanced mobile responsiveness */
-@media (max-width: 768px) {
-  /* Ensure proper mobile layout */
-  .exercise-library {
-    width: 100vw !important;
-    max-width: none !important;
+/* Mobile-specific animations */
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
   }
-  
-  /* Stack layout on mobile */
-  .desktop-layout {
-    flex-direction: column !important;
-  }
-  
-  /* Full width cards on mobile */
-  .mobile-card {
-    width: 100% !important;
-    margin: 0 !important;
-  }
-  
-  /* Adjust text sizes for mobile */
-  .mobile-text {
-    font-size: 0.875rem !important;
-  }
-  
-  /* Responsive timer */
-  .timer-circle {
-    width: 200px !important;
-    height: 200px !important;
-  }
-
-  /* Grid adjustments for mobile */
-  .grid-cols-1 {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  }
-  
-  .md\:grid-cols-2 {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  }
-  
-  .lg\:grid-cols-3 {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  }
-  
-  .xl\:grid-cols-4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
-/* Improve touch targets on mobile */
-@media (max-width: 768px) {
-  button {
-    min-height: 44px;
-    min-width: 44px;
+@keyframes fade-in {
+  from {
+    opacity: 0;
   }
-  
-  .touch-target {
-    padding: 12px !important;
-  }
-
-  /* Better spacing for mobile filters */
-  .flex-wrap {
-    gap: 0.5rem !important;
+  to {
+    opacity: 1;
   }
 }
 
-/* Dark mode improvements */
-.dark {
-  /* Better contrast for dark mode */
-  --sage-600: 94 37% 70%;
-  --sage-700: 94 37% 60%;
+.animate-slide-in-bottom {
+  animation: slide-in-bottom 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* Enhanced button animations */
+.hover-scale {
+  transition: transform 0.2s ease-out;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.active-scale {
+  transition: transform 0.1s ease-out;
+}
+
+.active-scale:active {
+  transform: scale(0.95);
 }

@@ -3,13 +3,16 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, RefreshCw, Download, Wifi, WifiOff, Plus, Heart, Filter } from 'lucide-react';
-import { Exercise } from '@/types/reformer';
+import { Search, RefreshCw, Download, Wifi, WifiOff, Plus, Heart, Filter, Check } from 'lucide-react';
+import { Exercise, MuscleGroup, ExerciseCategory } from '@/types/reformer';
 import { useTouchGestures } from '@/hooks/useTouchGestures';
 import { useLazyLoading } from '@/hooks/usePerformanceOptimization';
 import { usePWA } from '@/hooks/usePWA';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { ExerciseDetailModal } from '@/components/ExerciseDetailModal';
+import { useExercises } from '@/hooks/useExercises';
+import { MobileFilterPanel } from './MobileFilterPanel';
+import { MobileExerciseModal } from './MobileExerciseModal';
+import { toast } from '@/hooks/use-toast';
 
 interface MobileOptimizedExerciseLibraryProps {
   exercises: Exercise[];
@@ -17,52 +20,49 @@ interface MobileOptimizedExerciseLibraryProps {
   onRefresh?: () => void;
 }
 
-const categoryOptions = [
-  { value: 'all', label: 'All', color: 'bg-sage-600' },
-  { value: 'supine', label: 'Supine', color: 'bg-blue-500' },
-  { value: 'prone', label: 'Prone', color: 'bg-purple-500' },
-  { value: 'sitting', label: 'Sitting', color: 'bg-green-500' },
-  { value: 'side-lying', label: 'Side-lying', color: 'bg-pink-500' },
-  { value: 'kneeling', label: 'Kneeling', color: 'bg-yellow-500' },
-];
-
-const difficultyOptions = [
-  { value: 'all', label: 'All Levels', color: 'bg-gray-500' },
-  { value: 'beginner', label: 'Beginner', color: 'bg-green-500' },
-  { value: 'intermediate', label: 'Intermediate', color: 'bg-yellow-500' },
-  { value: 'advanced', label: 'Advanced', color: 'bg-red-500' },
-];
-
 export const MobileOptimizedExerciseLibrary = ({
   exercises,
   onExerciseSelect,
   onRefresh
 }: MobileOptimizedExerciseLibraryProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | 'all'>('all');
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
   const { preferences, toggleFavoriteExercise } = useUserPreferences();
+  const { duplicateExercise, updateUserExercise, customizeSystemExercise } = useExercises();
   const { observeImage } = useLazyLoading();
   const { isOnline, isInstallable, installApp } = usePWA();
 
   // Filter exercises based on search and filters
   const filteredExercises = useMemo(() => {
     return exercises.filter(exercise => {
+      const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
+      if (!showHidden && isHidden) return false;
+      if (showHidden && !isHidden) return false;
+
       const matchesSearch = exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         exercise.muscleGroups.some(group => 
           group.toLowerCase().includes(searchTerm.toLowerCase())
         );
       
       const matchesCategory = selectedCategory === 'all' || exercise.category === selectedCategory;
-      const matchesDifficulty = selectedDifficulty === 'all' || exercise.difficulty === selectedDifficulty;
+      const matchesMuscleGroup = selectedMuscleGroup === 'all' || exercise.muscleGroups.includes(selectedMuscleGroup);
       const matchesPregnancy = !preferences.showPregnancySafeOnly || exercise.isPregnancySafe;
       
-      return matchesSearch && matchesCategory && matchesDifficulty && matchesPregnancy;
+      return matchesSearch && matchesCategory && matchesMuscleGroup && matchesPregnancy;
     });
-  }, [exercises, searchTerm, selectedCategory, selectedDifficulty, preferences.showPregnancySafeOnly]);
+  }, [exercises, searchTerm, selectedCategory, selectedMuscleGroup, preferences.showPregnancySafeOnly, preferences.hiddenExercises, showHidden]);
+
+  // Count active filters
+  const activeFiltersCount = (selectedCategory !== 'all' ? 1 : 0) + 
+                            (selectedMuscleGroup !== 'all' ? 1 : 0) + 
+                            (preferences.showPregnancySafeOnly ? 1 : 0) + 
+                            (showHidden ? 1 : 0);
 
   // Touch gestures for pull to refresh
   const { isPulling, pullDistance } = useTouchGestures({
@@ -88,14 +88,61 @@ export const MobileOptimizedExerciseLibrary = ({
     setShowDetailModal(true);
   };
 
-  const handleAddToClass = (exercise: Exercise, e: React.MouseEvent) => {
-    e.stopPropagation();
-    onExerciseSelect(exercise);
+  const handleAddToClass = (exercise: Exercise) => {
+    // Create a unique copy for the class plan
+    const timestamp = Date.now();
+    const randomId = Math.random().toString(36).substr(2, 9);
+    const uniqueId = `${exercise.id}-${timestamp}-${randomId}`;
+    
+    const exerciseToAdd = {
+      ...exercise,
+      id: uniqueId,
+    };
+    
+    onExerciseSelect(exerciseToAdd);
+    
+    toast({
+      title: "Added to class",
+      description: `"${exercise.name}" has been added to your class plan.`,
+    });
   };
 
   const handleToggleFavorite = (exerciseId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     toggleFavoriteExercise(exerciseId);
+  };
+
+  const clearAllFilters = () => {
+    setSelectedCategory('all');
+    setSelectedMuscleGroup('all');
+    setShowHidden(false);
+  };
+
+  const handleEditExercise = async (updatedExercise: Exercise) => {
+    try {
+      if (updatedExercise.isSystemExercise) {
+        await customizeSystemExercise(updatedExercise.id, {
+          custom_name: updatedExercise.name,
+          custom_duration: updatedExercise.duration,
+          custom_springs: updatedExercise.springs,
+          custom_cues: updatedExercise.cues,
+          custom_notes: updatedExercise.notes,
+          custom_difficulty: updatedExercise.difficulty,
+          custom_setup: updatedExercise.setup,
+          custom_reps_or_duration: updatedExercise.repsOrDuration,
+          custom_tempo: updatedExercise.tempo,
+          custom_target_areas: updatedExercise.targetAreas,
+          custom_breathing_cues: updatedExercise.breathingCues,
+          custom_teaching_focus: updatedExercise.teachingFocus,
+          custom_modifications: updatedExercise.modifications,
+        });
+      } else {
+        await updateUserExercise(updatedExercise.id, updatedExercise);
+      }
+      setSelectedExercise(updatedExercise);
+    } catch (error) {
+      console.error('Error updating exercise:', error);
+    }
   };
 
   return (
@@ -140,7 +187,7 @@ export const MobileOptimizedExerciseLibrary = ({
           )}
         </div>
 
-        {/* Search header */}
+        {/* Search and filter header */}
         <div className="p-4 border-b bg-white sticky top-0 z-20 space-y-4">
           {/* Search bar */}
           <div className="relative">
@@ -153,54 +200,34 @@ export const MobileOptimizedExerciseLibrary = ({
             />
           </div>
           
-          {/* Filter chips */}
-          <div className="space-y-3">
-            {/* Category filters */}
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {categoryOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setSelectedCategory(option.value)}
-                  className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    selectedCategory === option.value
-                      ? `${option.color} text-white shadow-md transform scale-105`
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-            
-            {/* Difficulty filters */}
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {difficultyOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setSelectedDifficulty(option.value)}
-                  className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    selectedDifficulty === option.value
-                      ? `${option.color} text-white shadow-md transform scale-105`
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          
+          {/* Filter button and results */}
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">
-              {filteredExercises.length} exercises
-            </span>
-            <Button variant="ghost" size="sm" onClick={onRefresh} disabled={isRefreshing}>
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <Button
+              variant="outline"
+              onClick={() => setShowFilterPanel(true)}
+              className="h-10 px-4 rounded-xl border-gray-200 flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              <span>Filters</span>
+              {activeFiltersCount > 0 && (
+                <Badge className="bg-sage-600 text-white text-xs">
+                  {activeFiltersCount}
+                </Badge>
+              )}
             </Button>
+            
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600">
+                {filteredExercises.length} exercises
+              </span>
+              <Button variant="ghost" size="sm" onClick={onRefresh} disabled={isRefreshing}>
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Two-column exercise grid */}
+        {/* Exercise grid */}
         <div className="flex-1 overflow-y-auto p-3">
           <div className="grid grid-cols-2 gap-3">
             {filteredExercises.map((exercise) => (
@@ -216,21 +243,56 @@ export const MobileOptimizedExerciseLibrary = ({
               />
             ))}
           </div>
+
+          {filteredExercises.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Search className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {showHidden ? 'No hidden exercises' : 'No exercises found'}
+              </h3>
+              <p className="text-gray-500 text-sm">
+                {showHidden 
+                  ? 'You haven\'t hidden any exercises yet.'
+                  : 'Try adjusting your search or filters'
+                }
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
+      {/* Filter Panel */}
+      <MobileFilterPanel
+        isOpen={showFilterPanel}
+        onClose={() => setShowFilterPanel(false)}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+        selectedMuscleGroup={selectedMuscleGroup}
+        onMuscleGroupChange={setSelectedMuscleGroup}
+        showPregnancySafe={preferences.showPregnancySafeOnly || false}
+        onPregnancySafeChange={(show) => {
+          // This would need to be implemented in useUserPreferences
+          console.log('Toggle pregnancy safe:', show);
+        }}
+        showHidden={showHidden}
+        onShowHiddenChange={setShowHidden}
+        onClearAll={clearAllFilters}
+        activeFiltersCount={activeFiltersCount}
+      />
+
       {/* Exercise Detail Modal */}
-      {selectedExercise && (
-        <ExerciseDetailModal
-          exercise={selectedExercise}
-          isOpen={showDetailModal}
-          onClose={() => {
-            setShowDetailModal(false);
-            setSelectedExercise(null);
-          }}
-          onAddToClass={onExerciseSelect}
-        />
-      )}
+      <MobileExerciseModal
+        exercise={selectedExercise}
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedExercise(null);
+        }}
+        onAddToClass={handleAddToClass}
+        onEdit={handleEditExercise}
+      />
     </>
   );
 };
@@ -238,7 +300,7 @@ export const MobileOptimizedExerciseLibrary = ({
 interface ExerciseCardProps {
   exercise: Exercise;
   onSelect: (exercise: Exercise) => void;
-  onAddToClass: (exercise: Exercise, e: React.MouseEvent) => void;
+  onAddToClass: (exercise: Exercise) => void;
   onToggleFavorite: (exerciseId: string, e: React.MouseEvent) => void;
   observeImage: (element: HTMLImageElement, src: string) => void;
   isFavorite: boolean;
@@ -255,6 +317,7 @@ const ExerciseCard = ({
   darkMode 
 }: ExerciseCardProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
+  const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
     if (imageRef.current && exercise.image) {
@@ -262,13 +325,17 @@ const ExerciseCard = ({
     }
   }, [exercise.image, observeImage]);
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner': return 'bg-green-500';
-      case 'intermediate': return 'bg-yellow-500';
-      case 'advanced': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
+  const handleAddClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isAdding) return;
+    
+    setIsAdding(true);
+    onAddToClass(exercise);
+    
+    // Reset button after animation
+    setTimeout(() => {
+      setIsAdding(false);
+    }, 1500);
   };
 
   return (
@@ -308,15 +375,11 @@ const ExerciseCard = ({
           <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
         </button>
 
-        {/* Difficulty badge - top left */}
-        <div className={`absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium text-white ${getDifficultyColor(exercise.difficulty)}`}>
-          {exercise.difficulty}
-        </div>
-
         {/* Pregnancy safe indicator */}
         {exercise.isPregnancySafe && (
-          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-pink-500 text-white text-xs px-2 py-1 rounded-full">
-            👶
+          <div className="absolute top-2 left-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+            <span className="text-[10px]">👶</span>
+            <span>Safe</span>
           </div>
         )}
 
@@ -326,9 +389,16 @@ const ExerciseCard = ({
             Custom
           </div>
         )}
+
+        {/* Modified exercise indicator */}
+        {exercise.isCustomized && (
+          <div className="absolute bottom-2 left-2 bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
+            Modified
+          </div>
+        )}
       </div>
       
-      {/* Exercise info overlay at bottom */}
+      {/* Exercise info */}
       <div className="p-3 bg-white">
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
@@ -340,12 +410,21 @@ const ExerciseCard = ({
             </p>
           </div>
           
-          {/* Add button */}
+          {/* Add button with enhanced animation */}
           <button
-            onClick={(e) => onAddToClass(exercise, e)}
-            className="ml-2 w-8 h-8 bg-sage-600 hover:bg-sage-700 text-white rounded-full flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 shadow-md"
+            onClick={handleAddClick}
+            disabled={isAdding}
+            className={`ml-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-md active:scale-95 ${
+              isAdding
+                ? 'bg-green-500 text-white scale-110'
+                : 'bg-sage-600 hover:bg-sage-700 text-white hover:scale-110'
+            }`}
           >
-            <Plus className="h-4 w-4" />
+            {isAdding ? (
+              <Check className="h-4 w-4 animate-bounce" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
           </button>
         </div>
       </div>
