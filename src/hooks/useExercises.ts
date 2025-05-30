@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -297,6 +296,9 @@ export const useExercises = () => {
     }
   };
 
+  // Add refetchExercises as an alias to fetchExercises for backward compatibility
+  const refetchExercises = fetchExercises;
+
   useEffect(() => {
     fetchExercises();
   }, [user]);
@@ -305,6 +307,7 @@ export const useExercises = () => {
     exercises,
     loading,
     fetchExercises,
+    refetchExercises, // Add this property
     createUserExercise,
     customizeSystemExercise,
     updateUserExercise,
