@@ -8,7 +8,7 @@ import { Clock, Users, Dumbbell, Settings, Edit, Plus, Eye } from 'lucide-react'
 import { Exercise } from '@/types/reformer';
 import { SpringVisual } from './SpringVisual';
 import { ImprovedExerciseForm } from './ImprovedExerciseForm';
-import { useCustomExercises } from '@/hooks/useCustomExercises';
+import { useExercises } from '@/hooks/useExercises';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
 interface ExerciseDetailModalProps {
@@ -29,14 +29,15 @@ export const ExerciseDetailModal = ({
   showEditButton = false
 }: ExerciseDetailModalProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const { customExercises, saveCustomExercise } = useCustomExercises();
+  const { exercises, updateUserExercise, customizeSystemExercise } = useExercises();
   const { preferences } = useUserPreferences();
 
   if (!exercise) return null;
 
-  const isCustomExercise = (exerciseId: string) => {
-    return customExercises.some(ex => ex.id === exerciseId);
-  };
+  const isCustomExercise = exercise.isCustom || false;
+  const isSystemExercise = exercise.isSystemExercise || false;
+  const isCustomized = exercise.isCustomized || false;
+  const canEdit = isCustomExercise || isSystemExercise;
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -44,9 +45,26 @@ export const ExerciseDetailModal = ({
 
   const handleSaveEdit = async (updatedExercise: Exercise) => {
     try {
-      if (isCustomExercise(updatedExercise.id)) {
-        await saveCustomExercise(updatedExercise);
+      if (isCustomExercise) {
+        await updateUserExercise(updatedExercise.id, updatedExercise);
+      } else if (isSystemExercise) {
+        await customizeSystemExercise(updatedExercise.id, {
+          custom_name: updatedExercise.name,
+          custom_duration: updatedExercise.duration,
+          custom_springs: updatedExercise.springs,
+          custom_difficulty: updatedExercise.difficulty,
+          custom_cues: updatedExercise.cues,
+          custom_notes: updatedExercise.notes,
+          custom_setup: updatedExercise.setup,
+          custom_reps_or_duration: updatedExercise.repsOrDuration,
+          custom_tempo: updatedExercise.tempo,
+          custom_target_areas: updatedExercise.targetAreas,
+          custom_breathing_cues: updatedExercise.breathingCues,
+          custom_teaching_focus: updatedExercise.teachingFocus,
+          custom_modifications: updatedExercise.modifications,
+        });
       }
+      
       if (onEditExercise) {
         onEditExercise(updatedExercise);
       }
@@ -85,9 +103,23 @@ export const ExerciseDetailModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className={`w-[98vw] max-w-2xl max-h-[98vh] overflow-y-auto ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'}`}>
         <DialogHeader className="space-y-4">
-          <DialogTitle className={`text-xl sm:text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-            {exercise.name}
-          </DialogTitle>
+          <div className="flex items-start justify-between">
+            <DialogTitle className={`text-xl sm:text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+              {exercise.name}
+            </DialogTitle>
+            
+            {/* Edit Button - Prominent placement */}
+            {canEdit && (
+              <Button 
+                onClick={handleEdit}
+                size="sm"
+                className="bg-sage-600 hover:bg-sage-700 text-white"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            )}
+          </div>
           
           {/* Mobile-optimized header info */}
           <div className="flex flex-col space-y-3 sm:space-y-4">
@@ -150,9 +182,9 @@ export const ExerciseDetailModal = ({
 
             {/* Pregnancy safe indicator */}
             {exercise.isPregnancySafe && (
-              <div className="flex items-center gap-2 p-2 bg-pink-50 rounded-lg border border-pink-200">
-                <span className="text-pink-600">👶✓</span>
-                <span className="text-sm font-medium text-pink-800">Pregnancy Safe</span>
+              <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg border border-emerald-200">
+                <span className="text-emerald-600">✓</span>
+                <span className="text-sm font-medium text-emerald-800">Pregnancy Safe</span>
               </div>
             )}
           </div>
@@ -231,18 +263,6 @@ export const ExerciseDetailModal = ({
             >
               <Plus className="h-4 w-4 mr-2" />
               Add to Class
-            </Button>
-          )}
-          
-          {showEditButton && isCustomExercise(exercise.id) && (
-            <Button 
-              onClick={handleEdit}
-              variant="outline"
-              className="h-12 border-sage-300 hover:bg-sage-50"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Edit Exercise</span>
-              <span className="sm:hidden">Edit</span>
             </Button>
           )}
           

@@ -1,9 +1,9 @@
+
 import { useState, useEffect } from 'react';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { supabase } from '@/integrations/supabase/client';
 import { Exercise } from '@/types/reformer';
 
 export const useCustomExercises = () => {
-  const supabase = useSupabaseClient();
   const [customExercisesData, setCustomExercisesData] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -12,7 +12,7 @@ export const useCustomExercises = () => {
       setLoading(true);
       try {
         const { data, error } = await supabase
-          .from('custom_exercises')
+          .from('user_exercises')
           .select('*');
 
         if (error) {
@@ -26,7 +26,7 @@ export const useCustomExercises = () => {
     };
 
     fetchCustomExercises();
-  }, [supabase]);
+  }, []);
 
   const exercises: Exercise[] = customExercisesData?.map(exercise => ({
     id: exercise.id,
@@ -39,7 +39,7 @@ export const useCustomExercises = () => {
     muscleGroups: exercise.muscle_groups || [],
     equipment: exercise.equipment || [],
     description: exercise.description || '',
-    image: exercise.image || '',
+    image: exercise.image_url || '',
     videoUrl: exercise.video_url || '',
     notes: exercise.notes || '',
     cues: exercise.cues || [],
@@ -52,7 +52,7 @@ export const useCustomExercises = () => {
     modifications: exercise.modifications || [],
     progressions: exercise.progressions || [],
     regressions: exercise.regressions || [],
-    transitions: exercise.transitions || [],
+    transitions: [],
     contraindications: exercise.contraindications || [],
     isPregnancySafe: exercise.is_pregnancy_safe || false,
     isCustom: true
