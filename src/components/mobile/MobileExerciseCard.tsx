@@ -1,7 +1,7 @@
 
-import { useState, useEffect, useRef, MouseEvent } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Heart, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw, Check } from 'lucide-react';
+import { Plus, Heart, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw, Check } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
@@ -90,7 +90,7 @@ export const MobileExerciseCard = ({
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-sage-100 to-sage-200 flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
             <img 
               src="/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png" 
               alt="Default exercise"
@@ -151,13 +151,13 @@ export const MobileExerciseCard = ({
         {showActions && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
             <div className="bg-white rounded-xl p-3 flex gap-2 shadow-lg">
-              {/* Edit button - Fixed to use onEdit prop */}
+              {/* Edit button */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit(exercise, e);
                 }}
-                className="w-10 h-10 rounded-lg bg-sage-600 text-white flex items-center justify-center hover:bg-sage-700"
+                className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"
               >
                 <Edit className="h-4 w-4" />
               </button>
@@ -261,7 +261,7 @@ export const MobileExerciseCard = ({
             className={`ml-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-md active:scale-95 ${
               isAdding
                 ? 'bg-green-500 text-white scale-110'
-                : 'bg-sage-600 hover:bg-sage-700 text-white hover:scale-110'
+                : 'bg-blue-600 hover:bg-blue-700 text-white hover:scale-110'
             }`}
           >
             {isAdding ? (

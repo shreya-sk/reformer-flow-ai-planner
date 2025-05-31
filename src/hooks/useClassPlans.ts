@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -162,43 +161,66 @@ export const useClassPlans = () => {
       throw new Error('Cannot save class with no exercises');
     }
 
-    let classPlanData = null;
-
     try {
-      // Validate all exercises exist before attempting to save
+      // Improved exercise validation with better error handling
       console.log('💾 Validating exercises exist in database...');
       const validationResults = [];
       
       for (const exercise of realExercises) {
+        console.log('💾 Checking exercise:', exercise.id, exercise.name);
+        
         let existsInDB = false;
         let exerciseType = '';
         
-        console.log('💾 Checking exercise:', exercise.id, exercise.name);
+        // First try to determine the type based on exercise properties
+        if (exercise.isSystemExercise || (!exercise.isCustom && !exercise.isSystemExercise)) {
+          // Check system exercises first
+          const { data: systemCheck, error: systemError } = await supabase
+            .from('system_exercises')
+            .select('id, name')
+            .eq('id', exercise.id)
+            .maybeSingle();
+          
+          if (systemCheck && !systemError) {
+            existsInDB = true;
+            exerciseType = 'system';
+            console.log('💾 Found in system exercises:', systemCheck.name);
+          }
+        }
         
-        // Check system exercises first
-        const { data: systemCheck, error: systemError } = await supabase
-          .from('system_exercises')
-          .select('id, name')
-          .eq('id', exercise.id)
-          .single();
-        
-        if (systemCheck && !systemError) {
-          existsInDB = true;
-          exerciseType = 'system';
-          console.log('💾 Found in system exercises:', systemCheck.name);
-        } else {
+        if (!existsInDB && (exercise.isCustom || !exercise.isSystemExercise)) {
           // Check user exercises
           const { data: userCheck, error: userError } = await supabase
             .from('user_exercises')
             .select('id, name')
             .eq('id', exercise.id)
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
           
           if (userCheck && !userError) {
             existsInDB = true;
             exerciseType = 'user';
             console.log('💾 Found in user exercises:', userCheck.name);
+          }
+        }
+        
+        // If not found in either, try a broader search
+        if (!existsInDB) {
+          console.log('💾 Exercise not found with direct lookup, trying broader search...');
+          
+          // Try system exercises with name match
+          const { data: systemByName } = await supabase
+            .from('system_exercises')
+            .select('id, name')
+            .ilike('name', exercise.name)
+            .limit(1)
+            .maybeSingle();
+          
+          if (systemByName) {
+            existsInDB = true;
+            exerciseType = 'system';
+            exercise.id = systemByName.id; // Update the ID
+            console.log('💾 Found system exercise by name:', systemByName.name, 'with ID:', systemByName.id);
           }
         }
         
@@ -234,12 +256,11 @@ export const useClassPlans = () => {
         throw new Error(`Failed to save class plan: ${classPlanError.message}`);
       }
 
-      classPlanData = savedClassPlan;
-      console.log('💾 Class plan saved successfully:', classPlanData.id);
+      console.log('💾 Class plan saved successfully:', savedClassPlan.id);
 
       // Now save exercises using validation results
       const exerciseInserts = validationResults.map((result, index) => ({
-        class_plan_id: classPlanData.id,
+        class_plan_id: savedClassPlan.id,
         exercise_id: result.exercise.id,
         position: index,
         exercise_type: result.exerciseType,
@@ -261,7 +282,7 @@ export const useClassPlans = () => {
           await supabase
             .from('class_plans')
             .delete()
-            .eq('id', classPlanData.id);
+            .eq('id', savedClassPlan.id);
           
           throw new Error(`Failed to save exercises: ${exerciseError.message}`);
         }
@@ -272,23 +293,9 @@ export const useClassPlans = () => {
       // Force refresh the class plans
       await fetchClassPlans();
       
-      return classPlanData;
+      return savedClassPlan;
     } catch (error) {
       console.error('💾 Save failed:', error);
-      
-      // Clean up if class plan was created but exercises failed
-      if (classPlanData) {
-        try {
-          await supabase
-            .from('class_plans')
-            .delete()
-            .eq('id', classPlanData.id);
-          console.log('💾 Cleaned up failed class plan');
-        } catch (cleanupError) {
-          console.error('💾 Failed to clean up class plan:', cleanupError);
-        }
-      }
-      
       throw error;
     }
   };
@@ -315,7 +322,7 @@ export const useClassPlans = () => {
 
   return {
     classPlans,
-    savedClasses: classPlans, // Alias for compatibility
+    savedClasses: classPlans,
     loading,
     refetch: fetchClassPlans,
     saveClassPlan,
