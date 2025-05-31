@@ -17,6 +17,16 @@ interface ExerciseDetailPreferences {
   showPregnancySafety: boolean;
 }
 
+interface TeachingModePreferences {
+  showSetupInstructions: boolean;
+  showTeachingCues: boolean;
+  showBreathingCues: boolean;
+  showSafetyNotes: boolean;
+  showProgressionsRegressions: boolean;
+  showTimer: boolean;
+  showExerciseImage: boolean;
+}
+
 interface UserPreferences {
   darkMode: boolean;
   showPregnancySafeOnly?: boolean;
@@ -25,6 +35,7 @@ interface UserPreferences {
   favoriteExercises?: string[];
   hiddenExercises?: string[];
   exerciseDetailPreferences?: ExerciseDetailPreferences;
+  teachingModePreferences?: TeachingModePreferences;
 }
 
 const PREFERENCES_KEY = 'user-preferences';
@@ -44,6 +55,16 @@ const defaultDetailPreferences: ExerciseDetailPreferences = {
   showPregnancySafety: true,
 };
 
+const defaultTeachingModePreferences: TeachingModePreferences = {
+  showSetupInstructions: true,
+  showTeachingCues: true,
+  showBreathingCues: true,
+  showSafetyNotes: true,
+  showProgressionsRegressions: true,
+  showTimer: true,
+  showExerciseImage: true,
+};
+
 export const useUserPreferences = () => {
   const { markPendingChanges } = useDataSync();
   
@@ -58,6 +79,10 @@ export const useUserPreferences = () => {
           exerciseDetailPreferences: {
             ...defaultDetailPreferences,
             ...parsed.exerciseDetailPreferences
+          },
+          teachingModePreferences: {
+            ...defaultTeachingModePreferences,
+            ...parsed.teachingModePreferences
           },
           customCallouts: (parsed.customCallouts || []).map((callout: any) => ({
             ...callout,
@@ -78,7 +103,8 @@ export const useUserPreferences = () => {
       customCallouts: [],
       favoriteExercises: [],
       hiddenExercises: [],
-      exerciseDetailPreferences: defaultDetailPreferences
+      exerciseDetailPreferences: defaultDetailPreferences,
+      teachingModePreferences: defaultTeachingModePreferences
     };
     
     console.log('🔵 Using default preferences:', defaultPrefs);
@@ -116,6 +142,17 @@ export const useUserPreferences = () => {
       exerciseDetailPreferences: {
         ...defaultDetailPreferences,
         ...prev.exerciseDetailPreferences,
+        ...updates
+      }
+    }));
+  }, []);
+
+  const updateTeachingModePreferences = useCallback((updates: Partial<TeachingModePreferences>) => {
+    setPreferences(prev => ({
+      ...prev,
+      teachingModePreferences: {
+        ...defaultTeachingModePreferences,
+        ...prev.teachingModePreferences,
         ...updates
       }
     }));
@@ -242,6 +279,7 @@ export const useUserPreferences = () => {
     preferences,
     updatePreferences,
     updateDetailPreferences,
+    updateTeachingModePreferences,
     addCustomCallout,
     updateCustomCallout,
     deleteCustomCallout,

@@ -1,7 +1,7 @@
 
 import { useParams, useNavigate } from 'react-router-dom';
 import { useClassPlans } from '@/hooks/useClassPlans';
-import { ClassTeachingMode } from '@/components/ClassTeachingMode';
+import { MobileTeachingMode } from '@/components/MobileTeachingMode';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
@@ -38,7 +38,7 @@ const Teaching = () => {
   }
 
   return (
-    <ClassTeachingMode
+    <MobileTeachingMode
       classPlan={classPlan}
       onClose={() => navigate('/')}
     />
