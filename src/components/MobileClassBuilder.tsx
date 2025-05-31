@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Plus, Clock, Save, Edit, ChevronDown, ChevronRight, Trash2, ArrowUp, ArrowDown, X } from 'lucide-react';
+import { Plus, Clock, Edit, ChevronDown, ChevronRight, Trash2, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { ExerciseDetailModal } from '@/components/ExerciseDetailModal';
 import { toast } from '@/hooks/use-toast';
@@ -40,6 +40,10 @@ export const MobileClassBuilder = ({
   const [newCalloutName, setNewCalloutName] = useState('');
   const [newCalloutPosition, setNewCalloutPosition] = useState(0);
 
+  // Calculate real exercise count for save validation
+  const realExercises = currentClass.exercises.filter(ex => ex.category !== 'callout');
+  const canSave = realExercises.length > 0;
+
   const moveExercise = (index: number, direction: 'up' | 'down') => {
     const exercises = [...currentClass.exercises];
     const newIndex = direction === 'up' ? index - 1 : index + 1;
@@ -60,15 +64,22 @@ export const MobileClassBuilder = ({
     setExpandedCards(newExpanded);
   };
 
-  const handleExerciseClick = (exercise: Exercise) => {
+  const handleExerciseEdit = (exercise: Exercise) => {
+    console.log('📝 Opening exercise for editing:', exercise.name);
     setSelectedExercise(exercise);
     setIsDetailModalOpen(true);
   };
 
   const handleUpdateExercise = async (updatedExercise: Exercise) => {
+    console.log('💾 Saving exercise updates:', updatedExercise.name);
     onUpdateExercise(updatedExercise);
     setIsDetailModalOpen(false);
     setSelectedExercise(null);
+    
+    toast({
+      title: "Exercise updated",
+      description: `"${updatedExercise.name}" has been updated in your class.`,
+    });
   };
 
   const handleAddSection = (position: number) => {
@@ -90,34 +101,53 @@ export const MobileClassBuilder = ({
   };
 
   return (
-    <div className="max-w-md mx-auto space-y-3 p-2">
+    <div className="max-w-md mx-auto space-y-3 p-3">
       {/* Compact Class Header */}
-      <Card className="shadow-sm">
-        <CardContent className="p-3">
+      <Card className="shadow-sm border-sage-200">
+        <CardContent className="p-4">
           <Input
             value={currentClass.name}
             onChange={(e) => onUpdateClassName(e.target.value)}
-            className="text-lg font-semibold border-none shadow-none p-0 h-auto focus-visible:ring-0 mb-2"
+            className="text-lg font-semibold border-none shadow-none p-0 h-auto focus-visible:ring-0 mb-3 bg-transparent"
             placeholder="Class Name"
           />
           
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>{currentClass.totalDuration} min</span>
+          <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span>{currentClass.totalDuration} min</span>
+              </div>
+              <div className="bg-sage-100 text-sage-700 px-2 py-1 rounded-full text-xs">
+                {realExercises.length} exercises
+              </div>
             </div>
-            <span>{currentClass.exercises.filter(ex => ex.category !== 'callout').length} exercises</span>
           </div>
           
           <div className="flex gap-2">
             <Button onClick={onAddExercise} size="sm" className="bg-sage-600 hover:bg-sage-700 flex-1">
-              <Plus className="h-3 w-3 mr-1" />
+              <Plus className="h-4 w-4 mr-2" />
               Add Exercise
             </Button>
-            <Button onClick={() => handleAddSection(0)} variant="outline" size="sm">
-              <Plus className="h-3 w-3" />
+            <Button onClick={() => handleAddSection(0)} variant="outline" size="sm" className="px-3">
+              <Plus className="h-4 w-4" />
+            </Button>
+            <Button 
+              onClick={onSaveClass} 
+              size="sm" 
+              variant="outline"
+              disabled={!canSave}
+              className={`px-4 ${!canSave ? 'opacity-50 cursor-not-allowed' : 'border-green-600 text-green-600 hover:bg-green-50'}`}
+            >
+              Save
             </Button>
           </div>
+          
+          {!canSave && (
+            <p className="text-xs text-red-500 mt-2 text-center">
+              Add at least one exercise to save your class
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -140,14 +170,14 @@ export const MobileClassBuilder = ({
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleExerciseClick(exercise)}
-                          className="h-6 w-6 p-0"
+                          onClick={() => handleExerciseEdit(exercise)}
+                          className="h-7 w-7 p-0"
                         >
                           <Edit className="h-3 w-3" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="ghost" className="text-red-600 h-6 w-6 p-0">
+                            <Button size="sm" variant="ghost" className="text-red-600 h-7 w-7 p-0">
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </AlertDialogTrigger>
@@ -175,14 +205,14 @@ export const MobileClassBuilder = ({
                 </Card>
               ) : (
                 // Exercise Card
-                <Card className="shadow-sm">
+                <Card className="shadow-sm border-sage-100">
                   <Collapsible>
                     <CardContent className="p-3">
                       {/* Basic Exercise Info */}
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex-1 min-w-0 mr-2">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0 mr-3">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-medium text-gray-900 text-sm truncate">
+                            <h3 className="font-medium text-gray-900 text-sm leading-tight">
                               {exercise.name}
                             </h3>
                             <Badge variant="outline" className="text-xs">
@@ -191,7 +221,7 @@ export const MobileClassBuilder = ({
                           </div>
                           <div className="flex items-center gap-3 text-xs text-gray-600">
                             <span className="flex items-center gap-1">
-                              <Clock className="h-2 w-2" />
+                              <Clock className="h-3 w-3" />
                               {exercise.duration} min
                             </span>
                             <span>{exercise.springs}</span>
@@ -208,7 +238,7 @@ export const MobileClassBuilder = ({
                               variant="ghost"
                               onClick={() => moveExercise(index, 'up')}
                               disabled={index === 0}
-                              className="h-5 w-6 p-0 text-gray-400"
+                              className="h-5 w-6 p-0 text-gray-400 hover:text-gray-600"
                             >
                               <ArrowUp className="h-3 w-3" />
                             </Button>
@@ -217,7 +247,7 @@ export const MobileClassBuilder = ({
                               variant="ghost"
                               onClick={() => moveExercise(index, 'down')}
                               disabled={index === currentClass.exercises.length - 1}
-                              className="h-5 w-6 p-0 text-gray-400"
+                              className="h-5 w-6 p-0 text-gray-400 hover:text-gray-600"
                             >
                               <ArrowDown className="h-3 w-3" />
                             </Button>
@@ -229,7 +259,7 @@ export const MobileClassBuilder = ({
                               size="sm"
                               variant="ghost"
                               onClick={() => toggleCardExpansion(exercise.id)}
-                              className="h-6 w-6 p-0"
+                              className="h-7 w-7 p-0"
                             >
                               {expandedCards.has(exercise.id) ? (
                                 <ChevronDown className="h-3 w-3" />
@@ -239,12 +269,12 @@ export const MobileClassBuilder = ({
                             </Button>
                           </CollapsibleTrigger>
                           
-                          {/* Edit */}
+                          {/* Edit - Fixed to actually edit instead of just view */}
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleExerciseClick(exercise)}
-                            className="h-6 w-6 p-0"
+                            onClick={() => handleExerciseEdit(exercise)}
+                            className="h-7 w-7 p-0 text-blue-600 hover:text-blue-800"
                           >
                             <Edit className="h-3 w-3" />
                           </Button>
@@ -252,7 +282,7 @@ export const MobileClassBuilder = ({
                           {/* Remove */}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button size="sm" variant="ghost" className="text-red-600 h-6 w-6 p-0">
+                              <Button size="sm" variant="ghost" className="text-red-600 h-7 w-7 p-0">
                                 <X className="h-3 w-3" />
                               </Button>
                             </AlertDialogTrigger>
@@ -280,17 +310,17 @@ export const MobileClassBuilder = ({
                       {/* Expanded Details */}
                       <CollapsibleContent className="space-y-2">
                         {exercise.description && (
-                          <p className="text-xs text-gray-600">{exercise.description}</p>
+                          <p className="text-xs text-gray-600 leading-relaxed">{exercise.description}</p>
                         )}
                         {exercise.cues && exercise.cues.length > 0 && (
                           <div>
-                            <p className="text-xs font-medium text-gray-700">Cues:</p>
+                            <p className="text-xs font-medium text-gray-700 mb-1">Cues:</p>
                             <p className="text-xs text-gray-600">{exercise.cues.join(', ')}</p>
                           </div>
                         )}
                         {exercise.notes && (
                           <div>
-                            <p className="text-xs font-medium text-gray-700">Notes:</p>
+                            <p className="text-xs font-medium text-gray-700 mb-1">Notes:</p>
                             <p className="text-xs text-gray-600">{exercise.notes}</p>
                           </div>
                         )}
@@ -365,7 +395,7 @@ export const MobileClassBuilder = ({
         </DialogContent>
       </Dialog>
 
-      {/* Exercise Detail Modal */}
+      {/* Exercise Detail Modal - Opens in EDIT mode */}
       <ExerciseDetailModal
         exercise={selectedExercise}
         isOpen={isDetailModalOpen}
@@ -375,6 +405,7 @@ export const MobileClassBuilder = ({
         }}
         onAddToClass={() => {}}
         onSave={handleUpdateExercise}
+        mode="edit" // Force edit mode for class builder
       />
     </div>
   );

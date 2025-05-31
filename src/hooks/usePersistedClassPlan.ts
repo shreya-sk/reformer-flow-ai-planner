@@ -30,6 +30,7 @@ const saveToStorage = (classPlan: ClassPlan) => {
     console.log('💾 Saved to localStorage:', {
       name: classPlan.name,
       exerciseCount: classPlan.exercises.length,
+      realExerciseCount: classPlan.exercises.filter(ex => ex.category !== 'callout').length,
       totalDuration: classPlan.totalDuration
     });
   } catch (error) {
@@ -45,6 +46,7 @@ const loadFromStorage = (): ClassPlan => {
       console.log('📂 Loaded from localStorage:', {
         name: parsed.name,
         exerciseCount: parsed.exercises?.length || 0,
+        realExerciseCount: parsed.exercises?.filter((ex: Exercise) => ex.category !== 'callout').length || 0,
         totalDuration: parsed.totalDuration || 0
       });
       return {
@@ -89,10 +91,11 @@ export const usePersistedClassPlan = () => {
   }, []);
 
   const updateGlobalState = useCallback((updatedClass: ClassPlan) => {
+    const realExercises = updatedClass.exercises.filter(ex => ex.category !== 'callout');
     const newClass = {
       ...updatedClass,
       updatedAt: new Date(),
-      totalDuration: updatedClass.exercises.reduce((sum, ex) => sum + (ex.duration || 0), 0)
+      totalDuration: realExercises.reduce((sum, ex) => sum + (ex.duration || 0), 0)
     };
 
     globalClassPlan = newClass;
@@ -102,6 +105,7 @@ export const usePersistedClassPlan = () => {
     console.log('🔄 Global state updated:', {
       name: newClass.name,
       exerciseCount: newClass.exercises.length,
+      realExerciseCount: realExercises.length,
       totalDuration: newClass.totalDuration
     });
   }, []);
@@ -113,15 +117,14 @@ export const usePersistedClassPlan = () => {
       globalClassPlan = getInitialClassPlan();
     }
 
-    // Create a unique ID for the exercise instance
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substr(2, 9);
-    const uniqueExercise = {
+    // Use original exercise ID without timestamps for better tracking
+    const exerciseToAdd = {
       ...exercise,
-      id: `${exercise.id}-${timestamp}-${randomId}`,
+      // Keep original ID for proper database mapping
+      id: exercise.id,
     };
     
-    const newExercises = [...globalClassPlan.exercises, uniqueExercise];
+    const newExercises = [...globalClassPlan.exercises, exerciseToAdd];
     const updatedClass = {
       ...globalClassPlan,
       exercises: newExercises
@@ -262,13 +265,34 @@ export const usePersistedClassPlan = () => {
     updateGlobalState(updatedClass);
   }, [updateGlobalState]);
 
+  const syncExerciseUpdates = useCallback((updatedExercise: Exercise) => {
+    console.log('🔄 Syncing exercise update from library:', updatedExercise.name);
+    
+    if (!globalClassPlan) return;
+
+    const updatedExercises = globalClassPlan.exercises.map(ex => 
+      ex.id === updatedExercise.id ? { ...updatedExercise } : ex
+    );
+    
+    const updatedClass = {
+      ...globalClassPlan,
+      exercises: updatedExercises
+    };
+
+    updateGlobalState(updatedClass);
+  }, [updateGlobalState]);
+
   const loadClass = useCallback((classPlan: ClassPlan) => {
     console.log('📂 Loading class:', classPlan.name);
     updateGlobalState(classPlan);
   }, [updateGlobalState]);
 
+  // Calculate real exercise count for validation
+  const realExerciseCount = currentClass.exercises.filter(ex => ex.category !== 'callout').length;
+
   return {
     currentClass,
+    realExerciseCount,
     addExercise,
     removeExercise,
     reorderExercises,
@@ -278,6 +302,7 @@ export const usePersistedClassPlan = () => {
     updateClassImage,
     clearClassPlan,
     addCallout,
-    loadClass
+    loadClass,
+    syncExerciseUpdates
   };
 };

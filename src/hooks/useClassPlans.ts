@@ -111,12 +111,15 @@ export const useClassPlans = () => {
           }
         }
 
+        // Calculate real exercise count (excluding callouts)
+        const realExercises = exercises.filter(ex => ex.category !== 'callout');
+        
         const transformedPlan: ClassPlan = {
           id: plan.id,
           name: plan.name,
           duration: plan.duration_minutes,
           exercises,
-          totalDuration: exercises.reduce((sum, ex) => sum + ex.duration, 0),
+          totalDuration: realExercises.reduce((sum, ex) => sum + ex.duration, 0),
           classDuration: plan.duration_minutes,
           createdAt: new Date(plan.created_at),
           updatedAt: new Date(plan.updated_at),
@@ -125,7 +128,7 @@ export const useClassPlans = () => {
         };
 
         transformedPlans.push(transformedPlan);
-        console.log('🎯 useClassPlans: Transformed plan:', transformedPlan.id, transformedPlan.name, 'exercises:', transformedPlan.exercises.length);
+        console.log('🎯 useClassPlans: Transformed plan:', transformedPlan.id, transformedPlan.name, 'real exercises:', realExercises.length);
       }
 
       console.log('🎯 useClassPlans: Final transformed plans:', transformedPlans.length);
@@ -140,10 +143,15 @@ export const useClassPlans = () => {
   const saveClassPlan = async (classPlan: ClassPlan) => {
     if (!user) throw new Error('User not authenticated');
 
-    console.log('💾 Saving:', classPlan.name, 'with', classPlan.exercises.length, 'exercises');
-
     // Filter real exercises (not callouts)
     const realExercises = classPlan.exercises.filter(ex => ex.category !== 'callout');
+    
+    console.log('💾 Saving class plan:', {
+      name: classPlan.name,
+      totalExercises: classPlan.exercises.length,
+      realExercises: realExercises.length,
+      exercises: realExercises.map(ex => ({ id: ex.id, name: ex.name }))
+    });
     
     if (realExercises.length === 0) {
       throw new Error('Cannot save class with no exercises');
@@ -167,20 +175,13 @@ export const useClassPlans = () => {
 
       console.log('💾 Saved class plan:', classPlanData.id);
 
-      // Save exercises with proper ID handling
+      // Save exercises with simplified ID handling
       const exerciseInserts = realExercises.map((exercise, index) => {
-        // Handle timestamped IDs from usePersistedClassPlan
-        let originalId = exercise.id;
-        if (exercise.id.includes('-') && exercise.id.split('-').length >= 3) {
-          const parts = exercise.id.split('-');
-          originalId = parts.slice(0, -2).join('-');
-        }
-
-        console.log('💾 Mapping exercise:', exercise.name, 'ID:', exercise.id, '→', originalId);
+        console.log('💾 Processing exercise for save:', exercise.name, 'ID:', exercise.id);
 
         return {
           class_plan_id: classPlanData.id,
-          exercise_id: originalId,
+          exercise_id: exercise.id, // Use the exercise ID directly
           position: index,
           exercise_type: exercise.isCustom ? 'user' : 'system',
           duration_override: exercise.duration,
@@ -197,7 +198,7 @@ export const useClassPlans = () => {
         throw exerciseError;
       }
 
-      console.log('💾 Saved', exerciseInserts.length, 'exercises');
+      console.log('💾 Saved', exerciseInserts.length, 'exercises successfully');
 
       // Force refresh the class plans
       await fetchClassPlans();

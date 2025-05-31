@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
@@ -60,10 +59,21 @@ const Index = () => {
     return user?.email?.split('@')[0] || 'User';
   };
 
-  // Calculate real exercise count (excluding callouts)
-  const totalExercises = savedClasses.reduce((total, plan) => 
-    total + plan.exercises.filter(ex => ex.category !== 'callout').length, 0
-  );
+  // Calculate real exercise count (excluding callouts) - Fixed calculation
+  const totalExercises = savedClasses.reduce((total, plan) => {
+    const realExercises = plan.exercises.filter(ex => ex.category !== 'callout');
+    console.log(`📊 Plan "${plan.name}": ${plan.exercises.length} total, ${realExercises.length} real exercises`);
+    return total + realExercises.length;
+  }, 0);
+
+  const totalMinutes = savedClasses.reduce((total, plan) => total + plan.totalDuration, 0);
+
+  console.log('📊 Homepage stats:', {
+    classes: savedClasses.length,
+    totalExercises,
+    totalMinutes,
+    loading: classesLoading
+  });
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
@@ -148,40 +158,40 @@ const Index = () => {
       </div>
 
       <div className="p-4 space-y-4 pb-24">
-        {/* Compact Stats Cards */}
+        {/* Fixed Stats Cards with proper visibility */}
         <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto">
-          <div className={`p-2 rounded-xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
-            <div className="flex items-center gap-1 justify-center">
-              <Target className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-              <span className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+          <div className={`p-3 rounded-xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
+            <div className="flex items-center gap-2 justify-center">
+              <Target className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                 {savedClasses.length}
               </span>
             </div>
-            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-0.5`}>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-1`}>
               Classes
             </p>
           </div>
           
-          <div className={`p-2 rounded-xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
-            <div className="flex items-center gap-1 justify-center">
-              <Clock className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-              <span className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                {savedClasses.reduce((total, plan) => total + plan.totalDuration, 0)}
+          <div className={`p-3 rounded-xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
+            <div className="flex items-center gap-2 justify-center">
+              <Clock className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                {totalMinutes}
               </span>
             </div>
-            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-0.5`}>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-1`}>
               Minutes
             </p>
           </div>
           
-          <div className={`p-2 rounded-xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
-            <div className="flex items-center gap-1 justify-center">
-              <BookOpen className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-              <span className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                {totalExercises}
+          <div className={`p-3 rounded-xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
+            <div className="flex items-center gap-2 justify-center">
+              <BookOpen className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
+              <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'} min-w-[24px]`}>
+                {classesLoading ? '...' : totalExercises}
               </span>
             </div>
-            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-0.5`}>
+            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-1`}>
               Exercises
             </p>
           </div>
@@ -228,10 +238,11 @@ const Index = () => {
 
         {/* Debug info for development */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="fixed bottom-20 right-4 bg-gray-800 text-white p-2 rounded text-xs max-w-xs">
+          <div className="fixed bottom-20 right-4 bg-gray-800 text-white p-2 rounded text-xs max-w-xs opacity-75">
             <div>Classes: {savedClasses.length}</div>
             <div>Loading: {classesLoading ? 'Yes' : 'No'}</div>
-            <div>Exercises: {totalExercises}</div>
+            <div>Real Exercises: {totalExercises}</div>
+            <div>Total Minutes: {totalMinutes}</div>
             <div>User: {user?.id ? 'Yes' : 'No'}</div>
           </div>
         )}

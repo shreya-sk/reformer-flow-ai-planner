@@ -22,6 +22,7 @@ const PlanClass = () => {
   const { exercises, updateUserExercise, customizeSystemExercise } = useExercises();
   const {
     currentClass,
+    realExerciseCount,
     addExercise,
     removeExercise,
     updateClassName,
@@ -30,7 +31,8 @@ const PlanClass = () => {
     updateClassImage,
     addCallout,
     clearClassPlan,
-    reorderExercises
+    reorderExercises,
+    syncExerciseUpdates
   } = usePersistedClassPlan();
   
   const [activeTab, setActiveTab] = useState('builder');
@@ -56,8 +58,9 @@ const PlanClass = () => {
   }
 
   const handleSaveClass = async () => {
-    const realExercises = currentClass.exercises.filter(ex => ex.category !== 'callout');
-    if (realExercises.length === 0) {
+    console.log('💾 Save attempt - real exercises:', realExerciseCount);
+    
+    if (realExerciseCount === 0) {
       toast({
         title: "Cannot save empty class",
         description: "Add some exercises to your class before saving.",
@@ -75,7 +78,7 @@ const PlanClass = () => {
         name: currentClass.name || `Class ${Date.now()}`,
       };
       
-      console.log('💾 Starting save process for:', classToSave.name);
+      console.log('💾 Starting save process for:', classToSave.name, 'with', realExerciseCount, 'real exercises');
       await saveClassPlan(classToSave);
       
       setSaveSuccess(true);
@@ -140,7 +143,7 @@ const PlanClass = () => {
     addExercise(exercise);
   };
 
-  // Improved exercise update handler that persists changes correctly
+  // Improved exercise update handler that persists changes correctly and syncs
   const handleUpdateExercise = async (updatedExercise: any) => {
     try {
       // Save to database based on exercise type
@@ -164,15 +167,12 @@ const PlanClass = () => {
         await updateUserExercise(updatedExercise.id, updatedExercise);
       }
 
-      // Update local class state
-      const updatedExercises = currentClass.exercises.map(ex => 
-        ex.id === updatedExercise.id ? updatedExercise : ex
-      );
-      reorderExercises(updatedExercises);
+      // Update local class state using the sync function
+      syncExerciseUpdates(updatedExercise);
 
       toast({
         title: "Exercise updated",
-        description: "Changes have been saved successfully.",
+        description: "Changes have been saved and synced to your class.",
       });
     } catch (error) {
       console.error('Error updating exercise:', error);
@@ -202,13 +202,15 @@ const PlanClass = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={handleSaveClass}
-              disabled={isSaving}
+              disabled={isSaving || realExerciseCount === 0}
               className={`px-4 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-300 ${
                 saveSuccess 
                   ? 'bg-green-500 text-white' 
                   : isSaving 
                     ? 'bg-sage-400 text-white' 
-                    : 'bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white'
+                    : realExerciseCount === 0
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white'
               }`}
             >
               {saveSuccess ? (
@@ -227,7 +229,7 @@ const PlanClass = () => {
         <Tabs defaultValue="builder" value={activeTab} onValueChange={setActiveTab} className="rounded-xl overflow-hidden shadow-md bg-white/80 backdrop-blur-sm">
           <TabsList className="w-full grid grid-cols-2 bg-sage-50/70 p-1">
             <TabsTrigger value="builder" className="rounded-lg data-[state=active]:bg-sage-100 data-[state=active]:text-sage-800">
-              Builder
+              Builder ({realExerciseCount})
             </TabsTrigger>
             <TabsTrigger value="shortlist" className="rounded-lg data-[state=active]:bg-sage-100 data-[state=active]:text-sage-800">
               Favorites ({shortlistedExercises.length})
