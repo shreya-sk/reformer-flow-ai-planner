@@ -1,26 +1,32 @@
+
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useClassPlans } from '@/hooks/useClassPlans';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { ClassPlanList } from '@/components/ClassPlanList';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Plus, BookOpen, Sparkles, Target, Clock, Timer, Home } from 'lucide-react';
 import { AuthPage } from '@/components/AuthPage';
-import { toast } from '@/hooks/use-toast';
+import { ClassPlanList } from '@/components/ClassPlanList';
+import { BottomNavigation } from '@/components/BottomNavigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Plus, Calendar, Clock, Dumbbell, Star, Trash2, Settings } from 'lucide-react';
+import { ClassPlan } from '@/types/reformer';
+import { showErrorToast, showSuccessToast } from '@/utils/toastUtils';
 
 const Index = () => {
-  const navigate = useNavigate();
-  const { user, loading } = useAuth();
-  const { savedClasses, deleteClassPlan, loading: classesLoading } = useClassPlans();
+  const { user, loading: authLoading } = useAuth();
+  const { classPlans, loading, deleteClassPlan } = useClassPlans();
   const { preferences } = useUserPreferences();
+  const navigate = useNavigate();
 
-  if (loading) {
+  if (authLoading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sage-600 mx-auto mb-4"></div>
-          <p className={preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}>Loading...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600 mx-auto mb-4"></div>
+          <p className="text-sage-600">Loading...</p>
         </div>
       </div>
     );
@@ -30,223 +36,133 @@ const Index = () => {
     return <AuthPage />;
   }
 
-  const handleEditClass = (classPlan: any) => {
+  const handleEditClass = (classPlan: ClassPlan) => {
+    console.log('🎯 Index: Editing class plan:', classPlan.id, classPlan.name);
     navigate('/plan', { state: { loadedClass: classPlan } });
   };
 
   const handleDeleteClass = async (classId: string) => {
     try {
       await deleteClassPlan(classId);
+      showSuccessToast("Class deleted", "Class has been removed from your library.");
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete class plan",
-        variant: "destructive"
-      });
+      console.error('Error deleting class:', error);
+      showErrorToast("Delete failed", "Could not delete the class. Please try again.");
     }
   };
 
-  const getUserInitials = () => {
-    const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || '';
-    return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
+  const handlePlanClass = () => {
+    navigate('/plan');
   };
 
-  const getFirstName = () => {
-    const fullName = user?.user_metadata?.full_name;
-    if (fullName) {
-      return fullName.split(' ')[0];
-    }
-    return user?.email?.split('@')[0] || 'User';
-  };
+  const totalExercises = classPlans.reduce((sum, plan) => 
+    sum + plan.exercises.filter(ex => ex.category !== 'callout').length, 0
+  );
 
-  // Calculate real exercise count (excluding callouts) - Fixed calculation
-  const totalExercises = savedClasses.reduce((total, plan) => {
-    const realExercises = plan.exercises.filter(ex => ex.category !== 'callout');
-    console.log(`📊 Plan "${plan.name}": ${plan.exercises.length} total, ${realExercises.length} real exercises`);
-    return total + realExercises.length;
-  }, 0);
-
-  const totalMinutes = savedClasses.reduce((total, plan) => total + plan.totalDuration, 0);
-
-  console.log('📊 Homepage stats:', {
-    classes: savedClasses.length,
-    totalExercises,
-    totalMinutes,
-    loading: classesLoading
-  });
+  const totalDuration = classPlans.reduce((sum, plan) => sum + plan.totalDuration, 0);
 
   return (
-    <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
-      {/* Organic Flowing Header */}
-      <header className="relative overflow-hidden h-28">
-        <div className="absolute inset-0 bg-gradient-to-br from-sage-500 via-sage-600 to-sage-700"></div>
-        
-        <div className="absolute inset-0">
-          <svg className="absolute bottom-0 w-full h-24" viewBox="0 0 1440 320" preserveAspectRatio="none">
-            <path d="M0,160 C240,100 480,220 720,180 C960,140 1200,240 1440,200 L1440,320 L0,320 Z" fill="rgba(255,255,255,0.15)" />
-          </svg>
-          <svg className="absolute bottom-0 w-full h-20" viewBox="0 0 1440 320" preserveAspectRatio="none">
-            <path d="M0,240 C360,160 600,280 840,220 C1080,160 1320,260 1440,210 L1440,320 L0,320 Z" fill="rgba(255,255,255,0.1)" />
-          </svg>
-          <svg className="absolute bottom-0 w-full h-16" viewBox="0 0 1440 320" preserveAspectRatio="none">
-            <path d="M0,280 C180,240 420,300 660,260 C900,220 1260,300 1440,280 L1440,320 L0,320 Z" fill="rgba(255,255,255,0.08)" />
-          </svg>
-        </div>
-
-        <div className="relative px-6 py-3 flex items-center h-full">
-          <div className="flex items-center space-x-4 ml-4">
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 shadow-xl transform hover:scale-105 transition-all duration-300">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-3xl font-bold text-sage-50 tracking-wide">Welcome back,</h1>
-              <p className="text-lg font-medium text-sage-100">{getFirstName()}</p>
-            </div>
+    <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20`}>
+      {/* Mobile-Optimized Header */}
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-sm border-b border-sage-200 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-sage-800">Reformerly</h1>
+            <p className="text-sm text-sage-600">Plan & Teach Classes</p>
           </div>
-        </div>
-      </header>
-
-      {/* Floating Profile Picture - Overlapping */}
-      <div className="relative -mt-12 flex justify-center mb-4 z-10">
-        <div className="relative group">
-          <Avatar className="h-24 w-24 cursor-pointer transition-all duration-500 hover:scale-110 hover:rotate-2 border-4 border-white shadow-2xl relative z-10 bg-white" onClick={() => navigate('/profile')}>
-            <AvatarImage src={preferences.profileImage} alt="Profile" className="rounded-full" />
-            <AvatarFallback className="font-bold bg-gradient-to-br from-sage-400 to-sage-600 rounded-full text-2xl text-sage-200">
-              {getUserInitials()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="absolute inset-0 bg-gradient-to-br from-sage-300/20 to-sage-500/20 rounded-full blur-xl scale-125 group-hover:scale-150 transition-all duration-500 -z-10"></div>
+          <Button
+            onClick={() => navigate('/profile')}
+            variant="ghost"
+            size="sm"
+            className="rounded-full p-2"
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
         </div>
       </div>
 
-      {/* Enhanced Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-50">
-        <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-sage-600 via-sage-500 to-sage-600"></div>
-          <svg className="absolute top-0 w-full h-4" viewBox="0 0 1440 60" preserveAspectRatio="none">
-            <path d="M0,60 C360,20 600,50 840,30 C1080,10 1320,40 1440,25 L1440,0 L0,0 Z" fill="rgba(255,255,255,0.1)" />
-          </svg>
-          
-          <div className="relative flex items-center justify-around px-6 py-3 max-w-lg mx-auto">
-            <Button onClick={() => navigate('/')} variant="ghost" className="flex flex-col items-center text-white hover:text-sage-200 hover:bg-white/20 rounded-2xl transition-all duration-300 transform hover:scale-110 p-2">
-              <Home className="h-5 w-5 mb-1" />
-              <span className="text-xs font-medium">Home</span>
-            </Button>
-            
-            <Button onClick={() => navigate('/library')} variant="ghost" className="flex flex-col items-center text-white hover:text-sage-200 hover:bg-white/20 rounded-2xl transition-all duration-300 transform hover:scale-110 p-2">
-              <BookOpen className="h-5 w-5 mb-1" />
-              <span className="text-xs font-medium">Library</span>
-            </Button>
-            
-            <Button onClick={() => navigate('/plan')} className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 hover:rotate-12">
-              <Plus className="h-7 w-7" />
-            </Button>
-            
-            <Button onClick={() => navigate('/timer')} variant="ghost" className="flex flex-col items-center text-white hover:text-sage-200 hover:bg-white/20 rounded-2xl transition-all duration-300 transform hover:scale-110 p-2">
-              <Timer className="h-5 w-5 mb-1" />
-              <span className="text-xs font-medium">Timer</span>
-            </Button>
-            
-            <Button onClick={() => navigate('/profile')} variant="ghost" className="flex flex-col items-center text-white hover:text-sage-200 hover:bg-white/20 rounded-2xl transition-all duration-300 transform hover:scale-110 p-2">
-              <div className="w-5 h-5 rounded-full bg-white/30 mb-1 flex items-center justify-center">
-                <span className="text-xs font-bold">{getUserInitials()[0]}</span>
-              </div>
-              <span className="text-xs font-medium">Profile</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-4 space-y-4 pb-24">
-        {/* Fixed Stats Cards with proper visibility */}
-        <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto">
-          <div className={`p-3 rounded-xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
-            <div className="flex items-center gap-2 justify-center">
-              <Target className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-              <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                {savedClasses.length}
-              </span>
-            </div>
-            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-1`}>
-              Classes
-            </p>
-          </div>
-          
-          <div className={`p-3 rounded-xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
-            <div className="flex items-center gap-2 justify-center">
-              <Clock className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-              <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                {totalMinutes}
-              </span>
-            </div>
-            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-1`}>
-              Minutes
-            </p>
-          </div>
-          
-          <div className={`p-3 rounded-xl ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105`}>
-            <div className="flex items-center gap-2 justify-center">
-              <BookOpen className={`h-4 w-4 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
-              <span className={`text-lg font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'} min-w-[24px]`}>
-                {classesLoading ? '...' : totalExercises}
-              </span>
-            </div>
-            <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-1`}>
-              Exercises
-            </p>
-          </div>
+      <div className="p-4 space-y-6">
+        {/* Quick Stats - Mobile Compact */}
+        <div className="grid grid-cols-3 gap-3">
+          <Card className="bg-white shadow-sm">
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl font-bold text-sage-700 mb-1">{classPlans.length}</div>
+              <div className="text-xs text-sage-600">Classes</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white shadow-sm">
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl font-bold text-sage-700 mb-1">{totalExercises}</div>
+              <div className="text-xs text-sage-600">Exercises</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white shadow-sm">
+            <CardContent className="p-3 text-center">
+              <div className="text-2xl font-bold text-sage-700 mb-1">{Math.round(totalDuration / 60)}h</div>
+              <div className="text-xs text-sage-600">Content</div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* My Classes Section */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between px-2">
-            <h2 className={`text-lg font-light ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-              My Classes
-            </h2>
-            {savedClasses.length > 0 && (
-              <p className={`text-sm ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} bg-sage-100 dark:bg-gray-700 px-3 py-1 rounded-full`}>
-                {savedClasses.length} class{savedClasses.length === 1 ? '' : 'es'}
-              </p>
+        {/* Quick Action Button */}
+        <Button
+          onClick={handlePlanClass}
+          className="w-full bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white py-4 rounded-2xl shadow-lg transform hover:scale-105 transition-all duration-300"
+          size="lg"
+        >
+          <Plus className="h-5 w-5 mr-2" />
+          Plan New Class
+        </Button>
+
+        {/* Classes Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-sage-800">Your Classes</h2>
+            {classPlans.length > 0 && (
+              <Badge variant="outline" className="text-sage-600">
+                {classPlans.length} saved
+              </Badge>
             )}
           </div>
 
-          {classesLoading ? (
-            <div className="text-center py-6">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600 mx-auto mb-2"></div>
-              <p className={preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}>Loading classes...</p>
+          {loading ? (
+            <div className="grid grid-cols-2 gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i} className="animate-pulse">
+                  <div className="aspect-square bg-gray-200 rounded-t-lg" />
+                  <CardContent className="p-3">
+                    <div className="h-4 bg-gray-200 rounded mb-2" />
+                    <div className="h-3 bg-gray-200 rounded w-2/3" />
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          ) : savedClasses.length === 0 ? (
-            <div className={`text-center py-6 px-4 ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg`}>
-              <div className={`w-10 h-10 ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'} rounded-full flex items-center justify-center mx-auto mb-3`}>
-                <Plus className={`h-5 w-5 ${preferences.darkMode ? 'text-gray-500' : 'text-sage-500'}`} />
-              </div>
-              <h3 className={`text-base font-light mb-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                No classes yet
-              </h3>
-              <p className={`text-sm mb-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-                Create your first class plan to get started
-              </p>
-              <Button onClick={() => navigate('/plan')} className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white rounded-full px-5 py-2 transform hover:scale-105 transition-all duration-300 shadow-lg">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Class
-              </Button>
-            </div>
+          ) : classPlans.length > 0 ? (
+            <ClassPlanList
+              classes={classPlans}
+              onEditClass={handleEditClass}
+              onDeleteClass={handleDeleteClass}
+            />
           ) : (
-            <ClassPlanList classes={savedClasses} onEditClass={handleEditClass} onDeleteClass={handleDeleteClass} />
+            <Card className="border-2 border-dashed border-sage-200">
+              <CardContent className="p-8 text-center">
+                <Dumbbell className="h-12 w-12 mx-auto mb-4 text-sage-400" />
+                <h3 className="text-lg font-medium text-sage-700 mb-2">No classes yet</h3>
+                <p className="text-sage-600 mb-6 text-sm">Create your first class to get started</p>
+                <Button
+                  onClick={handlePlanClass}
+                  className="bg-sage-600 hover:bg-sage-700 text-white"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create First Class
+                </Button>
+              </CardContent>
+            </Card>
           )}
         </div>
-
-        {/* Debug info for development */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="fixed bottom-20 right-4 bg-gray-800 text-white p-2 rounded text-xs max-w-xs opacity-75">
-            <div>Classes: {savedClasses.length}</div>
-            <div>Loading: {classesLoading ? 'Yes' : 'No'}</div>
-            <div>Real Exercises: {totalExercises}</div>
-            <div>Total Minutes: {totalMinutes}</div>
-            <div>User: {user?.id ? 'Yes' : 'No'}</div>
-          </div>
-        )}
       </div>
+
+      <BottomNavigation onPlanClass={handlePlanClass} />
     </div>
   );
 };

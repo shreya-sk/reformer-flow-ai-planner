@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, MouseEvent } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Heart, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw, Check } from 'lucide-react';
@@ -18,10 +19,6 @@ interface MobileExerciseCardProps {
   isFavorite: boolean;
   isHidden: boolean;
   darkMode: boolean;
-  
-  onEditForm?: (exercise: Exercise, e: React.MouseEvent) => void; // Add this new prop
-  
-
 }
 
 export const MobileExerciseCard = ({ 
@@ -71,17 +68,11 @@ export const MobileExerciseCard = ({
     setShowActions(!showActions);
   };
 
-  // Fix the favorite click handler to ensure it works properly
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('❤️ Favorite clicked for:', exercise.name, 'Current favorite state:', isFavorite);
     onToggleFavorite(exercise.id, e);
   };
-
-  function onEditForm(exercise: Exercise, e: MouseEvent<HTMLButtonElement, MouseEvent>) {
-    throw new Error('Function not implemented.');
-  }
 
   return (
     <div 
@@ -127,7 +118,7 @@ export const MobileExerciseCard = ({
           )}
         </div>
 
-        {/* Favorite heart - top right - FIXED */}
+        {/* Favorite heart - top right */}
         <button
           onClick={handleFavoriteClick}
           className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 z-10 ${
@@ -160,12 +151,11 @@ export const MobileExerciseCard = ({
         {showActions && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
             <div className="bg-white rounded-xl p-3 flex gap-2 shadow-lg">
-              {/* Edit button */}
+              {/* Edit button - Fixed to use onEdit prop */}
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Call a new onEditForm prop instead of onEdit
-                  onEditForm?.(exercise, e);
+                  onEdit(exercise, e);
                 }}
                 className="w-10 h-10 rounded-lg bg-sage-600 text-white flex items-center justify-center hover:bg-sage-700"
               >

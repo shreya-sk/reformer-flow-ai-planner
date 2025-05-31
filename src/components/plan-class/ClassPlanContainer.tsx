@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +9,7 @@ import { ClassHeader } from './ClassHeader';
 import { ClassPlanCart } from './ClassPlanCart';
 import { MobileOptimizedExerciseLibrary } from '@/components/MobileOptimizedExerciseLibrary';
 import { Exercise, ClassPlan } from '@/types/reformer';
-import { toast } from '@/hooks/use-toast';
+import { showErrorToast, showClassSavedToast, showExerciseAddedToast } from '@/utils/toastUtils';
 import { Plus } from 'lucide-react';
 
 export const ClassPlanContainer = () => {
@@ -67,12 +68,13 @@ export const ClassPlanContainer = () => {
   }, [location.state, navigate, addExercise, loadClass]);
 
   const handleSaveClass = async () => {
-    if (currentClass.exercises.length === 0) {
-      toast({
-        title: "Cannot save empty class",
-        description: "Add some exercises to your class before saving.",
-        variant: "destructive",
-      });
+    const realExercises = currentClass.exercises.filter(ex => ex.category !== 'callout');
+    
+    if (realExercises.length === 0) {
+      showErrorToast(
+        "Cannot save empty class",
+        "Add some exercises to your class before saving."
+      );
       return;
     }
     
@@ -84,10 +86,7 @@ export const ClassPlanContainer = () => {
     try {
       await saveClassPlan(classToSave);
       
-      toast({
-        title: "Class saved!",
-        description: "Your class has been saved successfully.",
-      });
+      showClassSavedToast(classToSave.name);
       
       // Clear the current class plan after saving
       clearClassPlan();
@@ -98,11 +97,10 @@ export const ClassPlanContainer = () => {
       }, 1500);
     } catch (error) {
       console.error('Error saving class:', error);
-      toast({
-        title: "Save failed",
-        description: "Failed to save your class. Please try again.",
-        variant: "destructive",
-      });
+      showErrorToast(
+        "Save failed",
+        error instanceof Error ? error.message : "Failed to save your class. Please try again."
+      );
     }
   };
 
@@ -111,20 +109,16 @@ export const ClassPlanContainer = () => {
     setShowLibrary(true);
   };
 
-  // Handle exercise selection from library - this is the key fix!
+  // Handle exercise selection from library - reduced toast notifications
   const handleExerciseSelection = (exercise: Exercise) => {
     console.log('🔵 Exercise selected from library:', exercise.name);
     
     // Add exercise to the persisted state
     addExercise(exercise);
     
-    // Show toast immediately
-    toast({
-      title: "Added to class",
-      description: `"${exercise.name}" has been added to your class plan.`,
-    });
+    // Show toast only occasionally to avoid spam
+    showExerciseAddedToast(exercise.name);
     
-    // Don't close library immediately, let user add multiple exercises
     console.log('🔵 Exercise added successfully, current count:', currentClass.exercises.length + 1);
   };
 
@@ -191,7 +185,7 @@ export const ClassPlanContainer = () => {
             <div>
               <h2 className="text-xl font-semibold text-sage-800">{currentClass.name}</h2>
               <p className="text-sm text-sage-600">
-                {currentClass.exercises.length} exercises • {currentClass.totalDuration} min
+                {currentClass.exercises.filter(ex => ex.category !== 'callout').length} exercises • {currentClass.totalDuration} min
               </p>
             </div>
             <div className="flex gap-2">
@@ -205,7 +199,7 @@ export const ClassPlanContainer = () => {
               <button
                 onClick={handleSaveClass}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-                disabled={currentClass.exercises.length === 0}
+                disabled={currentClass.exercises.filter(ex => ex.category !== 'callout').length === 0}
               >
                 Save Class
               </button>
@@ -230,6 +224,7 @@ export const ClassPlanContainer = () => {
           <div className="bg-gray-100 p-4 rounded-lg text-xs">
             <h3 className="font-bold mb-2">Debug Info:</h3>
             <p>Exercises in state: {currentClass.exercises.length}</p>
+            <p>Real exercises: {currentClass.exercises.filter(ex => ex.category !== 'callout').length}</p>
             <p>Total duration: {currentClass.totalDuration} min</p>
             <p>Class name: {currentClass.name}</p>
             <details>
@@ -237,7 +232,8 @@ export const ClassPlanContainer = () => {
               <pre>{JSON.stringify(currentClass.exercises.map(ex => ({
                 id: ex.id,
                 name: ex.name,
-                duration: ex.duration
+                duration: ex.duration,
+                category: ex.category
               })), null, 2)}</pre>
             </details>
           </div>

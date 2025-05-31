@@ -165,6 +165,57 @@ export const useClassPlans = () => {
     let classPlanData = null;
 
     try {
+      // Validate all exercises exist before attempting to save
+      console.log('💾 Validating exercises exist in database...');
+      const validationResults = [];
+      
+      for (const exercise of realExercises) {
+        let existsInDB = false;
+        let exerciseType = '';
+        
+        console.log('💾 Checking exercise:', exercise.id, exercise.name);
+        
+        // Check system exercises first
+        const { data: systemCheck, error: systemError } = await supabase
+          .from('system_exercises')
+          .select('id, name')
+          .eq('id', exercise.id)
+          .single();
+        
+        if (systemCheck && !systemError) {
+          existsInDB = true;
+          exerciseType = 'system';
+          console.log('💾 Found in system exercises:', systemCheck.name);
+        } else {
+          // Check user exercises
+          const { data: userCheck, error: userError } = await supabase
+            .from('user_exercises')
+            .select('id, name')
+            .eq('id', exercise.id)
+            .eq('user_id', user.id)
+            .single();
+          
+          if (userCheck && !userError) {
+            existsInDB = true;
+            exerciseType = 'user';
+            console.log('💾 Found in user exercises:', userCheck.name);
+          }
+        }
+        
+        if (!existsInDB) {
+          console.error('💾 Exercise not found in database:', exercise.id, exercise.name);
+          throw new Error(`Exercise "${exercise.name}" not found in database. Please try refreshing your exercise library.`);
+        }
+        
+        validationResults.push({
+          exercise,
+          exerciseType,
+          exists: existsInDB
+        });
+      }
+      
+      console.log('💾 All exercises validated successfully');
+
       // Save main class plan first
       const { data: savedClassPlan, error: classPlanError } = await supabase
         .from('class_plans')
@@ -186,68 +237,15 @@ export const useClassPlans = () => {
       classPlanData = savedClassPlan;
       console.log('💾 Class plan saved successfully:', classPlanData.id);
 
-      // Now save exercises with proper validation
-      const exerciseInserts = [];
-      
-      for (let index = 0; index < realExercises.length; index++) {
-        const exercise = realExercises[index];
-        console.log('💾 Preparing exercise for save:', {
-          index,
-          id: exercise.id,
-          name: exercise.name,
-          isCustom: exercise.isCustom,
-          isSystemExercise: exercise.isSystemExercise
-        });
-
-        // Validate exercise exists in appropriate table
-        let exerciseExists = false;
-        
-        if (exercise.isSystemExercise || (!exercise.isCustom && !exercise.isSystemExercise)) {
-          // Check system exercises
-          const { data: systemCheck } = await supabase
-            .from('system_exercises')
-            .select('id')
-            .eq('id', exercise.id)
-            .single();
-          
-          if (systemCheck) {
-            exerciseExists = true;
-            exerciseInserts.push({
-              class_plan_id: classPlanData.id,
-              exercise_id: exercise.id,
-              position: index,
-              exercise_type: 'system',
-              duration_override: exercise.duration,
-              notes: exercise.notes || null
-            });
-          }
-        } else {
-          // Check user exercises
-          const { data: userCheck } = await supabase
-            .from('user_exercises')
-            .select('id')
-            .eq('id', exercise.id)
-            .eq('user_id', user.id)
-            .single();
-          
-          if (userCheck) {
-            exerciseExists = true;
-            exerciseInserts.push({
-              class_plan_id: classPlanData.id,
-              exercise_id: exercise.id,
-              position: index,
-              exercise_type: 'user',
-              duration_override: exercise.duration,
-              notes: exercise.notes || null
-            });
-          }
-        }
-
-        if (!exerciseExists) {
-          console.error('💾 Exercise not found in database:', exercise.id, exercise.name);
-          throw new Error(`Exercise "${exercise.name}" not found in database`);
-        }
-      }
+      // Now save exercises using validation results
+      const exerciseInserts = validationResults.map((result, index) => ({
+        class_plan_id: classPlanData.id,
+        exercise_id: result.exercise.id,
+        position: index,
+        exercise_type: result.exerciseType,
+        duration_override: result.exercise.duration,
+        notes: result.exercise.notes || null
+      }));
 
       console.log('💾 About to insert exercises:', exerciseInserts.length);
 

@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Clock, Edit, ChevronDown, ChevronRight, Trash2, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { ExerciseDetailModal } from '@/components/ExerciseDetailModal';
-import { toast } from '@/hooks/use-toast';
+import { showSuccessToast } from '@/utils/toastUtils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface MobileClassBuilderProps {
@@ -76,10 +76,8 @@ export const MobileClassBuilder = ({
     setIsDetailModalOpen(false);
     setSelectedExercise(null);
     
-    toast({
-      title: "Exercise updated",
-      description: `"${updatedExercise.name}" has been updated in your class.`,
-    });
+    // Reduced toast frequency - only show for significant updates
+    showSuccessToast("Exercise updated", `"${updatedExercise.name}" has been updated.`);
   };
 
   const handleAddSection = (position: number) => {
@@ -93,10 +91,7 @@ export const MobileClassBuilder = ({
       onAddCallout(newCalloutName.trim(), newCalloutPosition);
       setNewCalloutName('');
       setIsCalloutDialogOpen(false);
-      toast({
-        title: "Section added",
-        description: `"${newCalloutName}" section has been added to your class.`,
-      });
+      // Remove toast for section creation to reduce noise
     }
   };
 
@@ -269,7 +264,7 @@ export const MobileClassBuilder = ({
                             </Button>
                           </CollapsibleTrigger>
                           
-                          {/* Edit - Fixed to actually edit instead of just view */}
+                          {/* Edit */}
                           <Button
                             size="sm"
                             variant="ghost"
@@ -395,7 +390,7 @@ export const MobileClassBuilder = ({
         </DialogContent>
       </Dialog>
 
-      {/* Exercise Detail Modal - Fixed to remove the invalid mode prop */}
+      {/* Exercise Detail Modal */}
       <ExerciseDetailModal
         exercise={selectedExercise}
         isOpen={isDetailModalOpen}
