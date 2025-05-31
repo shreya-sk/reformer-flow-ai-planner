@@ -17,6 +17,7 @@ interface MobileOptimizedExerciseLibraryProps {
   onExerciseSelect?: (exercise: Exercise) => void;
 }
 
+
 export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptimizedExerciseLibraryProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();

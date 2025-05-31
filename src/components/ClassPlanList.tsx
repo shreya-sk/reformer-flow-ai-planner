@@ -111,11 +111,11 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
   };
 
   return (
-    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
       {classes.map((classPlan) => (
         <Card key={classPlan.id} className={`group hover:shadow-lg transition-all duration-300 transform hover:scale-105 ${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-sage-200'} overflow-hidden rounded-2xl`}>
-          {/* Class Image - More Compact */}
-          <div className="relative h-24 overflow-hidden">
+          {/* Class Image - Compact for mobile */}
+          <div className="relative aspect-square overflow-hidden">
             <img
               src={classPlan.image || getRandomImage(classPlan.id)}
               alt={classPlan.name}
@@ -123,20 +123,20 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             
-            {/* Enhanced Play Button with Debug Info */}
+            {/* Play Button Overlay */}
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <Button
                 onClick={() => handlePlayClass(classPlan)}
                 size="sm"
-                className="bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 transition-all duration-300 rounded-full px-4 py-1 transform hover:scale-110"
+                className="bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 transition-all duration-300 rounded-full px-3 py-1 transform hover:scale-110"
                 title={`Teach "${classPlan.name}" (${classPlan.exercises.filter(ex => ex.category !== 'callout').length} exercises)`}
               >
                 <Play className="h-3 w-3 mr-1" />
-                Teach
+                <span className="text-xs">Teach</span>
               </Button>
             </div>
 
-            {/* Duration Badge - More Organic */}
+            {/* Duration Badge */}
             <div className="absolute top-2 right-2">
               <Badge className={`text-xs ${preferences.darkMode ? 'bg-gray-900/80 text-white' : 'bg-white/90 text-gray-900'} backdrop-blur-sm rounded-full px-2 py-0.5`}>
                 <Clock className="h-2 w-2 mr-1" />
@@ -144,45 +144,33 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
               </Badge>
             </div>
 
-            {/* Debug Info Badge */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="absolute top-2 left-2">
-                <Badge className="text-xs bg-blue-500/80 text-white backdrop-blur-sm rounded-full px-2 py-0.5">
-                  ID: {classPlan.id.slice(-4)}
-                </Badge>
-              </div>
-            )}
+            {/* Exercise Count Badge */}
+            <div className="absolute top-2 left-2">
+              <Badge className="text-xs bg-sage-600/80 text-white backdrop-blur-sm rounded-full px-2 py-0.5">
+                {getRealExercisesCount(classPlan)} ex
+              </Badge>
+            </div>
           </div>
 
-          <CardHeader className="pb-1">
-            <CardTitle className={`text-sm font-medium ${preferences.darkMode ? 'text-white' : 'text-sage-800'} line-clamp-2`}>
+          <CardContent className="p-3">
+            {/* Class Name */}
+            <h3 className={`font-semibold text-sm ${preferences.darkMode ? 'text-white' : 'text-sage-800'} line-clamp-2 mb-2 leading-tight`}>
               {classPlan.name}
-            </CardTitle>
-            <div className={`flex items-center gap-2 text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
-              <span className="flex items-center gap-1">
-                <Calendar className="h-2 w-2" />
-                {formatDate(classPlan.createdAt)}
-              </span>
-              <span className="flex items-center gap-1">
-                <Users className="h-2 w-2" />
-                {getRealExercisesCount(classPlan)} exercises
-              </span>
-            </div>
-          </CardHeader>
-
-          <CardContent className="pt-0 space-y-2">
-            <div className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} flex items-center gap-1`}>
-              <Dumbbell className="h-2 w-2" />
-              {getMuscleGroupsCount(classPlan)} muscle groups
+            </h3>
+            
+            {/* Date */}
+            <div className={`flex items-center gap-1 text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} mb-3`}>
+              <Calendar className="h-2 w-2" />
+              {formatDate(classPlan.createdAt)}
             </div>
             
-            {/* Enhanced Action Buttons with Teaching Validation */}
+            {/* Action Buttons */}
             <div className="flex gap-1">
               <Button
                 onClick={() => onEditClass(classPlan)}
                 size="sm"
                 variant="outline"
-                className={`flex-1 text-xs ${preferences.darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-sage-300 text-sage-600 hover:bg-sage-50'} rounded-full transition-all duration-300 transform hover:scale-105 py-1`}
+                className={`flex-1 text-xs h-7 ${preferences.darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-sage-300 text-sage-600 hover:bg-sage-50'} rounded-lg transition-all duration-300`}
               >
                 <Edit3 className="h-2 w-2 mr-1" />
                 Edit
@@ -191,84 +179,84 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
                 onClick={() => onDeleteClass(classPlan.id)}
                 size="sm"
                 variant="outline"
-                className="border-red-300 text-red-600 hover:bg-red-50 rounded-full transition-all duration-300 transform hover:scale-105 py-1 px-2"
+                className="border-red-300 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300 h-7 px-2"
               >
                 <Trash2 className="h-2 w-2" />
               </Button>
             </div>
 
-            {/* Enhanced Teaching Button */}
-            <div className="pt-1">
-              <Button
-                onClick={() => handlePlayClass(classPlan)}
-                disabled={getRealExercisesCount(classPlan) === 0}
-                className={`w-full text-xs rounded-full py-1 transform hover:scale-105 transition-all duration-300 shadow-lg ${
-                  getRealExercisesCount(classPlan) === 0
-                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white'
-                }`}
-                title={
-                  getRealExercisesCount(classPlan) === 0
-                    ? 'Add exercises to enable teaching mode'
-                    : `Start teaching "${classPlan.name}"`
-                }
-              >
-                <Play className="h-2 w-2 mr-1" />
-                {getRealExercisesCount(classPlan) === 0 
-                  ? 'No Exercises' 
-                  : 'Start Teaching'
-                }
-              </Button>
-            </div>
-
-            {/* View Exercises Toggle - More Organic */}
+            {/* Expandable Details */}
             <Collapsible open={expandedClass === classPlan.id}>
               <CollapsibleTrigger asChild>
                 <Button
                   onClick={() => toggleExpanded(classPlan.id)}
-                  variant="outline"
-                  className={`w-full text-xs ${preferences.darkMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-sage-300 text-sage-600 hover:bg-sage-50'} rounded-full transition-all duration-300 py-1`}
+                  variant="ghost"
+                  className="w-full text-xs mt-2 h-6 p-0"
                 >
-                  <Eye className="h-2 w-2 mr-1" />
-                  View Exercises
-                  {expandedClass === classPlan.id ? 
-                    <ChevronUp className="h-2 w-2 ml-1" /> : 
-                    <ChevronDown className="h-2 w-2 ml-1" />
-                  }
+                  <span className="flex items-center gap-1">
+                    <Eye className="h-2 w-2" />
+                    Details
+                    {expandedClass === classPlan.id ? 
+                      <ChevronUp className="h-2 w-2" /> : 
+                      <ChevronDown className="h-2 w-2" />
+                    }
+                  </span>
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-2 mt-2">
-                <div className="max-h-24 overflow-y-auto space-y-1">
-                  {classPlan.exercises.filter(ex => ex.category !== 'callout').map((exercise, index) => (
-                    <div key={index} className={`p-2 rounded-xl text-xs ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-50'} transition-all duration-300 hover:shadow-sm`}>
+                <div className="text-xs space-y-1">
+                  <div className={`flex items-center justify-between ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                    <span>Muscle Groups:</span>
+                    <span className="font-medium">{getMuscleGroupsCount(classPlan)}</span>
+                  </div>
+                  <div className={`flex items-center justify-between ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                    <span>Total Duration:</span>
+                    <span className="font-medium">{classPlan.totalDuration} min</span>
+                  </div>
+                </div>
+
+                {/* Exercise List Preview */}
+                <div className="max-h-20 overflow-y-auto space-y-1">
+                  {classPlan.exercises.filter(ex => ex.category !== 'callout').slice(0, 3).map((exercise, index) => (
+                    <div key={index} className={`p-1 rounded-md text-xs ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-50'}`}>
                       <div className="flex items-center justify-between">
-                        <span className={`font-medium ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
+                        <span className={`font-medium ${preferences.darkMode ? 'text-white' : 'text-sage-800'} truncate`}>
                           {exercise.name}
                         </span>
-                        <div className="flex items-center gap-1">
-                          <Dumbbell className="h-2 w-2" />
-                          <span className={preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}>
-                            {exercise.duration}min
-                          </span>
-                        </div>
+                        <span className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                          {exercise.duration}min
+                        </span>
                       </div>
                     </div>
                   ))}
+                  {getRealExercisesCount(classPlan) > 3 && (
+                    <div className={`text-xs text-center ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`}>
+                      +{getRealExercisesCount(classPlan) - 3} more
+                    </div>
+                  )}
                 </div>
 
-                {/* Debug Info for Development */}
-                {process.env.NODE_ENV === 'development' && (
-                  <div className="mt-2 p-2 bg-blue-50 rounded-lg text-xs">
-                    <div className="font-semibold text-blue-800 mb-1">Debug Info:</div>
-                    <div className="text-blue-700">
-                      <div>Class ID: {classPlan.id}</div>
-                      <div>Total Exercises: {classPlan.exercises.length}</div>
-                      <div>Real Exercises: {getRealExercisesCount(classPlan)}</div>
-                      <div>Callouts: {classPlan.exercises.filter(ex => ex.category === 'callout').length}</div>
-                      <div>Created: {classPlan.createdAt.toISOString()}</div>
-                    </div>
-                  </div>
-                )}
+                {/* Teaching Button */}
+                <Button
+                  onClick={() => handlePlayClass(classPlan)}
+                  disabled={getRealExercisesCount(classPlan) === 0}
+                  className={`w-full text-xs h-7 rounded-lg transform hover:scale-105 transition-all duration-300 ${
+                    getRealExercisesCount(classPlan) === 0
+                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white'
+                  }`}
+                  title={
+                    getRealExercisesCount(classPlan) === 0
+                      ? 'Add exercises to enable teaching mode'
+                      : `Start teaching "${classPlan.name}"`
+                  }
+                >
+                  <Play className="h-2 w-2 mr-1" />
+                  {getRealExercisesCount(classPlan) === 0 
+                    ? 'No Exercises' 
+                    : 'Start Teaching'
+                  }
+                </Button>
               </CollapsibleContent>
             </Collapsible>
           </CardContent>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, MouseEvent } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Heart, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw, Check } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
@@ -18,6 +18,10 @@ interface MobileExerciseCardProps {
   isFavorite: boolean;
   isHidden: boolean;
   darkMode: boolean;
+  
+  onEditForm?: (exercise: Exercise, e: React.MouseEvent) => void; // Add this new prop
+  
+
 }
 
 export const MobileExerciseCard = ({ 
@@ -74,6 +78,10 @@ export const MobileExerciseCard = ({
     console.log('❤️ Favorite clicked for:', exercise.name, 'Current favorite state:', isFavorite);
     onToggleFavorite(exercise.id, e);
   };
+
+  function onEditForm(exercise: Exercise, e: MouseEvent<HTMLButtonElement, MouseEvent>) {
+    throw new Error('Function not implemented.');
+  }
 
   return (
     <div 
@@ -154,7 +162,11 @@ export const MobileExerciseCard = ({
             <div className="bg-white rounded-xl p-3 flex gap-2 shadow-lg">
               {/* Edit button */}
               <button
-                onClick={(e) => onEdit(exercise, e)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Call a new onEditForm prop instead of onEdit
+                  onEditForm?.(exercise, e);
+                }}
                 className="w-10 h-10 rounded-lg bg-sage-600 text-white flex items-center justify-center hover:bg-sage-700"
               >
                 <Edit className="h-4 w-4" />
