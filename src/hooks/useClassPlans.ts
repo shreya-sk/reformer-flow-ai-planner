@@ -1,17 +1,18 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ClassPlan, Exercise } from '@/types/reformer';
 
 export const useClassPlans = () => {
   const [classPlans, setClassPlans] = useState<ClassPlan[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  const fetchClassPlans = async () => {
+  const fetchClassPlans = useCallback(async () => {
     if (!user) {
       console.log('🎯 useClassPlans: No user, skipping fetch');
+      setLoading(false);
       return;
     }
     
@@ -31,7 +32,7 @@ export const useClassPlans = () => {
         throw classPlansError;
       }
 
-      console.log('🎯 useClassPlans: Raw class plans data:', classPlansData);
+      console.log('🎯 useClassPlans: Raw class plans data:', classPlansData?.length || 0, 'plans found');
 
       // Then fetch exercises for each class plan
       const transformedPlans: ClassPlan[] = [];
@@ -134,7 +135,7 @@ export const useClassPlans = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   const saveClassPlan = async (classPlan: ClassPlan) => {
     if (!user) return;
@@ -195,7 +196,7 @@ export const useClassPlans = () => {
   useEffect(() => {
     console.log('🎯 useClassPlans: useEffect triggered, user:', user?.id);
     fetchClassPlans();
-  }, [user]);
+  }, [fetchClassPlans]);
 
   return {
     classPlans,

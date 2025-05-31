@@ -14,8 +14,9 @@ const Teaching = () => {
   const { preferences } = useUserPreferences();
 
   console.log('🎯 Teaching page - classId:', classId);
-  console.log('🎯 Available class plans:', classPlans);
+  console.log('🎯 Available class plans:', classPlans?.length || 0, 'plans');
   console.log('🎯 Loading state:', loading);
+  console.log('🎯 User state:', user?.id);
 
   // Handle navigation when user is not authenticated
   useEffect(() => {
@@ -24,13 +25,6 @@ const Teaching = () => {
       navigate('/');
     }
   }, [user, navigate]);
-
-  useEffect(() => {
-    if (!loading && classPlans.length === 0) {
-      console.log('🎯 No class plans found, refetching...');
-      refetch();
-    }
-  }, [loading, classPlans.length, refetch]);
 
   // Don't render anything if user is not authenticated
   if (!user) {
