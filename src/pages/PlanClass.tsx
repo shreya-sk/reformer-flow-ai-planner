@@ -59,6 +59,18 @@ const PlanClass = () => {
 
   const handleSaveClass = async () => {
     console.log('💾 Save attempt - real exercises:', realExerciseCount);
+    console.log('💾 Current class state:', {
+      name: currentClass.name,
+      exerciseCount: currentClass.exercises.length,
+      realExerciseCount,
+      exercises: currentClass.exercises.map(ex => ({ 
+        id: ex.id, 
+        name: ex.name, 
+        category: ex.category,
+        isCustom: ex.isCustom,
+        isSystemExercise: ex.isSystemExercise
+      }))
+    });
     
     if (realExerciseCount === 0) {
       toast({
@@ -79,25 +91,33 @@ const PlanClass = () => {
       };
       
       console.log('💾 Starting save process for:', classToSave.name, 'with', realExerciseCount, 'real exercises');
-      await saveClassPlan(classToSave);
+      
+      const savedClass = await saveClassPlan(classToSave);
+      
+      console.log('💾 Save successful:', savedClass);
       
       setSaveSuccess(true);
       toast({
-        title: "Class saved!",
-        description: "Redirecting to My Classes...",
+        title: "Class saved successfully!",
+        description: `"${classToSave.name}" has been saved with ${realExerciseCount} exercises.`,
       });
       
-      // Show success state for 2 seconds before redirecting
+      // Clear the class plan after successful save
       setTimeout(() => {
         clearClassPlan();
         navigate('/');
       }, 2000);
+      
     } catch (error) {
-      console.error('Save failed:', error);
+      console.error('💾 Save failed:', error);
       setIsSaving(false);
+      setSaveSuccess(false);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
       toast({
         title: "Save failed",
-        description: "Could not save class. Please try again.",
+        description: `Could not save class: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -218,11 +238,18 @@ const PlanClass = () => {
               ) : isSaving ? (
                 <>⟳ Saving...</>
               ) : (
-                'Save Class'
+                `Save Class (${realExerciseCount})`
               )}
             </button>
           </div>
         </div>
+        
+        {/* Debug info in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-2 text-xs text-gray-600 bg-gray-100 p-2 rounded">
+            Debug: {currentClass.exercises.length} total, {realExerciseCount} real exercises
+          </div>
+        )}
       </div>
 
       <div className="px-2 sm:px-3 pt-0">

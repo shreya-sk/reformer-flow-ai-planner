@@ -146,20 +146,27 @@ export const useClassPlans = () => {
     // Filter real exercises (not callouts)
     const realExercises = classPlan.exercises.filter(ex => ex.category !== 'callout');
     
-    console.log('💾 Saving class plan:', {
+    console.log('💾 Starting save process:', {
       name: classPlan.name,
       totalExercises: classPlan.exercises.length,
       realExercises: realExercises.length,
-      exercises: realExercises.map(ex => ({ id: ex.id, name: ex.name }))
+      exerciseDetails: realExercises.map(ex => ({ 
+        id: ex.id, 
+        name: ex.name, 
+        isCustom: ex.isCustom,
+        isSystemExercise: ex.isSystemExercise 
+      }))
     });
     
     if (realExercises.length === 0) {
       throw new Error('Cannot save class with no exercises');
     }
 
+    let classPlanData = null;
+
     try {
-      // Save main class plan
-      const { data: classPlanData, error: classPlanError } = await supabase
+      // Save main class plan first
+      const { data: savedClassPlan, error: classPlanError } = await supabase
         .from('class_plans')
         .insert({
           name: classPlan.name,
@@ -171,34 +178,98 @@ export const useClassPlans = () => {
         .select()
         .single();
 
-      if (classPlanError) throw classPlanError;
-
-      console.log('💾 Saved class plan:', classPlanData.id);
-
-      // Save exercises with simplified ID handling
-      const exerciseInserts = realExercises.map((exercise, index) => {
-        console.log('💾 Processing exercise for save:', exercise.name, 'ID:', exercise.id);
-
-        return {
-          class_plan_id: classPlanData.id,
-          exercise_id: exercise.id, // Use the exercise ID directly
-          position: index,
-          exercise_type: exercise.isCustom ? 'user' : 'system',
-          duration_override: exercise.duration,
-          notes: exercise.notes || null
-        };
-      });
-
-      const { error: exerciseError } = await supabase
-        .from('class_plan_exercises')
-        .insert(exerciseInserts);
-
-      if (exerciseError) {
-        console.error('💾 Exercise insert error:', exerciseError);
-        throw exerciseError;
+      if (classPlanError) {
+        console.error('💾 Class plan save error:', classPlanError);
+        throw new Error(`Failed to save class plan: ${classPlanError.message}`);
       }
 
-      console.log('💾 Saved', exerciseInserts.length, 'exercises successfully');
+      classPlanData = savedClassPlan;
+      console.log('💾 Class plan saved successfully:', classPlanData.id);
+
+      // Now save exercises with proper validation
+      const exerciseInserts = [];
+      
+      for (let index = 0; index < realExercises.length; index++) {
+        const exercise = realExercises[index];
+        console.log('💾 Preparing exercise for save:', {
+          index,
+          id: exercise.id,
+          name: exercise.name,
+          isCustom: exercise.isCustom,
+          isSystemExercise: exercise.isSystemExercise
+        });
+
+        // Validate exercise exists in appropriate table
+        let exerciseExists = false;
+        
+        if (exercise.isSystemExercise || (!exercise.isCustom && !exercise.isSystemExercise)) {
+          // Check system exercises
+          const { data: systemCheck } = await supabase
+            .from('system_exercises')
+            .select('id')
+            .eq('id', exercise.id)
+            .single();
+          
+          if (systemCheck) {
+            exerciseExists = true;
+            exerciseInserts.push({
+              class_plan_id: classPlanData.id,
+              exercise_id: exercise.id,
+              position: index,
+              exercise_type: 'system',
+              duration_override: exercise.duration,
+              notes: exercise.notes || null
+            });
+          }
+        } else {
+          // Check user exercises
+          const { data: userCheck } = await supabase
+            .from('user_exercises')
+            .select('id')
+            .eq('id', exercise.id)
+            .eq('user_id', user.id)
+            .single();
+          
+          if (userCheck) {
+            exerciseExists = true;
+            exerciseInserts.push({
+              class_plan_id: classPlanData.id,
+              exercise_id: exercise.id,
+              position: index,
+              exercise_type: 'user',
+              duration_override: exercise.duration,
+              notes: exercise.notes || null
+            });
+          }
+        }
+
+        if (!exerciseExists) {
+          console.error('💾 Exercise not found in database:', exercise.id, exercise.name);
+          throw new Error(`Exercise "${exercise.name}" not found in database`);
+        }
+      }
+
+      console.log('💾 About to insert exercises:', exerciseInserts.length);
+
+      if (exerciseInserts.length > 0) {
+        const { error: exerciseError } = await supabase
+          .from('class_plan_exercises')
+          .insert(exerciseInserts);
+
+        if (exerciseError) {
+          console.error('💾 Exercise insert error:', exerciseError);
+          
+          // Clean up the class plan if exercise save failed
+          await supabase
+            .from('class_plans')
+            .delete()
+            .eq('id', classPlanData.id);
+          
+          throw new Error(`Failed to save exercises: ${exerciseError.message}`);
+        }
+
+        console.log('💾 All exercises saved successfully');
+      }
 
       // Force refresh the class plans
       await fetchClassPlans();
@@ -206,6 +277,20 @@ export const useClassPlans = () => {
       return classPlanData;
     } catch (error) {
       console.error('💾 Save failed:', error);
+      
+      // Clean up if class plan was created but exercises failed
+      if (classPlanData) {
+        try {
+          await supabase
+            .from('class_plans')
+            .delete()
+            .eq('id', classPlanData.id);
+          console.log('💾 Cleaned up failed class plan');
+        } catch (cleanupError) {
+          console.error('💾 Failed to clean up class plan:', cleanupError);
+        }
+      }
+      
       throw error;
     }
   };
