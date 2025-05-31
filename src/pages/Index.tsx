@@ -13,7 +13,7 @@ import { toast } from '@/hooks/use-toast';
 const Index = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const { savedClasses, deleteClassPlan } = useClassPlans();
+  const { savedClasses, deleteClassPlan, loading: classesLoading } = useClassPlans();
   const { preferences } = useUserPreferences();
 
   if (loading) {
@@ -59,6 +59,11 @@ const Index = () => {
     }
     return user?.email?.split('@')[0] || 'User';
   };
+
+  // Calculate real exercise count (excluding callouts)
+  const totalExercises = savedClasses.reduce((total, plan) => 
+    total + plan.exercises.filter(ex => ex.category !== 'callout').length, 0
+  );
 
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'}`}>
@@ -173,7 +178,7 @@ const Index = () => {
             <div className="flex items-center gap-1 justify-center">
               <BookOpen className={`h-3 w-3 ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'}`} />
               <span className={`text-sm font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                {savedClasses.reduce((total, plan) => total + plan.exercises.filter(ex => ex.category !== 'callout').length, 0)}
+                {totalExercises}
               </span>
             </div>
             <p className={`text-xs ${preferences.darkMode ? 'text-gray-400' : 'text-sage-600'} text-center mt-0.5`}>
@@ -195,7 +200,12 @@ const Index = () => {
             )}
           </div>
 
-          {savedClasses.length === 0 ? (
+          {classesLoading ? (
+            <div className="text-center py-6">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sage-600 mx-auto mb-2"></div>
+              <p className={preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}>Loading classes...</p>
+            </div>
+          ) : savedClasses.length === 0 ? (
             <div className={`text-center py-6 px-4 ${preferences.darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg`}>
               <div className={`w-10 h-10 ${preferences.darkMode ? 'bg-gray-700' : 'bg-sage-100'} rounded-full flex items-center justify-center mx-auto mb-3`}>
                 <Plus className={`h-5 w-5 ${preferences.darkMode ? 'text-gray-500' : 'text-sage-500'}`} />
@@ -215,6 +225,16 @@ const Index = () => {
             <ClassPlanList classes={savedClasses} onEditClass={handleEditClass} onDeleteClass={handleDeleteClass} />
           )}
         </div>
+
+        {/* Debug info for development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="fixed bottom-20 right-4 bg-gray-800 text-white p-2 rounded text-xs max-w-xs">
+            <div>Classes: {savedClasses.length}</div>
+            <div>Loading: {classesLoading ? 'Yes' : 'No'}</div>
+            <div>Exercises: {totalExercises}</div>
+            <div>User: {user?.id ? 'Yes' : 'No'}</div>
+          </div>
+        )}
       </div>
     </div>
   );

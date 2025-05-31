@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,9 +12,6 @@ import { AuthPage } from '@/components/AuthPage';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ClassTeachingMode } from '@/components/ClassTeachingMode';
 import { ClassBuilder } from '@/components/ClassBuilder';
-import { ClassPlanContainer } from '@/components/plan-class/ClassPlanContainer';
-
-
 
 const PlanClass = () => {
   const navigate = useNavigate();
@@ -38,7 +34,8 @@ const PlanClass = () => {
   
   const [activeTab, setActiveTab] = useState('builder');
   const [isTeachingMode, setIsTeachingMode] = useState(false);
-  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const shortlistedExercises = exercises.filter(ex => 
     preferences.favoriteExercises?.includes(ex.id)
@@ -55,7 +52,6 @@ const PlanClass = () => {
         onClose={() => setIsTeachingMode(false)}
       />
     );
-    return <ClassPlanContainer />;
   }
 
   const handleSaveClass = async () => {
@@ -69,23 +65,38 @@ const PlanClass = () => {
       return;
     }
     
-    const classToSave = {
-      ...currentClass,
-      name: currentClass.name || `Class ${Date.now()}`,
-    };
+    setIsSaving(true);
+    setSaveSuccess(false);
     
-    await saveClassPlan(classToSave);
-    
-    toast({
-      title: "Class saved!",
-      description: "Redirecting to My Classes...",
-    });
-    
-    clearClassPlan();
-    
-    setTimeout(() => {
-      navigate('/');
-    }, 1500);
+    try {
+      const classToSave = {
+        ...currentClass,
+        name: currentClass.name || `Class ${Date.now()}`,
+      };
+      
+      console.log('💾 Starting save process for:', classToSave.name);
+      await saveClassPlan(classToSave);
+      
+      setSaveSuccess(true);
+      toast({
+        title: "Class saved!",
+        description: "Redirecting to My Classes...",
+      });
+      
+      // Show success state for 2 seconds before redirecting
+      setTimeout(() => {
+        clearClassPlan();
+        navigate('/');
+      }, 2000);
+    } catch (error) {
+      console.error('Save failed:', error);
+      setIsSaving(false);
+      toast({
+        title: "Save failed",
+        description: "Could not save class. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAddExercise = () => {
@@ -202,9 +213,22 @@ const PlanClass = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={handleSaveClass}
-              className="bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-300"
+              disabled={isSaving}
+              className={`px-4 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-300 ${
+                saveSuccess 
+                  ? 'bg-green-500 text-white' 
+                  : isSaving 
+                    ? 'bg-sage-400 text-white' 
+                    : 'bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white'
+              }`}
             >
-              Save Class
+              {saveSuccess ? (
+                <>✓ Saved!</>
+              ) : isSaving ? (
+                <>⟳ Saving...</>
+              ) : (
+                'Save Class'
+              )}
             </button>
           </div>
         </div>

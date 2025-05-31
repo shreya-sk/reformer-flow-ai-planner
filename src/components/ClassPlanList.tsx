@@ -63,6 +63,10 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
     return Array.from(new Set(realExercises.flatMap(ex => ex.muscleGroups))).length;
   };
 
+  const getRealExercisesCount = (classPlan: ClassPlan) => {
+    return classPlan.exercises.filter(ex => ex.category !== 'callout').length;
+  };
+
   const handlePlayClass = (classPlan: ClassPlan) => {
     console.log('🎯 ClassPlanList: handlePlayClass called');
     console.log('🎯 Class plan ID:', classPlan.id);
@@ -161,7 +165,7 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
               </span>
               <span className="flex items-center gap-1">
                 <Users className="h-2 w-2" />
-                {classPlan.exercises.filter(ex => ex.category !== 'callout').length} ex
+                {getRealExercisesCount(classPlan)} exercises
               </span>
             </div>
           </CardHeader>
@@ -197,20 +201,20 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
             <div className="pt-1">
               <Button
                 onClick={() => handlePlayClass(classPlan)}
-                disabled={classPlan.exercises.filter(ex => ex.category !== 'callout').length === 0}
+                disabled={getRealExercisesCount(classPlan) === 0}
                 className={`w-full text-xs rounded-full py-1 transform hover:scale-105 transition-all duration-300 shadow-lg ${
-                  classPlan.exercises.filter(ex => ex.category !== 'callout').length === 0
+                  getRealExercisesCount(classPlan) === 0
                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                     : 'bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white'
                 }`}
                 title={
-                  classPlan.exercises.filter(ex => ex.category !== 'callout').length === 0
+                  getRealExercisesCount(classPlan) === 0
                     ? 'Add exercises to enable teaching mode'
                     : `Start teaching "${classPlan.name}"`
                 }
               >
                 <Play className="h-2 w-2 mr-1" />
-                {classPlan.exercises.filter(ex => ex.category !== 'callout').length === 0 
+                {getRealExercisesCount(classPlan) === 0 
                   ? 'No Exercises' 
                   : 'Start Teaching'
                 }
@@ -259,7 +263,7 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
                     <div className="text-blue-700">
                       <div>Class ID: {classPlan.id}</div>
                       <div>Total Exercises: {classPlan.exercises.length}</div>
-                      <div>Real Exercises: {classPlan.exercises.filter(ex => ex.category !== 'callout').length}</div>
+                      <div>Real Exercises: {getRealExercisesCount(classPlan)}</div>
                       <div>Callouts: {classPlan.exercises.filter(ex => ex.category === 'callout').length}</div>
                       <div>Created: {classPlan.createdAt.toISOString()}</div>
                     </div>

@@ -138,16 +138,26 @@ export const useClassPlans = () => {
   }, [user]);
 
   const saveClassPlan = async (classPlan: ClassPlan) => {
-    if (!user) return;
+    if (!user) throw new Error('User not authenticated');
+
+    console.log('💾 Saving:', classPlan.name, 'with', classPlan.exercises.length, 'exercises');
+
+    // Filter real exercises (not callouts)
+    const realExercises = classPlan.exercises.filter(ex => ex.category !== 'callout');
+    
+    if (realExercises.length === 0) {
+      throw new Error('Cannot save class with no exercises');
+    }
 
     try {
+      // Save main class plan
       const { data: classPlanData, error: classPlanError } = await supabase
         .from('class_plans')
         .insert({
           name: classPlan.name,
-          duration_minutes: classPlan.duration,
-          notes: classPlan.notes,
-          image_url: classPlan.image,
+          duration_minutes: classPlan.classDuration || classPlan.duration || 45,
+          notes: classPlan.notes || '',
+          image_url: classPlan.image || '',
           user_id: user.id
         })
         .select()
@@ -155,25 +165,46 @@ export const useClassPlans = () => {
 
       if (classPlanError) throw classPlanError;
 
-      // Insert exercises
-      if (classPlan.exercises.length > 0) {
-        const exerciseInserts = classPlan.exercises.map((exercise, index) => ({
+      console.log('💾 Saved class plan:', classPlanData.id);
+
+      // Save exercises with proper ID handling
+      const exerciseInserts = realExercises.map((exercise, index) => {
+        // Handle timestamped IDs from usePersistedClassPlan
+        let originalId = exercise.id;
+        if (exercise.id.includes('-') && exercise.id.split('-').length >= 3) {
+          const parts = exercise.id.split('-');
+          originalId = parts.slice(0, -2).join('-');
+        }
+
+        console.log('💾 Mapping exercise:', exercise.name, 'ID:', exercise.id, '→', originalId);
+
+        return {
           class_plan_id: classPlanData.id,
-          exercise_id: exercise.id,
+          exercise_id: originalId,
           position: index,
-          exercise_type: exercise.isCustom ? 'user' : 'system'
-        }));
+          exercise_type: exercise.isCustom ? 'user' : 'system',
+          duration_override: exercise.duration,
+          notes: exercise.notes || null
+        };
+      });
 
-        const { error: exerciseError } = await supabase
-          .from('class_plan_exercises')
-          .insert(exerciseInserts);
+      const { error: exerciseError } = await supabase
+        .from('class_plan_exercises')
+        .insert(exerciseInserts);
 
-        if (exerciseError) throw exerciseError;
+      if (exerciseError) {
+        console.error('💾 Exercise insert error:', exerciseError);
+        throw exerciseError;
       }
 
+      console.log('💾 Saved', exerciseInserts.length, 'exercises');
+
+      // Force refresh the class plans
       await fetchClassPlans();
+      
+      return classPlanData;
     } catch (error) {
-      console.error('Error saving class plan:', error);
+      console.error('💾 Save failed:', error);
       throw error;
     }
   };
