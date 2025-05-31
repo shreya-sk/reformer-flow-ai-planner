@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -137,18 +138,6 @@ const PlanClass = () => {
   const addShortlistedToClass = (exercise: any) => {
     console.log('Adding shortlisted exercise to class:', exercise);
     addExercise(exercise);
-  };
-
-  const toggleSectionCollapse = (sectionId: string) => {
-    setCollapsedSections(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(sectionId)) {
-        newSet.delete(sectionId);
-      } else {
-        newSet.add(sectionId);
-      }
-      return newSet;
-    });
   };
 
   // Improved exercise update handler that persists changes correctly
