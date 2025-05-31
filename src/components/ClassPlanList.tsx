@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { ClassPlan } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { toast } from '@/hooks/use-toast';
 
 interface ClassPlanListProps {
   classes: ClassPlan[];
@@ -63,7 +64,42 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
   };
 
   const handlePlayClass = (classPlan: ClassPlan) => {
-    navigate(`/teaching/${classPlan.id}`);
+    console.log('🎯 ClassPlanList: handlePlayClass called');
+    console.log('🎯 Class plan ID:', classPlan.id);
+    console.log('🎯 Class plan name:', classPlan.name);
+    console.log('🎯 Number of exercises:', classPlan.exercises.length);
+    console.log('🎯 Real exercises (non-callout):', classPlan.exercises.filter(ex => ex.category !== 'callout').length);
+    
+    // Validate that class has exercises
+    const realExercises = classPlan.exercises.filter(ex => ex.category !== 'callout');
+    
+    if (realExercises.length === 0) {
+      toast({
+        title: "Cannot start teaching",
+        description: "This class has no exercises to teach. Please add some exercises first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Show confirmation toast
+    toast({
+      title: "Starting teaching mode",
+      description: `Loading "${classPlan.name}" with ${realExercises.length} exercises...`,
+    });
+
+    console.log('🎯 Navigating to:', `/teaching/${classPlan.id}`);
+    
+    try {
+      navigate(`/teaching/${classPlan.id}`);
+    } catch (error) {
+      console.error('🎯 Navigation error:', error);
+      toast({
+        title: "Navigation failed",
+        description: "Could not start teaching mode. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleExpanded = (classId: string) => {
@@ -83,12 +119,13 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
             
-            {/* Organic Play Button Overlay */}
+            {/* Enhanced Play Button with Debug Info */}
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <Button
                 onClick={() => handlePlayClass(classPlan)}
                 size="sm"
                 className="bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 transition-all duration-300 rounded-full px-4 py-1 transform hover:scale-110"
+                title={`Teach "${classPlan.name}" (${classPlan.exercises.filter(ex => ex.category !== 'callout').length} exercises)`}
               >
                 <Play className="h-3 w-3 mr-1" />
                 Teach
@@ -102,6 +139,15 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
                 {classPlan.totalDuration}min
               </Badge>
             </div>
+
+            {/* Debug Info Badge */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="absolute top-2 left-2">
+                <Badge className="text-xs bg-blue-500/80 text-white backdrop-blur-sm rounded-full px-2 py-0.5">
+                  ID: {classPlan.id.slice(-4)}
+                </Badge>
+              </div>
+            )}
           </div>
 
           <CardHeader className="pb-1">
@@ -126,7 +172,7 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
               {getMuscleGroupsCount(classPlan)} muscle groups
             </div>
             
-            {/* Organic Action Buttons */}
+            {/* Enhanced Action Buttons with Teaching Validation */}
             <div className="flex gap-1">
               <Button
                 onClick={() => onEditClass(classPlan)}
@@ -144,6 +190,30 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
                 className="border-red-300 text-red-600 hover:bg-red-50 rounded-full transition-all duration-300 transform hover:scale-105 py-1 px-2"
               >
                 <Trash2 className="h-2 w-2" />
+              </Button>
+            </div>
+
+            {/* Enhanced Teaching Button */}
+            <div className="pt-1">
+              <Button
+                onClick={() => handlePlayClass(classPlan)}
+                disabled={classPlan.exercises.filter(ex => ex.category !== 'callout').length === 0}
+                className={`w-full text-xs rounded-full py-1 transform hover:scale-105 transition-all duration-300 shadow-lg ${
+                  classPlan.exercises.filter(ex => ex.category !== 'callout').length === 0
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white'
+                }`}
+                title={
+                  classPlan.exercises.filter(ex => ex.category !== 'callout').length === 0
+                    ? 'Add exercises to enable teaching mode'
+                    : `Start teaching "${classPlan.name}"`
+                }
+              >
+                <Play className="h-2 w-2 mr-1" />
+                {classPlan.exercises.filter(ex => ex.category !== 'callout').length === 0 
+                  ? 'No Exercises' 
+                  : 'Start Teaching'
+                }
               </Button>
             </div>
 
@@ -181,15 +251,20 @@ export const ClassPlanList = ({ classes, onEditClass, onDeleteClass }: ClassPlan
                     </div>
                   ))}
                 </div>
-                
-                {/* Start Teaching Button in Expanded View */}
-                <Button
-                  onClick={() => handlePlayClass(classPlan)}
-                  className="w-full bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white text-xs rounded-full py-1 transform hover:scale-105 transition-all duration-300 shadow-lg"
-                >
-                  <Play className="h-2 w-2 mr-1" />
-                  Start Teaching
-                </Button>
+
+                {/* Debug Info for Development */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="mt-2 p-2 bg-blue-50 rounded-lg text-xs">
+                    <div className="font-semibold text-blue-800 mb-1">Debug Info:</div>
+                    <div className="text-blue-700">
+                      <div>Class ID: {classPlan.id}</div>
+                      <div>Total Exercises: {classPlan.exercises.length}</div>
+                      <div>Real Exercises: {classPlan.exercises.filter(ex => ex.category !== 'callout').length}</div>
+                      <div>Callouts: {classPlan.exercises.filter(ex => ex.category === 'callout').length}</div>
+                      <div>Created: {classPlan.createdAt.toISOString()}</div>
+                    </div>
+                  </div>
+                )}
               </CollapsibleContent>
             </Collapsible>
           </CardContent>
