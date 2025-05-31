@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { Card, CardContent } from '@/components/ui/card';
@@ -100,7 +99,7 @@ export const ImprovedClassBuilderUI = ({
                         Custom
                       </Badge>
                     )}
-                    {exercise.isSystemExercise && exercise.customizations && (
+                    {exercise.isSystemExercise && exercise.isCustomized && (
                       <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
                         Modified
                       </Badge>
