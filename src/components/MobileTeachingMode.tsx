@@ -138,7 +138,7 @@ export const MobileTeachingMode = ({ classPlan, onClose }: MobileTeachingModePro
               {currentExercise.category}
             </Badge>
             <div className="flex items-center gap-1">
-              <SpringVisual springs={currentExercise.springs} size="sm" />
+              <SpringVisual springs={currentExercise.springs} className="w-3 h-3" />
             </div>
             {currentExercise.repsOrDuration && (
               <Badge variant="outline" className="border-blue-400 text-blue-200 bg-blue-700/50 text-xs">
