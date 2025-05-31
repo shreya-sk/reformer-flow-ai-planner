@@ -395,7 +395,7 @@ export const MobileClassBuilder = ({
         </DialogContent>
       </Dialog>
 
-      {/* Exercise Detail Modal - Opens in EDIT mode */}
+      {/* Exercise Detail Modal - Fixed to remove the invalid mode prop */}
       <ExerciseDetailModal
         exercise={selectedExercise}
         isOpen={isDetailModalOpen}
@@ -405,7 +405,6 @@ export const MobileClassBuilder = ({
         }}
         onAddToClass={() => {}}
         onSave={handleUpdateExercise}
-        mode="edit" // Force edit mode for class builder
       />
     </div>
   );
