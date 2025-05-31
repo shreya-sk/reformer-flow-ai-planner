@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,7 +8,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Clock, Edit, ChevronDown, ChevronRight, Trash2, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { ExerciseDetailModal } from '@/components/ExerciseDetailModal';
-import { showSuccessToast } from '@/utils/toastUtils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface MobileClassBuilderProps {
@@ -76,8 +74,8 @@ export const MobileClassBuilder = ({
     setIsDetailModalOpen(false);
     setSelectedExercise(null);
     
-    // Reduced toast frequency - only show for significant updates
-    showSuccessToast("Exercise updated", `"${updatedExercise.name}" has been updated.`);
+    // Removed toast - using console log for feedback
+    console.log(`✅ Exercise "${updatedExercise.name}" updated successfully`);
   };
 
   const handleAddSection = (position: number) => {
@@ -91,7 +89,7 @@ export const MobileClassBuilder = ({
       onAddCallout(newCalloutName.trim(), newCalloutPosition);
       setNewCalloutName('');
       setIsCalloutDialogOpen(false);
-      // Remove toast for section creation to reduce noise
+      console.log(`✅ Section "${newCalloutName}" created successfully`);
     }
   };
 

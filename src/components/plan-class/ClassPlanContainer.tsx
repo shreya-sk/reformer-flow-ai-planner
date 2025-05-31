@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -106,7 +105,8 @@ export const ClassPlanContainer = () => {
     setShowEditModal(true);
   };
 
-  const handleUpdateExercise = (updatedExercise: Exercise) => {
+  // Fix: Make this function async to match the expected type
+  const handleUpdateExercise = async (updatedExercise: Exercise) => {
     console.log('💾 Saving exercise updates:', updatedExercise.name);
     syncExerciseUpdates(updatedExercise);
     setShowEditModal(false);
