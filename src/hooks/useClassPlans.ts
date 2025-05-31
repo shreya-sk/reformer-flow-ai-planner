@@ -10,9 +10,14 @@ export const useClassPlans = () => {
   const { user } = useAuth();
 
   const fetchClassPlans = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('🎯 useClassPlans: No user, skipping fetch');
+      return;
+    }
     
     setLoading(true);
+    console.log('🎯 useClassPlans: Fetching class plans for user:', user.id);
+    
     try {
       // First fetch class plans
       const { data: classPlansData, error: classPlansError } = await supabase
@@ -21,12 +26,19 @@ export const useClassPlans = () => {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (classPlansError) throw classPlansError;
+      if (classPlansError) {
+        console.error('🎯 useClassPlans: Error fetching class plans:', classPlansError);
+        throw classPlansError;
+      }
+
+      console.log('🎯 useClassPlans: Raw class plans data:', classPlansData);
 
       // Then fetch exercises for each class plan
       const transformedPlans: ClassPlan[] = [];
       
       for (const plan of classPlansData || []) {
+        console.log('🎯 useClassPlans: Processing plan:', plan.id, plan.name);
+        
         // Fetch class plan exercises
         const { data: classPlanExercises, error: cpeError } = await supabase
           .from('class_plan_exercises')
@@ -34,7 +46,12 @@ export const useClassPlans = () => {
           .eq('class_plan_id', plan.id)
           .order('position');
 
-        if (cpeError) throw cpeError;
+        if (cpeError) {
+          console.error('🎯 useClassPlans: Error fetching class plan exercises:', cpeError);
+          throw cpeError;
+        }
+
+        console.log('🎯 useClassPlans: Found exercises for plan:', plan.id, classPlanExercises?.length || 0);
 
         const exercises: Exercise[] = [];
         
@@ -93,7 +110,7 @@ export const useClassPlans = () => {
           }
         }
 
-        transformedPlans.push({
+        const transformedPlan: ClassPlan = {
           id: plan.id,
           name: plan.name,
           duration: plan.duration_minutes,
@@ -104,12 +121,16 @@ export const useClassPlans = () => {
           updatedAt: new Date(plan.updated_at),
           notes: plan.notes || '',
           image: plan.image_url || ''
-        });
+        };
+
+        transformedPlans.push(transformedPlan);
+        console.log('🎯 useClassPlans: Transformed plan:', transformedPlan.id, transformedPlan.name, 'exercises:', transformedPlan.exercises.length);
       }
 
+      console.log('🎯 useClassPlans: Final transformed plans:', transformedPlans.length);
       setClassPlans(transformedPlans);
     } catch (error) {
-      console.error('Error fetching class plans:', error);
+      console.error('🎯 useClassPlans: Error in fetchClassPlans:', error);
     } finally {
       setLoading(false);
     }
@@ -172,6 +193,7 @@ export const useClassPlans = () => {
   };
 
   useEffect(() => {
+    console.log('🎯 useClassPlans: useEffect triggered, user:', user?.id);
     fetchClassPlans();
   }, [user]);
 
