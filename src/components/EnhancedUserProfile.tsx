@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User, Settings, Star, EyeOff, Palette, Moon, Sun, Camera, ChevronRight, Baby } from 'lucide-react';
 import { CustomCalloutsManager } from './CustomCalloutsManager';
 import { TeachingModePreferences } from './TeachingModePreferences';
-import { toast } from '@/hooks/use-toast';
+import { UserStatsSection } from './UserStatsSection';
 
 export const EnhancedUserProfile = () => {
   const { user, signOut } = useAuth();
@@ -24,34 +24,21 @@ export const EnhancedUserProfile = () => {
   const handleSignOut = async () => {
     try {
       await signOut();
-      toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of your account.",
-      });
+      console.log('User signed out successfully');
     } catch (error) {
-      toast({
-        title: "Error signing out",
-        description: "There was a problem signing you out. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Error signing out:', error);
     }
   };
 
   const handleSaveProfile = () => {
     // In a real app, you'd save this to the user's profile
     setIsEditing(false);
-    toast({
-      title: "Profile updated",
-      description: "Your profile changes have been saved.",
-    });
+    console.log('Profile updated');
   };
 
   const toggleDarkMode = () => {
     updatePreferences({ darkMode: !preferences.darkMode });
-    toast({
-      title: preferences.darkMode ? "Light mode enabled" : "Dark mode enabled",
-      description: `Switched to ${preferences.darkMode ? 'light' : 'dark'} mode.`,
-    });
+    console.log(`Switched to ${preferences.darkMode ? 'light' : 'dark'} mode`);
   };
 
   const userInitials = user?.user_metadata?.full_name
@@ -116,39 +103,22 @@ export const EnhancedUserProfile = () => {
                 )}
               </div>
             </div>
-
-            {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-sage-200 dark:border-gray-700">
-              <div className="text-center">
-                <div className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                  {preferences.favoriteExercises?.length || 0}
-                </div>
-                <div className={`text-sm ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>Favorites</div>
-              </div>
-              <div className="text-center">
-                <div className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                  {preferences.customCallouts?.length || 0}
-                </div>
-                <div className={`text-sm ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>Callouts</div>
-              </div>
-              <div className="text-center">
-                <div className={`text-2xl font-bold ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
-                  {preferences.hiddenExercises?.length || 0}
-                </div>
-                <div className={`text-sm ${preferences.darkMode ? 'text-gray-300' : 'text-sage-600'}`}>Hidden</div>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
         {/* Settings Tabs */}
-        <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="stats" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="stats">Stats</TabsTrigger>
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="teaching">Teaching</TabsTrigger>
             <TabsTrigger value="callouts">Callouts</TabsTrigger>
             <TabsTrigger value="account">Account</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="stats" className="space-y-4">
+            <UserStatsSection />
+          </TabsContent>
 
           <TabsContent value="general" className="space-y-4">
             {/* Display Preferences */}

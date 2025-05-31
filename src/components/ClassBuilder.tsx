@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Exercise, ClassPlan } from '@/types/reformer';
-import { MobileClassBuilder } from '@/components/MobileClassBuilder';
+import { ImprovedClassBuilderUI } from '@/components/ImprovedClassBuilderUI';
 
 interface ClassBuilderProps {
   currentClass: ClassPlan;
@@ -12,8 +12,9 @@ interface ClassBuilderProps {
   onSaveClass: () => void;
   onAddExercise: () => void;
   onAddCallout?: (name: string, position: number) => void;
+  onEditExercise?: (exercise: Exercise) => void;
 }
 
 export const ClassBuilder = (props: ClassBuilderProps) => {
-  return <MobileClassBuilder {...props} />;
+  return <ImprovedClassBuilderUI {...props} />;
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Exercise, ClassPlan } from '@/types/reformer';
+import { getRandomClassImage } from '@/utils/imageUtils';
 
 const CLASS_PLAN_KEY = 'reformerly_class_plan';
 
@@ -13,7 +14,7 @@ const getInitialClassPlan = (): ClassPlan => ({
   createdAt: new Date(),
   updatedAt: new Date(),
   notes: '',
-  image: ''
+  image: getRandomClassImage() // Auto-assign random image
 });
 
 // Global state to ensure consistency across components
@@ -117,10 +118,8 @@ export const usePersistedClassPlan = () => {
       globalClassPlan = getInitialClassPlan();
     }
 
-    // Use original exercise ID without timestamps for better tracking
     const exerciseToAdd = {
       ...exercise,
-      // Keep original ID for proper database mapping
       id: exercise.id,
     };
     

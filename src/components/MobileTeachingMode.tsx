@@ -15,7 +15,15 @@ interface MobileTeachingModeProps {
 
 export const MobileTeachingMode = ({ classPlan, onClose }: MobileTeachingModeProps) => {
   const { preferences } = useUserPreferences();
-  const teachingPrefs = preferences.teachingModePreferences;
+  const teachingPrefs = preferences.teachingModePreferences || {
+    showSetupInstructions: true,
+    showTeachingCues: true,
+    showBreathingCues: true,
+    showSafetyNotes: true,
+    showProgressionsRegressions: true,
+    showTimer: true,
+    showExerciseImage: true,
+  };
   
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -38,13 +46,13 @@ export const MobileTeachingMode = ({ classPlan, onClose }: MobileTeachingModePro
   // Exercise timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isPlaying && exerciseTimeLeft > 0) {
+    if (isPlaying && exerciseTimeLeft > 0 && teachingPrefs.showTimer) {
       interval = setInterval(() => {
         setExerciseTimeLeft(time => Math.max(0, time - 1));
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, exerciseTimeLeft]);
+  }, [isPlaying, exerciseTimeLeft, teachingPrefs.showTimer]);
 
   const formatTime = (totalSeconds: number) => {
     const mins = Math.floor(totalSeconds / 60);
@@ -149,7 +157,7 @@ export const MobileTeachingMode = ({ classPlan, onClose }: MobileTeachingModePro
         </div>
 
         {/* Exercise Image */}
-        {teachingPrefs?.showExerciseImage && currentExercise.image && (
+        {teachingPrefs.showExerciseImage && currentExercise.image && (
           <div className="relative rounded-xl overflow-hidden bg-sage-700/30">
             <img 
               src={currentExercise.image} 
@@ -160,7 +168,7 @@ export const MobileTeachingMode = ({ classPlan, onClose }: MobileTeachingModePro
         )}
 
         {/* Setup Instructions */}
-        {teachingPrefs?.showSetupInstructions && (
+        {teachingPrefs.showSetupInstructions && (
           <div className="bg-sage-700/30 rounded-xl p-4">
             <h3 className="text-sm font-semibold text-sage-300 mb-2 flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -173,7 +181,7 @@ export const MobileTeachingMode = ({ classPlan, onClose }: MobileTeachingModePro
         )}
 
         {/* Teaching Cues */}
-        {teachingPrefs?.showTeachingCues && (
+        {teachingPrefs.showTeachingCues && (
           <div className="bg-sage-700/30 rounded-xl p-4">
             <h3 className="text-sm font-semibold text-amber-300 mb-2 flex items-center gap-2">
               <span className="text-amber-400">💡</span>
@@ -191,7 +199,7 @@ export const MobileTeachingMode = ({ classPlan, onClose }: MobileTeachingModePro
         )}
 
         {/* Breathing Cues */}
-        {teachingPrefs?.showBreathingCues && currentExercise.breathingCues && currentExercise.breathingCues.length > 0 && (
+        {teachingPrefs.showBreathingCues && currentExercise.breathingCues && currentExercise.breathingCues.length > 0 && (
           <div className="bg-cyan-900/30 rounded-xl p-4">
             <h3 className="text-sm font-semibold text-cyan-300 mb-2 flex items-center gap-2">
               <Wind className="h-4 w-4" />
@@ -209,7 +217,7 @@ export const MobileTeachingMode = ({ classPlan, onClose }: MobileTeachingModePro
         )}
 
         {/* Progressions & Regressions */}
-        {teachingPrefs?.showProgressionsRegressions && (
+        {teachingPrefs.showProgressionsRegressions && (
           <div className="grid grid-cols-2 gap-3">
             {currentExercise.regressions && currentExercise.regressions.length > 0 && (
               <div className="bg-blue-900/30 rounded-xl p-3">
@@ -245,7 +253,7 @@ export const MobileTeachingMode = ({ classPlan, onClose }: MobileTeachingModePro
         )}
 
         {/* Safety Notes */}
-        {teachingPrefs?.showSafetyNotes && currentExercise.contraindications && currentExercise.contraindications.length > 0 && (
+        {teachingPrefs.showSafetyNotes && currentExercise.contraindications && currentExercise.contraindications.length > 0 && (
           <div className="bg-amber-900/30 rounded-xl p-4">
             <h3 className="text-sm font-semibold text-amber-300 mb-2 flex items-center gap-2">
               <Shield className="h-4 w-4" />
@@ -266,7 +274,7 @@ export const MobileTeachingMode = ({ classPlan, onClose }: MobileTeachingModePro
       {/* Fixed Bottom Controls */}
       <div className="fixed bottom-0 left-0 right-0 bg-sage-900/95 backdrop-blur-sm p-4 space-y-4">
         {/* Timer */}
-        {teachingPrefs?.showTimer && (
+        {teachingPrefs.showTimer && (
           <div className="text-center">
             {currentExercise.duration && currentExercise.duration > 0 ? (
               <div className={`text-4xl font-bold mb-2 ${exerciseTimeLeft < 30 ? 'text-red-300' : 'text-white'}`}>
