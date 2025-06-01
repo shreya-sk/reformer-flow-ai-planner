@@ -25,7 +25,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/library" element={<Library />} />
             <Route path="/plan" element={<PlanClass />} />
-            <Route path="/teaching" element={<Teaching />} />
+            <Route path="/teaching/:classId" element={<Teaching />} />
             <Route path="/timer" element={<Timer />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/store" element={<Store />} />
