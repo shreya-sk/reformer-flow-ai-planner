@@ -174,7 +174,7 @@ export const ClassTeachingMode = ({
 
         {/* Teaching cues - improved spacing and visibility */}
         {currentExercise.cues && currentExercise.cues.length > 0 && (
-          <div className="max-w-lg mx-auto mb-16 bg-white/15 backdrop-blur-sm rounded-2xl p-5">
+          <div className="max-w-lg mx-auto mb-8 bg-white/15 backdrop-blur-sm rounded-2xl p-5">
             <div className="space-y-3">
               {currentExercise.cues.slice(0, 3).map((cue, index) => (
                 <p key={index} className="text-base text-white font-light leading-relaxed text-center">

@@ -24,7 +24,7 @@ export const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
 
   const menuItems = [
     { title: 'Profile', url: '/profile', icon: User, color: 'bg-sage-100 text-sage-700' },
-    { title: 'Store', url: '/store', icon: Store, color: 'bg-amber-100 text-amber-700' },
+    { title: 'Store', url: '/store', icon: Store, color: 'bg-burgundy-100 text-burgundy-800', isStore: true },
     { title: 'Settings', url: '/settings', icon: Settings, color: 'bg-sage-100 text-sage-700' },
     { title: 'Help', url: '/help', icon: HelpCircle, color: 'bg-sage-100 text-sage-700' },
   ];
@@ -54,25 +54,25 @@ export const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
         />
       )}
       
-      {/* Enhanced Sidebar - more rounded and light sage */}
-      <div className={`fixed top-0 right-0 h-full w-80 bg-sage-50/95 backdrop-blur-xl shadow-2xl z-50 transform transition-all duration-300 ease-out rounded-l-3xl ${
+      {/* Enhanced Sidebar - smaller and more capsule-shaped */}
+      <div className={`fixed top-0 right-0 h-full w-72 bg-sage-50/95 backdrop-blur-xl shadow-2xl z-50 transform transition-all duration-300 ease-out rounded-l-3xl ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         
-        {/* Enhanced Header */}
-        <div className="p-6 bg-gradient-to-r from-sage-500/90 to-sage-600/90 text-white relative rounded-tl-3xl backdrop-blur-sm">
+        {/* Enhanced Header - more compact */}
+        <div className="p-5 bg-gradient-to-r from-sage-500/90 to-sage-600/90 text-white relative rounded-tl-3xl backdrop-blur-sm">
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full p-2 w-8 h-8"
+            className="absolute top-3 right-3 text-white hover:bg-white/20 rounded-full p-2 w-8 h-8"
           >
             <X className="h-4 w-4" />
           </Button>
           
           <div className="flex items-center gap-3 mr-8">
-            <Avatar className="h-12 w-12 border-2 border-white/30">
-              <AvatarFallback className="bg-white/20 text-white text-lg font-semibold">
+            <Avatar className="h-10 w-10 border-2 border-white/30">
+              <AvatarFallback className="bg-white/20 text-white text-sm font-semibold">
                 {user?.email?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
@@ -85,34 +85,36 @@ export const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
           </div>
         </div>
 
-        {/* Enhanced Menu Items - minimal typography */}
-        <div className="p-4 space-y-1">
+        {/* Enhanced Menu Items - more compact */}
+        <div className="p-3 space-y-1">
           {menuItems.map((item) => (
             <Button
               key={item.title}
               variant="ghost"
               onClick={() => handleNavigation(item.url)}
-              className="w-full justify-start rounded-2xl h-12 transition-all duration-200 hover:bg-sage-100/80 text-sage-700 text-sm font-medium"
+              className={`w-full justify-start rounded-2xl h-10 transition-all duration-200 hover:bg-sage-100/80 text-sm font-medium ${
+                item.isStore ? 'text-burgundy-700 hover:text-burgundy-800' : 'text-sage-700'
+              }`}
             >
-              <div className={`p-2.5 rounded-xl mr-3 ${item.color}`}>
+              <div className={`p-2 rounded-xl mr-3 ${item.color}`}>
                 <item.icon className="h-4 w-4" />
               </div>
               <span>{item.title}</span>
               {item.url === '/store' && (
-                <div className="ml-auto w-2 h-2 bg-amber-600 rounded-full"></div>
+                <div className="ml-auto w-2 h-2 bg-burgundy-600 rounded-full"></div>
               )}
             </Button>
           ))}
         </div>
 
-        {/* Enhanced Sign Out */}
-        <div className="absolute bottom-6 left-4 right-4">
+        {/* Enhanced Sign Out - more compact */}
+        <div className="absolute bottom-5 left-3 right-3">
           <Button
             variant="ghost"
             onClick={handleSignOut}
-            className="w-full justify-start rounded-2xl h-12 text-red-600 hover:bg-red-50/80 text-sm font-medium"
+            className="w-full justify-start rounded-2xl h-10 text-red-600 hover:bg-red-50/80 text-sm font-medium"
           >
-            <div className="p-2.5 rounded-xl mr-3 bg-red-100 text-red-600">
+            <div className="p-2 rounded-xl mr-3 bg-red-100 text-red-600">
               <LogOut className="h-4 w-4" />
             </div>
             <span>Sign Out</span>

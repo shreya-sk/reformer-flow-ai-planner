@@ -63,142 +63,146 @@ export const WalletStyleClassCards = ({
     
     if (isStacked) {
       return {
-        transform: `translateY(${-150 - (distanceFromTop * 12)}px) scale(0.94)`,
+        transform: `translateY(${-200 - (distanceFromTop * 20)}px) scale(0.92)`,
         zIndex: 50 - distanceFromTop,
-        opacity: 0.8,
+        opacity: 0.7,
       };
     }
     
-    // Show more of each card behind - increased spacing and visibility
+    // Increased spacing to show more of each card behind
     return {
-      transform: `translateY(${-index * 35}px) scale(${1 - index * 0.015})`,
+      transform: `translateY(${-index * 60}px) scale(${1 - index * 0.02})`,
       zIndex: 50 - index,
-      opacity: 1 - index * 0.08,
+      opacity: 1 - index * 0.1,
     };
   };
 
   if (classPlans.length === 0) {
     return (
-      <Card className="bg-white/90 backdrop-blur-sm border-0 rounded-3xl shadow-xl mx-4">
-        <CardContent className="p-8 text-center">
-          <div className="p-4 bg-sage-100 rounded-3xl w-16 h-16 flex items-center justify-center mx-auto mb-4">
-            <Clock className="h-8 w-8 text-sage-600" />
-          </div>
-          <h3 className="text-lg font-semibold text-sage-800 mb-2">No Class Plans Yet</h3>
-          <p className="text-sage-600 text-sm mb-6">Create your first class plan to get started</p>
-          <Button
-            onClick={() => navigate('/plan')}
-            className="bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-2xl px-6"
-          >
-            Create Class Plan
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
+        <Card className="bg-white/90 backdrop-blur-sm border-0 rounded-3xl shadow-xl mx-4">
+          <CardContent className="p-8 text-center">
+            <div className="p-4 bg-sage-100 rounded-3xl w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <Clock className="h-8 w-8 text-sage-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-sage-800 mb-2">No Class Plans Yet</h3>
+            <p className="text-sage-600 text-sm mb-6">Create your first class plan to get started</p>
+            <Button
+              onClick={() => navigate('/plan')}
+              className="bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-2xl px-6"
+            >
+              Create Class Plan
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
-  // Improved container height calculation to prevent spillage
-  const containerHeight = Math.max(280, 180 + (classPlans.length - 1) * 35);
+  // Improved container height calculation
+  const containerHeight = Math.max(320, 220 + (classPlans.length - 1) * 60);
 
   return (
-    <div className="relative px-4 pb-32" style={{ height: `${containerHeight}px` }}>
-      {classPlans.map((plan, index) => (
-        <Card 
-          key={plan.id}
-          className="absolute w-full bg-white/95 backdrop-blur-sm border-0 rounded-3xl shadow-2xl transition-all duration-500 ease-out cursor-pointer overflow-hidden"
-          style={{
-            top: `${index * 12}px`,
-            ...getCardStyle(index),
-            maxWidth: 'calc(100% - 2rem)',
-          }}
-          onClick={() => handleCardTap(index)}
-        >
-          <CardContent className="p-0 relative h-48">
-            {/* Background Image */}
-            <div className="absolute inset-0 overflow-hidden rounded-3xl">
-              <img 
-                src={plan.image || getRandomImage(plan.id)}
-                alt={plan.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-sage-900/60 via-sage-600/20 to-transparent"></div>
-            </div>
-
-            {/* Content */}
-            <div className="relative z-10 h-full flex flex-col justify-between p-6">
-              {/* Top - Plan Type Badge */}
-              <div className="flex justify-between items-start">
-                <Badge className="bg-sage-100/90 text-sage-800 border-0 rounded-full px-3 py-1 text-sm backdrop-blur-sm">
-                  Reformer
-                </Badge>
-                
-                {/* Options Menu */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-sage-100 hover:bg-white/20 rounded-full w-8 h-8"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-white/95 backdrop-blur-sm border-0 rounded-2xl shadow-xl">
-                    <DropdownMenuItem 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDuplicatePlan(plan);
-                      }}
-                      className="text-sage-700 hover:bg-sage-100 rounded-xl m-1"
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Duplicate & Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onHidePlan(plan.id);
-                      }}
-                      className="text-red-600 hover:bg-red-100 rounded-xl m-1"
-                    >
-                      <EyeOff className="h-4 w-4 mr-2" />
-                      Hide Plan
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
+      <div className="relative px-4 pb-32" style={{ height: `${containerHeight}px` }}>
+        {classPlans.map((plan, index) => (
+          <Card 
+            key={plan.id}
+            className="absolute w-full bg-white/95 backdrop-blur-sm border-0 rounded-3xl shadow-2xl transition-all duration-500 ease-out cursor-pointer overflow-hidden"
+            style={{
+              top: `${index * 20}px`,
+              ...getCardStyle(index),
+              maxWidth: 'calc(100% - 2rem)',
+            }}
+            onClick={() => handleCardTap(index)}
+          >
+            <CardContent className="p-0 relative h-52">
+              {/* Background Image */}
+              <div className="absolute inset-0 overflow-hidden rounded-3xl">
+                <img 
+                  src={plan.image || getRandomImage(plan.id)}
+                  alt={plan.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-sage-900/60 via-sage-600/20 to-transparent"></div>
               </div>
 
-              {/* Bottom - Plan Info */}
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2 leading-tight">
-                  {plan.name}
-                </h3>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-white/90 text-sm">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>{plan.totalDuration || 0}min</span>
-                    </div>
-                    <span>{plan.exercises?.filter(ex => ex.category !== 'callout').length || 0} exercises</span>
-                  </div>
+              {/* Content */}
+              <div className="relative z-10 h-full flex flex-col justify-between p-6">
+                {/* Top - Plan Type Badge */}
+                <div className="flex justify-between items-start">
+                  <Badge className="bg-sage-100/90 text-sage-800 border-0 rounded-full px-3 py-1 text-sm backdrop-blur-sm">
+                    Reformer
+                  </Badge>
                   
-                  {/* Play Button */}
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onTeachPlan(plan);
-                    }}
-                    className="w-12 h-12 rounded-full bg-white/90 hover:bg-white text-sage-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 p-0"
-                  >
-                    <Play className="h-5 w-5 ml-0.5" />
-                  </Button>
+                  {/* Options Menu */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-sage-100 hover:bg-white/20 rounded-full w-8 h-8"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-white/95 backdrop-blur-sm border-0 rounded-2xl shadow-xl z-[60]">
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDuplicatePlan(plan);
+                        }}
+                        className="text-sage-700 hover:bg-sage-100 rounded-xl m-1"
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Duplicate & Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onHidePlan(plan.id);
+                        }}
+                        className="text-red-600 hover:bg-red-100 rounded-xl m-1"
+                      >
+                        <EyeOff className="h-4 w-4 mr-2" />
+                        Hide Plan
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Bottom - Plan Info */}
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-2 leading-tight">
+                    {plan.name}
+                  </h3>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-white/90 text-sm">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{plan.totalDuration || 0}min</span>
+                      </div>
+                      <span>{plan.exercises?.filter(ex => ex.category !== 'callout').length || 0} exercises</span>
+                    </div>
+                    
+                    {/* Play Button */}
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onTeachPlan(plan);
+                      }}
+                      className="w-12 h-12 rounded-full bg-white/90 hover:bg-white text-sage-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 p-0"
+                    >
+                      <Play className="h-5 w-5 ml-0.5" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 };

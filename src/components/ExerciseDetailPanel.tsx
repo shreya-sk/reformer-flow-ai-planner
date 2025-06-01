@@ -15,7 +15,7 @@ interface ExerciseDetailPanelProps {
 export const ExerciseDetailPanel = ({ exercise, isOpen, onClose }: ExerciseDetailPanelProps) => {
   const { isPulling, pullDistance } = useTouchGestures({
     onSwipeDown: onClose,
-    minSwipeDistance: 100,
+    minSwipeDistance: 80,
   });
 
   if (!isOpen) return null;
@@ -24,13 +24,13 @@ export const ExerciseDetailPanel = ({ exercise, isOpen, onClose }: ExerciseDetai
     <div className="fixed inset-x-0 bottom-0 z-50 animate-slide-in-bottom">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
       
       {/* Enhanced Panel with curved top */}
       <Card 
-        className="relative bg-white/95 backdrop-blur-xl border-0 rounded-t-3xl shadow-2xl max-h-[75vh] overflow-hidden"
+        className="relative bg-white/95 backdrop-blur-xl border-0 rounded-t-3xl shadow-2xl max-h-[80vh] overflow-hidden"
         style={{
           transform: isPulling ? `translateY(${Math.min(pullDistance, 100)}px)` : 'translateY(0)',
           transition: isPulling ? 'none' : 'transform 0.3s ease-out'
@@ -54,17 +54,17 @@ export const ExerciseDetailPanel = ({ exercise, isOpen, onClose }: ExerciseDetai
           </div>
           
           {/* Content */}
-          <div className="px-6 pb-8 space-y-6 max-h-[55vh] overflow-y-auto">
+          <div className="px-6 pb-8 space-y-6 max-h-[60vh] overflow-y-auto scroll-smooth">
             {/* Progressions */}
             {exercise.progressions && exercise.progressions.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
+                  <TrendingUp className="h-4 w-4 text-burgundy-700" />
                   <h4 className="font-semibold text-sage-800">Progressions</h4>
                 </div>
                 <div className="space-y-2">
                   {exercise.progressions.map((progression, index) => (
-                    <Badge key={index} variant="outline" className="bg-green-50 text-green-700 border-green-200 mr-2 mb-2">
+                    <Badge key={index} variant="outline" className="bg-burgundy-50 text-burgundy-700 border-burgundy-200 mr-2 mb-2">
                       {progression}
                     </Badge>
                   ))}
@@ -76,12 +76,12 @@ export const ExerciseDetailPanel = ({ exercise, isOpen, onClose }: ExerciseDetai
             {exercise.regressions && exercise.regressions.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <TrendingDown className="h-4 w-4 text-blue-600" />
+                  <TrendingDown className="h-4 w-4 text-sage-600" />
                   <h4 className="font-semibold text-sage-800">Regressions</h4>
                 </div>
                 <div className="space-y-2">
                   {exercise.regressions.map((regression, index) => (
-                    <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 mr-2 mb-2">
+                    <Badge key={index} variant="outline" className="bg-sage-50 text-sage-700 border-sage-200 mr-2 mb-2">
                       {regression}
                     </Badge>
                   ))}

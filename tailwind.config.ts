@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -74,6 +75,19 @@ export default {
 					700: '#3d4b3d',
 					800: '#343d34',
 					900: '#2c342c',
+				},
+				burgundy: {
+					50: '#fdf2f2',
+					100: '#fce7e7',
+					200: '#fbd4d4',
+					300: '#f8b4b4',
+					400: '#f98080',
+					500: '#f05252',
+					600: '#e02424',
+					700: '#c81e1e',
+					800: '#800020',
+					900: '#7f1d1d',
+					950: '#450a0a',
 				}
 			},
 			borderRadius: {
