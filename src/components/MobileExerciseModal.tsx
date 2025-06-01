@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Clock, Heart, Edit, Copy, EyeOff, Eye, Trash2, Play, Plus, Check } from 'lucide-react';
+import { Clock, Heart, Edit, Copy, EyeOff, Eye, Trash2, Play, Plus, Check, X, Baby } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
 import { SpringVisual } from './SpringVisual';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
@@ -27,6 +27,7 @@ export const MobileExerciseModal = ({
   onEdit
 }: MobileExerciseModalProps) => {
   const [isAdding, setIsAdding] = useState(false);
+  const [showMoreDetails, setShowMoreDetails] = useState(false);
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
   const { duplicateExercise, deleteUserExercise } = useExercises();
 
@@ -41,13 +42,11 @@ export const MobileExerciseModal = ({
   const handleAddToClass = async () => {
     if (!onAddToClass || isAdding) return;
     
-    console.log('🔵 MobileExerciseModal handleAddToClass called with:', exercise);
     setIsAdding(true);
     
     try {
       onAddToClass(exercise);
       
-      // Show success animation and toast
       toast({
         title: "Added to class",
         description: `"${exercise.name}" has been added to your class plan.`,
@@ -56,9 +55,9 @@ export const MobileExerciseModal = ({
       setTimeout(() => {
         setIsAdding(false);
         onClose();
-      }, 1500);
+      }, 1000);
     } catch (error) {
-      console.error('🔴 Error in MobileExerciseModal handleAddToClass:', error);
+      console.error('Error adding to class:', error);
       setIsAdding(false);
     }
   };
@@ -123,206 +122,214 @@ export const MobileExerciseModal = ({
 
   return (
     <>
-      {/* Backdrop with sage tint */}
+      {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-sage-900/40 backdrop-blur-sm z-40 animate-fade-in"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 animate-fade-in"
         onClick={onClose}
       />
       
-      {/* Bottom Sheet Modal */}
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-white/95 backdrop-blur-xl rounded-t-3xl shadow-2xl shadow-sage-500/10 animate-slide-in-bottom max-h-[85vh] flex flex-col border-t border-sage-200">
-        {/* Drag Handle */}
-        <div className="flex justify-center pt-3 pb-2">
-          <div className="w-12 h-1 bg-sage-300 rounded-full" />
-        </div>
+      {/* Compact Modal */}
+      <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl max-h-[80vh] flex flex-col border border-sage-200/50 animate-scale-in">
+        {/* Close button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClose}
+          className="absolute top-3 right-3 z-10 rounded-full bg-black/10 text-gray-600 hover:bg-black/20 w-8 h-8 p-0"
+        >
+          <X className="h-4 w-4" />
+        </Button>
 
-        {/* Header */}
-        <div className="flex-shrink-0 p-6 border-b border-sage-100">
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                <Badge className={`text-xs text-white ${status.color}`}>
-                  {status.label}
-                </Badge>
-                {exercise.isPregnancySafe && (
-                  <Badge className="text-xs bg-emerald-100 text-emerald-700 border-emerald-200">
-                    👶 Safe
-                  </Badge>
-                )}
+        {/* Compact Header with Image */}
+        <div className="relative">
+          <div className="h-48 overflow-hidden rounded-t-3xl">
+            <img 
+              src={exercise.image || '/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png'} 
+              alt={exercise.name}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          </div>
+          
+          {/* Floating badges */}
+          <div className="absolute top-3 left-3 flex gap-2">
+            <Badge className={`text-xs text-white ${status.color} backdrop-blur-sm`}>
+              {status.label}
+            </Badge>
+            {exercise.isPregnancySafe && (
+              <Badge className="text-xs bg-emerald-500/90 text-white backdrop-blur-sm">
+                <Baby className="h-3 w-3 mr-1" />
+                Safe
+              </Badge>
+            )}
+          </div>
+
+          {/* Title overlay */}
+          <div className="absolute bottom-4 left-4 right-4">
+            <h2 className="text-xl font-bold text-white mb-2 leading-tight">
+              {exercise.name}
+            </h2>
+            <div className="flex items-center gap-3 text-white/90 text-sm">
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span>{exercise.duration} min</span>
               </div>
-              <h2 className="text-xl font-bold text-sage-900 leading-tight">
-                {exercise.name}
-              </h2>
-              <div className="flex items-center gap-4 mt-2 text-sm text-sage-600">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span>{exercise.duration} min</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span>Springs:</span>
-                  <SpringVisual springs={exercise.springs} />
-                </div>
+              <span>•</span>
+              <span>{exercise.category}</span>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <SpringVisual springs={exercise.springs} />
               </div>
             </div>
-
-            {/* Favorite button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleToggleFavorite}
-              className={`h-10 w-10 p-0 rounded-full ${
-                isFavorite ? 'text-red-500 bg-red-50' : 'text-sage-400 hover:text-red-500'
-              }`}
-            >
-              <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
-            </Button>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
-          {/* Exercise image */}
-          {exercise.image && (
-            <div className="w-full h-48 bg-sage-50">
-              <img 
-                src={exercise.image} 
-                alt={exercise.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {/* Quick Actions Row */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleFavorite}
+              className={`flex-1 h-10 ${isFavorite ? 'bg-red-50 border-red-200 text-red-600' : ''}`}
+            >
+              <Heart className={`h-4 w-4 mr-2 ${isFavorite ? 'fill-current' : ''}`} />
+              {isFavorite ? 'Favorited' : 'Favorite'}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleToggleHidden}
+              className="flex-1 h-10"
+            >
+              {isHidden ? <Eye className="h-4 w-4 mr-2" /> : <EyeOff className="h-4 w-4 mr-2" />}
+              {isHidden ? 'Unhide' : 'Hide'}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDuplicate}
+              className="flex-1 h-10"
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Copy
+            </Button>
+          </div>
+
+          {/* Description */}
+          {exercise.description && (
+            <Card className="border-sage-200/50">
+              <CardContent className="p-3">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {exercise.description}
+                </p>
+              </CardContent>
+            </Card>
           )}
 
-          <div className="p-6 space-y-6">
-            {/* Description */}
-            {exercise.description && (
-              <Card className="border-sage-200">
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2 text-sage-900">Description</h3>
-                  <p className="text-sm text-sage-700 leading-relaxed">
-                    {exercise.description}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+          {/* More Details Toggle */}
+          <Button
+            variant="ghost"
+            onClick={() => setShowMoreDetails(!showMoreDetails)}
+            className="w-full h-10 text-sage-600 hover:bg-sage-50"
+          >
+            {showMoreDetails ? 'Show Less' : 'Show More Details'}
+          </Button>
 
-            {/* Teaching cues */}
-            {exercise.cues && exercise.cues.length > 0 && (
-              <Card className="border-sage-200">
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-3 text-sage-900">Teaching Cues</h3>
-                  <div className="space-y-2">
-                    {exercise.cues.map((cue, index) => (
-                      <div key={index} className="flex gap-3">
-                        <div className="w-6 h-6 rounded-full bg-sage-100 flex items-center justify-center text-xs font-bold text-sage-700 flex-shrink-0 mt-0.5">
-                          {index + 1}
+          {/* Extended Details */}
+          {showMoreDetails && (
+            <div className="space-y-3">
+              {exercise.cues && exercise.cues.length > 0 && (
+                <Card className="border-sage-200/50">
+                  <CardContent className="p-3">
+                    <h4 className="font-semibold mb-2 text-sage-800 text-sm">Teaching Cues</h4>
+                    <div className="space-y-2">
+                      {exercise.cues.slice(0, 3).map((cue, index) => (
+                        <div key={index} className="flex gap-2 text-xs">
+                          <div className="w-4 h-4 rounded-full bg-sage-100 flex items-center justify-center text-[10px] font-bold text-sage-700 flex-shrink-0 mt-0.5">
+                            {index + 1}
+                          </div>
+                          <p className="text-gray-700 leading-relaxed">{cue}</p>
                         </div>
-                        <p className="text-sm text-sage-700 leading-relaxed">
-                          {cue}
-                        </p>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Additional Info */}
+              <Card className="border-sage-200/50">
+                <CardContent className="p-3">
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <span className="text-gray-500">Level:</span>
+                      <span className="ml-1 font-medium capitalize">{exercise.difficulty}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Category:</span>
+                      <span className="ml-1 font-medium">{exercise.category}</span>
+                    </div>
+                    {exercise.regressions && exercise.regressions.length > 0 && (
+                      <div className="col-span-2">
+                        <span className="text-gray-500">Regression:</span>
+                        <span className="ml-1 font-medium text-green-600">{exercise.regressions[0]}</span>
                       </div>
-                    ))}
+                    )}
+                    {exercise.progressions && exercise.progressions.length > 0 && (
+                      <div className="col-span-2">
+                        <span className="text-gray-500">Progression:</span>
+                        <span className="ml-1 font-medium text-blue-600">{exercise.progressions[0]}</span>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
-            )}
-
-            {/* Notes */}
-            {exercise.notes && (
-              <Card className="border-sage-200">
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2 text-sage-900">Notes</h3>
-                  <p className="text-sm text-sage-700 leading-relaxed">
-                    {exercise.notes}
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Action buttons grid */}
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                onClick={handleToggleHidden}
-                className="h-12 flex items-center justify-center gap-2 border-sage-200 hover:bg-sage-50 active:scale-[0.98] transition-transform duration-75"
-              >
-                {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                <span>{isHidden ? 'Unhide' : 'Hide'}</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={handleDuplicate}
-                className="h-12 flex items-center justify-center gap-2 border-sage-200 hover:bg-sage-50 active:scale-[0.98] transition-transform duration-75"
-              >
-                <Copy className="h-4 w-4" />
-                <span>Duplicate</span>
-              </Button>
-
-              {(isCustom || isCustomized) && onEdit && (
-                <Button
-                  variant="outline"
-                  onClick={() => onEdit(exercise)}
-                  className="h-12 flex items-center justify-center gap-2 border-sage-200 hover:bg-sage-50 active:scale-[0.98] transition-transform duration-75"
-                >
-                  <Edit className="h-4 w-4" />
-                  <span>Edit</span>
-                </Button>
-              )}
-
-              {exercise.videoUrl && (
-                <Button
-                  variant="outline"
-                  onClick={() => window.open(exercise.videoUrl, '_blank')}
-                  className="h-12 flex items-center justify-center gap-2 border-sage-200 hover:bg-sage-50 active:scale-[0.98] transition-transform duration-75"
-                >
-                  <Play className="h-4 w-4" />
-                  <span>Video</span>
-                </Button>
-              )}
-
-              {isCustom && (
-                <div className="col-span-2">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full h-12 text-red-600 border-red-200 hover:bg-red-50 active:scale-[0.98] transition-transform duration-75"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Exercise
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Exercise</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to permanently delete "{exercise.name}"? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={handleDelete}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              )}
             </div>
-          </div>
+          )}
+
+          {/* Delete button for custom exercises */}
+          {isCustom && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full h-10 text-red-600 border-red-200 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Exercise
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Exercise</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to permanently delete "{exercise.name}"? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDelete}
+                    className="bg-red-600 hover:bg-red-700"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
 
-        {/* Bottom action */}
+        {/* Bottom Action - Add to Class */}
         {onAddToClass && (
-          <div className="flex-shrink-0 p-6 border-t border-sage-100 bg-white/95">
+          <div className="flex-shrink-0 p-4 border-t border-sage-100 bg-white/95">
             <Button
               onClick={handleAddToClass}
               disabled={isAdding}
-              className={`w-full h-14 text-lg font-semibold transition-all duration-300 active:scale-[0.98] ${
+              className={`w-full h-12 text-base font-semibold transition-all duration-300 ${
                 isAdding
                   ? 'bg-green-500 hover:bg-green-500'
                   : 'bg-sage-600 hover:bg-sage-700'
@@ -331,7 +338,7 @@ export const MobileExerciseModal = ({
               {isAdding ? (
                 <>
                   <Check className="h-5 w-5 mr-2 animate-bounce" />
-                  Added to Class!
+                  Added!
                 </>
               ) : (
                 <>

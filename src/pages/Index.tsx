@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Dumbbell, Users, Clock, Play, ArrowRight, Store, Plus, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
+import { Dumbbell, Users, Clock, Play, ArrowRight, Store, Plus, Heart } from 'lucide-react';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { useStatistics } from '@/hooks/useStatistics';
@@ -18,7 +18,6 @@ const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [exerciseCarouselIndex, setExerciseCarouselIndex] = useState(0);
   const { stats, loading: statsLoading } = useStatistics();
   const { exercises, loading: exercisesLoading } = useExercises();
   const { classPlans, loading: classPlansLoading } = useClassPlans();
@@ -30,9 +29,9 @@ const Index = () => {
     }
   }, [user]);
 
-  // Get featured exercises for carousel
-  const featuredExercises = exercises ? exercises.slice(0, 6) : [];
-  const recentPlans = classPlans ? classPlans.slice(0, 5) : [];
+  // Get featured exercises for highlights
+  const featuredExercises = exercises ? exercises.slice(0, 3) : [];
+  const recentPlans = classPlans ? classPlans.slice(0, 8) : [];
 
   // Use reformer images
   const reformerImages = [
@@ -45,18 +44,6 @@ const Index = () => {
   ];
 
   const classPlanCoverImage = '/lovable-uploads/f986f49e-45f2-4dd4-8758-4be41a199bfd.png';
-
-  const nextExercise = () => {
-    setExerciseCarouselIndex((prev) => 
-      prev + 2 >= featuredExercises.length ? 0 : prev + 2
-    );
-  };
-
-  const prevExercise = () => {
-    setExerciseCarouselIndex((prev) => 
-      prev - 2 < 0 ? Math.max(0, featuredExercises.length - 2) : prev - 2
-    );
-  };
 
   if (!user) {
     return (
@@ -98,14 +85,15 @@ const Index = () => {
         />
       )}
       
-      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white via-70% to-sage-100 pb-24 overflow-hidden relative">
-        {/* Enhanced Background with Subtle Elements */}
-        <div className="absolute inset-0 opacity-8">
+      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white via-60% to-sage-200 pb-24 overflow-hidden relative">
+        {/* Enhanced Background with More Blur Effects */}
+        <div className="absolute inset-0 opacity-12">
           <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-sage-200 to-sage-300 rounded-full blur-3xl"></div>
           <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-r from-sage-100 to-sage-200 rounded-full blur-3xl"></div>
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-gradient-to-r from-sage-200 to-sage-300 rounded-full blur-3xl"></div>
-          {/* Additional bottom blur effect */}
-          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-sage-200/40 to-transparent blur-2xl"></div>
+          {/* Enhanced bottom blur effects */}
+          <div className="absolute bottom-0 left-0 right-0 h-60 bg-gradient-to-t from-sage-300/60 via-sage-200/30 to-transparent blur-2xl"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-sage-400/40 to-transparent blur-xl"></div>
         </div>
 
         <div className="relative">
@@ -150,7 +138,7 @@ const Index = () => {
 
           {/* New Highlights Section */}
           <div className="px-6 mb-8">
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-white/20">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">New Highlights</h2>
@@ -167,7 +155,7 @@ const Index = () => {
               </div>
               
               <div className="space-y-3">
-                {featuredExercises.slice(0, 3).map((exercise, index) => (
+                {featuredExercises.map((exercise, index) => (
                   <div key={exercise.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
                       <img 
@@ -201,9 +189,9 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Enhanced Your Classes Section with Better Visibility */}
+          {/* Enhanced Your Classes Section - Vertical Scrollable */}
           <div className="px-6 mb-8">
-            <div className="bg-gradient-to-br from-sage-50/90 to-sage-100/70 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-sage-200/50">
+            <div className="bg-gradient-to-br from-sage-200/60 via-sage-100/70 to-sage-200/50 backdrop-blur-xl rounded-3xl p-6 shadow-2xl border border-sage-300/30">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-xl font-bold text-sage-800">Your Classes</h2>
@@ -212,7 +200,7 @@ const Index = () => {
                 <Button 
                   onClick={() => navigate('/class-plans')}
                   variant="ghost" 
-                  className="text-sage-600 hover:bg-sage-100 rounded-2xl group"
+                  className="text-sage-600 hover:bg-sage-100/60 rounded-2xl group"
                 >
                   <span>See All</span>
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
@@ -237,49 +225,49 @@ const Index = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="relative">
-                  <div className="flex gap-3 overflow-x-auto pb-2">
-                    {recentPlans.map((plan, index) => (
-                      <Card 
-                        key={plan.id} 
-                        className={`flex-shrink-0 w-40 bg-white/95 backdrop-blur-sm border-0 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden ${
-                          index > 0 ? 'ml-[-20px]' : ''
-                        }`}
-                        style={{
-                          zIndex: recentPlans.length - index,
-                          transform: index > 0 ? `translateX(-${index * 5}px) scale(${1 - index * 0.02})` : 'none'
-                        }}
-                      >
-                        <CardContent className="p-0">
-                          <div className="relative aspect-[3/4] overflow-hidden rounded-t-2xl">
+                <div className="space-y-3 max-h-80 overflow-y-auto">
+                  {recentPlans.map((plan, index) => (
+                    <Card 
+                      key={plan.id} 
+                      className="bg-white/95 backdrop-blur-sm border-0 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden cursor-pointer"
+                      onClick={() => navigate(`/teaching/${plan.id}`)}
+                    >
+                      <CardContent className="p-0">
+                        <div className="flex items-center">
+                          <div className="relative w-20 h-16 overflow-hidden rounded-l-2xl flex-shrink-0">
                             <img 
                               src={classPlanCoverImage}
                               alt={plan.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                            <div className="absolute bottom-3 left-3 right-3">
-                              <h3 className="font-semibold text-white text-xs mb-2 line-clamp-2">{plan.name}</h3>
-                              <div className="flex items-center gap-2 text-white/90 text-[10px] mb-2">
-                                <Clock className="h-2.5 w-2.5" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/20"></div>
+                          </div>
+                          <div className="flex-1 p-3">
+                            <h3 className="font-semibold text-sage-800 text-sm mb-1 line-clamp-1">{plan.name}</h3>
+                            <div className="flex items-center gap-3 text-sage-600 text-xs">
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
                                 <span>{plan.totalDuration || 0}min</span>
-                                <span>{plan.exercises?.length || 0} ex</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Users className="h-3 w-3" />
+                                <span>{plan.exercises?.length || 0} exercises</span>
                               </div>
                             </div>
                           </div>
-                          <div className="p-2">
+                          <div className="p-3">
                             <Button
-                              onClick={() => navigate(`/teaching/${plan.id}`)}
-                              className="w-full bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-xs py-1"
+                              size="sm"
+                              className="bg-sage-600 hover:bg-sage-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 text-xs px-3 py-1"
                             >
-                              <Play className="h-2.5 w-2.5 mr-1" />
+                              <Play className="h-3 w-3 mr-1" />
                               Teach
                             </Button>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               )}
             </div>
