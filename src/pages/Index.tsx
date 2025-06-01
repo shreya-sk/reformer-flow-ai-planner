@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useClassPlans } from '@/hooks/useClassPlans';
 import { AuthPage } from '@/components/AuthPage';
 import { Header } from '@/components/Header';
 import { BottomNavigation } from '@/components/BottomNavigation';
@@ -8,12 +9,15 @@ import { WalletStyleClassCards } from '@/components/WalletStyleClassCards';
 import { ProfileButton } from '@/components/ProfileButton';
 import { AnimatedHeader } from '@/components/AnimatedHeader';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const { user, loading } = useAuth();
+  const { classPlans, loading: classPlansLoading } = useClassPlans();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  if (loading) {
+  if (loading || classPlansLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sage-50 via-white to-sage-100">
         <div className="animate-pulse text-sage-600">Loading...</div>
@@ -24,6 +28,27 @@ const Index = () => {
   if (!user) {
     return <AuthPage />;
   }
+
+  const handleTeachPlan = (plan: any) => {
+    navigate(`/teaching/${plan.id}`);
+  };
+
+  const handleDuplicatePlan = (plan: any) => {
+    // For now, navigate to plan class with the plan data
+    navigate('/plan', { state: { duplicatePlan: plan } });
+    toast({
+      title: "Plan Ready to Duplicate",
+      description: "You can now modify and save the duplicated plan.",
+    });
+  };
+
+  const handleHidePlan = (planId: string) => {
+    // For now, just show a toast - this would need to be implemented in the backend
+    toast({
+      title: "Plan Hidden",
+      description: "This feature will be implemented soon.",
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-50 via-white to-sage-100 pb-20">
@@ -48,7 +73,12 @@ const Index = () => {
         {/* Class Plans Section */}
         <div className="space-y-4">
           <h2 className="text-xl font-semibold text-sage-800">Your Classes</h2>
-          <WalletStyleClassCards />
+          <WalletStyleClassCards 
+            classPlans={classPlans}
+            onTeachPlan={handleTeachPlan}
+            onDuplicatePlan={handleDuplicatePlan}
+            onHidePlan={handleHidePlan}
+          />
         </div>
       </div>
 
