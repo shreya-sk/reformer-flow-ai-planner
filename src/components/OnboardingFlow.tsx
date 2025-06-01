@@ -1,164 +1,145 @@
 
-import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { ChevronRight, Dumbbell, BookOpen, Timer, Sparkles } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowRight, ArrowLeft, Dumbbell, Users, Target, Sparkles } from 'lucide-react';
 
 interface OnboardingFlowProps {
   onComplete: () => void;
 }
 
+const onboardingSteps = [
+  {
+    id: 1,
+    title: "Welcome to Your Reformer Journey",
+    description: "Transform your teaching with our comprehensive class planning platform designed specifically for Reformer instructors.",
+    icon: Sparkles,
+    gradient: "from-sage-200 via-sage-300 to-sage-400",
+    textGradient: "from-sage-700 to-sage-800"
+  },
+  {
+    id: 2,
+    title: "Build Perfect Classes",
+    description: "Access hundreds of exercises, create custom sequences, and organize your classes with our intuitive drag-and-drop builder.",
+    icon: Dumbbell,
+    gradient: "from-sage-300 via-sage-400 to-sage-500",
+    textGradient: "from-sage-800 to-sage-900"
+  },
+  {
+    id: 3,
+    title: "Teach with Confidence", 
+    description: "Use our teaching mode to guide your classes with timers, cues, and seamless transitions between exercises.",
+    icon: Users,
+    gradient: "from-sage-400 via-sage-500 to-sage-600",
+    textGradient: "from-white to-sage-100"
+  },
+  {
+    id: 4,
+    title: "Track Your Progress",
+    description: "Monitor your teaching journey with detailed statistics and insights to help you grow as an instructor.",
+    icon: Target,
+    gradient: "from-sage-500 via-sage-600 to-sage-700",
+    textGradient: "from-white to-sage-100"
+  }
+];
+
 export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const { user } = useAuth();
+  const [currentStep, setCurrentStep] = useState(0);
 
-  const slides = [
-    {
-      title: "Welcome to Reformerly",
-      subtitle: "Your Personal Pilates Assistant",
-      description: "Plan, teach, and track your Reformer classes with ease. Let's get you started on your journey to becoming a more organized instructor.",
-      icon: <Sparkles className="h-16 w-16 text-sage-600" />,
-      gradient: "from-sage-400 to-sage-600"
-    },
-    {
-      title: "Build Amazing Classes",
-      subtitle: "Exercise Library at Your Fingertips",
-      description: "Access hundreds of Reformer exercises, create custom routines, and build comprehensive class plans that your students will love.",
-      icon: <Dumbbell className="h-16 w-16 text-blue-600" />,
-      gradient: "from-blue-400 to-blue-600"
-    },
-    {
-      title: "Teach with Confidence",
-      subtitle: "Live Teaching Mode",
-      description: "Use our teaching mode during classes with built-in timers, exercise sequences, and easy navigation to keep your sessions flowing smoothly.",
-      icon: <Timer className="h-16 w-16 text-green-600" />,
-      gradient: "from-green-400 to-green-600"
-    },
-    {
-      title: "Track Your Progress",
-      subtitle: "Grow as an Instructor",
-      description: "Monitor your teaching statistics, see which exercises work best, and continuously improve your class planning skills.",
-      icon: <BookOpen className="h-16 w-16 text-purple-600" />,
-      gradient: "from-purple-400 to-purple-600"
-    }
-  ];
-
-  const nextSlide = () => {
-    if (currentSlide < slides.length - 1) {
-      setCurrentSlide(currentSlide + 1);
+  const handleNext = () => {
+    if (currentStep < onboardingSteps.length - 1) {
+      setCurrentStep(currentStep + 1);
     } else {
-      // Mark onboarding as complete for this specific user
-      if (user) {
-        localStorage.setItem(`onboarding-completed-${user.id}`, 'true');
-      }
       onComplete();
     }
   };
 
-  const skipOnboarding = () => {
-    if (user) {
-      localStorage.setItem(`onboarding-completed-${user.id}`, 'true');
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
-    onComplete();
   };
 
-  const currentSlideData = slides[currentSlide];
-  const progress = ((currentSlide + 1) / slides.length) * 100;
+  const currentStepData = onboardingSteps[currentStep];
+  const IconComponent = currentStepData.icon;
 
   return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-sage-25 via-white to-sage-50 flex items-center justify-center p-4">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-sage-300 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-blue-300 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-purple-300 rounded-full blur-3xl"></div>
-      </div>
-
-      <div className="relative w-full max-w-md">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-sage-600">
-              {currentSlide + 1} of {slides.length}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={skipOnboarding}
-              className="text-sage-500 hover:text-sage-700"
-            >
-              Skip
-            </Button>
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+      <Card className="w-full max-w-md mx-auto border-0 shadow-2xl overflow-hidden">
+        <div className={`bg-gradient-to-br ${currentStepData.gradient} relative`}>
+          {/* Floating background elements */}
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-10 left-10 w-20 h-20 bg-white/20 rounded-full blur-xl animate-pulse"></div>
+            <div className="absolute bottom-10 right-10 w-16 h-16 bg-white/15 rounded-full blur-xl animate-pulse delay-1000"></div>
+            <div className="absolute top-1/2 right-8 w-12 h-12 bg-white/10 rounded-full blur-xl animate-pulse delay-500"></div>
           </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-
-        {/* Main Card */}
-        <Card className="bg-white/95 backdrop-blur-xl shadow-2xl border-0 rounded-3xl overflow-hidden">
-          <CardContent className="p-0">
-            {/* Header with Gradient */}
-            <div className={`bg-gradient-to-r ${currentSlideData.gradient} p-8 text-center text-white`}>
-              <div className="mb-4 flex justify-center">
-                {currentSlideData.icon}
+          
+          {/* Curved shape overlay */}
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-white rounded-t-[3rem]"></div>
+          
+          <CardContent className="p-8 pb-16 text-center relative">
+            {/* Progress indicator */}
+            <div className="flex justify-center mb-6">
+              <div className="flex gap-2">
+                {onboardingSteps.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      index <= currentStep 
+                        ? 'w-8 bg-white shadow-lg' 
+                        : 'w-2 bg-white/40'
+                    }`}
+                  />
+                ))}
               </div>
-              <h1 className="text-2xl font-bold mb-2">{currentSlideData.title}</h1>
-              <p className="text-lg opacity-90">{currentSlideData.subtitle}</p>
+            </div>
+
+            {/* Icon */}
+            <div className="mb-6">
+              <div className="w-20 h-20 mx-auto bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl flex items-center justify-center">
+                <IconComponent className="h-10 w-10 text-sage-600" />
+              </div>
             </div>
 
             {/* Content */}
-            <div className="p-8 text-center space-y-6">
-              <p className="text-sage-700 leading-relaxed text-lg">
-                {currentSlideData.description}
-              </p>
-
-              {/* Welcome Message on First Slide */}
-              {currentSlide === 0 && (
-                <div className="bg-sage-50 rounded-2xl p-4">
-                  <p className="text-sage-600 text-sm">
-                    Hi {user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'there'}! 👋
-                  </p>
-                  <p className="text-sage-600 text-sm">
-                    Let's take a quick tour of your new favorite teaching tool.
-                  </p>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="space-y-3">
-                <Button
-                  onClick={nextSlide}
-                  className={`w-full bg-gradient-to-r ${currentSlideData.gradient} hover:opacity-90 text-white py-3 rounded-2xl text-lg font-medium shadow-lg transform hover:scale-105 transition-all duration-200`}
-                >
-                  {currentSlide === slides.length - 1 ? (
-                    "Get Started"
-                  ) : (
-                    <>
-                      Continue
-                      <ChevronRight className="h-5 w-5 ml-2" />
-                    </>
-                  )}
-                </Button>
-
-                {/* Dots Indicator */}
-                <div className="flex justify-center gap-2 pt-4">
-                  {slides.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                        index === currentSlide 
-                          ? 'bg-sage-600 w-6' 
-                          : 'bg-sage-200'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
+            <h2 className={`text-2xl font-bold mb-4 bg-gradient-to-r ${currentStepData.textGradient} bg-clip-text text-transparent`}>
+              {currentStepData.title}
+            </h2>
+            <p className={`text-lg leading-relaxed ${
+              currentStep >= 2 ? 'text-white/90' : 'text-sage-700'
+            }`}>
+              {currentStepData.description}
+            </p>
           </CardContent>
-        </Card>
-      </div>
+        </div>
+
+        {/* Navigation buttons */}
+        <div className="p-6 bg-white">
+          <div className="flex items-center justify-between">
+            <Button
+              onClick={handlePrevious}
+              variant="ghost"
+              disabled={currentStep === 0}
+              className="text-sage-600 hover:bg-sage-100 rounded-2xl disabled:opacity-30 bg-white/80 backdrop-blur-sm border border-sage-200"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Previous
+            </Button>
+
+            <div className="text-sm text-sage-600 font-medium">
+              {currentStep + 1} of {onboardingSteps.length}
+            </div>
+
+            <Button
+              onClick={handleNext}
+              className="bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 bg-white/80 backdrop-blur-sm"
+            >
+              {currentStep === onboardingSteps.length - 1 ? 'Get Started' : 'Next'}
+              <ArrowRight className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 };
