@@ -1,13 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, SkipBack, SkipForward, X, Timer, Image as ImageIcon, Lightbulb, Shield, TrendingUp, TrendingDown, Settings, Check, XCircle, Wind } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, X, ArrowLeft } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
-import { SpringVisual } from '@/components/SpringVisual';
-import { Layers } from 'lucide-react';
 
 interface ClassTeachingModeProps {
   classPlan: ClassPlan;
@@ -87,16 +84,6 @@ export const ClassTeachingMode = ({
     setIsPlaying(!isPlaying);
   };
 
-  const getEnhancedCues = (exercise: Exercise): string[] => {
-    const exerciseCues = exercise.cues || [];
-    
-    if (exerciseCues.length > 0) {
-      return exerciseCues;
-    }
-    
-    return ["Focus on proper alignment and breathing"];
-  };
-
   const getExerciseImage = () => {
     const index = currentExerciseIndex % reformerImages.length;
     return reformerImages[index];
@@ -105,137 +92,130 @@ export const ClassTeachingMode = ({
   if (!currentExercise) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-900 via-sage-800 to-sage-900 text-white relative overflow-hidden">
-      {/* Background elements */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-10 w-40 h-40 bg-sage-400 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-32 h-32 bg-sage-500 rounded-full blur-3xl animate-pulse delay-1000"></div>
+    <div className="min-h-screen bg-gradient-to-br from-sage-900 via-gray-900 to-black text-white relative overflow-hidden">
+      {/* Subtle background glow */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-sage-600/10 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Fixed Timer & Progress Header - Music Player Style */}
-      <div className="fixed top-0 left-0 right-0 z-30 bg-sage-900/95 backdrop-blur-xl border-b border-sage-700/50">
-        <div className="px-4 py-4">
-          {/* Timer Display - Large and Central */}
-          <div className="text-center mb-3">
-            <div className={`text-4xl sm:text-6xl font-light mb-2 ${exerciseTimeLeft < 30 ? 'text-red-300' : 'text-white'}`}>
-              {currentExercise.duration && currentExercise.duration > 0 ? formatTime(exerciseTimeLeft) : '00:00'}
-            </div>
-            <div className="text-sage-300 text-sm">
-              {currentExerciseIndex + 1} of {exercises.length} • {Math.round(progressPercentage)}% Complete
-            </div>
+      {/* Top Bar - Minimal */}
+      <div className="relative z-20 flex items-center justify-between p-6 pt-12">
+        <Button 
+          onClick={onClose} 
+          variant="ghost" 
+          size="icon" 
+          className="text-white/70 hover:text-white hover:bg-white/10 rounded-full backdrop-blur-sm"
+        >
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
+        
+        {/* Timer - Clean and minimal */}
+        <div className="text-center">
+          <div className="text-2xl font-light text-white/90 mb-1">
+            {currentExercise.duration && currentExercise.duration > 0 ? formatTime(exerciseTimeLeft) : '00:00'}
           </div>
-          
-          {/* Progress Bar */}
-          <div className="mb-4">
-            <Progress value={progressPercentage} className="h-2 bg-sage-700" />
-          </div>
-
-          {/* Translucent Controls */}
-          <div className="flex items-center justify-center gap-6">
-            <Button 
-              onClick={onClose} 
-              variant="ghost" 
-              size="sm" 
-              className="text-sage-300 hover:text-white hover:bg-sage-700/50 rounded-full"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-            
-            <Button 
-              onClick={previousExercise} 
-              disabled={currentExerciseIndex === 0} 
-              variant="ghost" 
-              size="icon" 
-              className="text-white hover:bg-sage-700/50 rounded-full disabled:opacity-30 w-12 h-12"
-            >
-              <SkipBack className="h-6 w-6" />
-            </Button>
-            
-            <Button 
-              onClick={handlePlayPause} 
-              size="icon" 
-              className="bg-white/20 hover:bg-white/30 text-white rounded-full w-16 h-16 backdrop-blur-sm" 
-            >
-              {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
-            </Button>
-            
-            <Button 
-              onClick={nextExercise} 
-              disabled={currentExerciseIndex === exercises.length - 1} 
-              variant="ghost" 
-              size="icon" 
-              className="text-white hover:bg-sage-700/50 rounded-full disabled:opacity-30 w-12 h-12"
-            >
-              <SkipForward className="h-6 w-6" />
-            </Button>
-
-            <div className="text-sage-300 text-sm bg-sage-700/50 rounded-full px-3 py-1 backdrop-blur-sm">
-              {classPlan.classDuration}min class
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content - Music Player Layout */}
-      <div className="pt-48 px-4 pb-6 max-w-6xl mx-auto relative">
-        {/* Exercise Name - Album Title Style */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl sm:text-5xl font-light text-white mb-4 leading-tight">{currentExercise.name}</h1>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Badge variant="outline" className="border-sage-400 text-sage-200 bg-sage-700/50 backdrop-blur-sm rounded-full">
-              {currentExercise.category}
-            </Badge>
-            <div className="flex items-center gap-2 text-sage-300">
-              <span className="text-sm">Springs:</span>
-              <SpringVisual springs={currentExercise.springs} />
-            </div>
+          <div className="text-xs text-white/50 uppercase tracking-wide">
+            {currentExerciseIndex + 1} of {exercises.length}
           </div>
         </div>
 
-        {/* Central Exercise Image - Album Cover Style */}
-        <div className="flex justify-center mb-8">
-          <div className="relative w-80 h-80 sm:w-96 sm:h-96">
+        <div className="w-12"></div> {/* Spacer for center alignment */}
+      </div>
+
+      {/* Main Content - Centered */}
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-6">
+        {/* Large Circular Image */}
+        <div className="relative mb-8">
+          <div className="w-80 h-80 sm:w-96 sm:h-96 rounded-full overflow-hidden shadow-2xl ring-4 ring-white/10 bg-sage-800/20 backdrop-blur-sm">
             <img 
               src={currentExercise.image || getExerciseImage()}
               alt={currentExercise.name}
-              className="w-full h-full object-cover rounded-3xl shadow-2xl"
+              className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-3xl"></div>
           </div>
+          
+          {/* Subtle glow around image */}
+          <div className="absolute inset-0 w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-gradient-to-r from-sage-400/20 to-sage-600/20 blur-2xl -z-10"></div>
+        </div>
+
+        {/* Exercise Info - Minimal and Clean */}
+        <div className="text-center mb-12 max-w-md">
+          <h1 className="text-3xl sm:text-4xl font-light text-white mb-3 leading-tight">
+            {currentExercise.name}
+          </h1>
+          <p className="text-lg text-white/60 font-light mb-4">
+            Release tension and find your flow
+          </p>
+          
+          {/* Category badge */}
+          <Badge variant="outline" className="border-white/20 text-white/70 bg-white/5 backdrop-blur-sm rounded-full px-4 py-1">
+            {currentExercise.category}
+          </Badge>
         </div>
 
         {/* Teaching Cues - Subtle and Faded */}
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-6">
-            <h3 className="text-sage-300 text-lg font-medium mb-4 flex items-center justify-center gap-2">
-              <Lightbulb className="h-5 w-5" />
-              Teaching Cues
-            </h3>
+        {currentExercise.cues && currentExercise.cues.length > 0 && (
+          <div className="max-w-sm mx-auto mb-8">
             <div className="space-y-2">
-              {getEnhancedCues(currentExercise).slice(0, 3).map((cue, index) => (
-                <p key={index} className="text-sage-400 text-sm leading-relaxed opacity-80">
+              {currentExercise.cues.slice(0, 2).map((cue, index) => (
+                <p key={index} className="text-sm text-white/40 text-center font-light leading-relaxed">
                   {cue}
                 </p>
               ))}
             </div>
           </div>
+        )}
+      </div>
 
-          {/* Breathing Cues */}
-          {currentExercise.breathingCues && currentExercise.breathingCues.length > 0 && (
-            <div className="text-center">
-              <h4 className="text-sage-300 text-base font-medium mb-3 flex items-center justify-center gap-2">
-                <Wind className="h-4 w-4" />
-                Breathing
-              </h4>
-              <div className="space-y-2">
-                {currentExercise.breathingCues.slice(0, 2).map((cue, index) => (
-                  <p key={index} className="text-sage-400 text-sm opacity-70">
-                    {cue}
-                  </p>
-                ))}
-              </div>
-            </div>
-          )}
+      {/* Bottom Controls - Floating */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 p-6 pb-12">
+        {/* Progress Bar */}
+        <div className="mb-6">
+          <Progress 
+            value={progressPercentage} 
+            className="h-1 bg-white/10 rounded-full overflow-hidden"
+          />
+        </div>
+
+        {/* Floating Control Pills */}
+        <div className="flex items-center justify-center gap-4">
+          {/* Previous */}
+          <Button 
+            onClick={previousExercise} 
+            disabled={currentExerciseIndex === 0} 
+            variant="ghost" 
+            size="icon" 
+            className="w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md disabled:opacity-30 disabled:hover:bg-white/10 transition-all duration-300"
+          >
+            <SkipBack className="h-6 w-6" />
+          </Button>
+          
+          {/* Play/Pause - Larger central button */}
+          <Button 
+            onClick={handlePlayPause} 
+            size="icon" 
+            className="w-20 h-20 rounded-full bg-white/15 hover:bg-white/25 text-white backdrop-blur-md shadow-lg transition-all duration-300 transform hover:scale-105" 
+          >
+            {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8 ml-1" />}
+          </Button>
+          
+          {/* Next */}
+          <Button 
+            onClick={nextExercise} 
+            disabled={currentExerciseIndex === exercises.length - 1} 
+            variant="ghost" 
+            size="icon" 
+            className="w-14 h-14 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md disabled:opacity-30 disabled:hover:bg-white/10 transition-all duration-300"
+          >
+            <SkipForward className="h-6 w-6" />
+          </Button>
+        </div>
+
+        {/* Class info - Very subtle */}
+        <div className="text-center mt-4">
+          <p className="text-xs text-white/30 font-light">
+            {classPlan.name} • {classPlan.classDuration}min class
+          </p>
         </div>
       </div>
     </div>
