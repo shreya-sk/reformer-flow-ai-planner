@@ -1,6 +1,8 @@
-import { Search, Dumbbell } from 'lucide-react';
+
+import React from 'react';
 import { Exercise } from '@/types/reformer';
 import { MobileExerciseCard } from './MobileExerciseCard';
+import { Dumbbell } from 'lucide-react';
 
 interface MobileExerciseGridProps {
   exercises: Exercise[];
@@ -37,6 +39,7 @@ export const MobileExerciseGrid = ({
   darkMode,
   feedbackState = {}
 }: MobileExerciseGridProps) => {
+  
   if (exercises.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
@@ -69,7 +72,6 @@ export const MobileExerciseGrid = ({
             exercise={exercise}
             isFavorite={favoriteExercises.includes(exercise.id)}
             isHidden={hiddenExercises.includes(exercise.id)}
-            showHidden={showHidden}
             darkMode={darkMode}
             onSelect={() => onExerciseSelect(exercise)}
             onAddToClass={() => onAddToClass(exercise)}

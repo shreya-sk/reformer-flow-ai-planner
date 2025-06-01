@@ -156,46 +156,38 @@ export const MobileTeachingMode = () => {
                 </Badge>
               </div>
 
-              {/* Exercise Details - Show based on user preferences */}
+              {/* Exercise Details - Always show as preferences structure is different */}
               <div className="grid grid-cols-2 gap-4 text-sm">
-                {(preferences.teachingModePreferences?.showDuration !== false) && (
-                  <div className="flex items-center gap-2 text-sage-600">
-                    <Clock className="h-4 w-4" />
-                    <span>{currentExercise.duration || 3} min</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-sage-600">
+                  <Clock className="h-4 w-4" />
+                  <span>{currentExercise.duration || 3} min</span>
+                </div>
                 
-                {(preferences.teachingModePreferences?.showDifficulty !== false) && (
-                  <div className="flex items-center gap-2 text-sage-600">
-                    <Users className="h-4 w-4" />
-                    <span className="capitalize">{currentExercise.difficulty}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-sage-600">
+                  <Users className="h-4 w-4" />
+                  <span className="capitalize">{currentExercise.difficulty}</span>
+                </div>
                 
-                {(preferences.teachingModePreferences?.showSprings !== false) && (
-                  <div className="flex items-center gap-2 text-sage-600">
-                    <Dumbbell className="h-4 w-4" />
-                    <span className="capitalize">{currentExercise.springs}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-sage-600">
+                  <Dumbbell className="h-4 w-4" />
+                  <span className="capitalize">{currentExercise.springs}</span>
+                </div>
                 
-                {(preferences.teachingModePreferences?.showMuscleGroups !== false) && (
-                  <div className="flex items-center gap-2 text-sage-600">
-                    <Target className="h-4 w-4" />
-                    <span>{currentExercise.muscleGroups.slice(0, 2).join(', ')}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-sage-600">
+                  <Target className="h-4 w-4" />
+                  <span>{currentExercise.muscleGroups.slice(0, 2).join(', ')}</span>
+                </div>
               </div>
 
               {/* Description */}
-              {(preferences.teachingModePreferences?.showDescription !== false) && currentExercise.description && (
+              {currentExercise.description && (
                 <div className="bg-sage-50 p-3 rounded-lg">
                   <p className="text-sage-700 text-sm">{currentExercise.description}</p>
                 </div>
               )}
 
               {/* Setup Instructions */}
-              {(preferences.teachingModePreferences?.showSetup !== false) && currentExercise.setup && (
+              {currentExercise.setup && (
                 <div>
                   <h4 className="font-medium text-sage-800 mb-2">Setup</h4>
                   <p className="text-sm text-sage-600">{currentExercise.setup}</p>
@@ -203,7 +195,7 @@ export const MobileTeachingMode = () => {
               )}
 
               {/* Teaching Cues */}
-              {(preferences.teachingModePreferences?.showCues !== false) && currentExercise.cues && currentExercise.cues.length > 0 && (
+              {currentExercise.cues && currentExercise.cues.length > 0 && (
                 <div>
                   <h4 className="font-medium text-sage-800 mb-2">Teaching Cues</h4>
                   <ul className="space-y-1">
@@ -218,7 +210,7 @@ export const MobileTeachingMode = () => {
               )}
 
               {/* Breathing Cues */}
-              {(preferences.teachingModePreferences?.showBreathingCues !== false) && currentExercise.breathingCues && currentExercise.breathingCues.length > 0 && (
+              {currentExercise.breathingCues && currentExercise.breathingCues.length > 0 && (
                 <div>
                   <h4 className="font-medium text-sage-800 mb-2">Breathing</h4>
                   <ul className="space-y-1">
@@ -233,7 +225,7 @@ export const MobileTeachingMode = () => {
               )}
 
               {/* Modifications */}
-              {(preferences.teachingModePreferences?.showModifications !== false) && currentExercise.modifications && currentExercise.modifications.length > 0 && (
+              {currentExercise.modifications && currentExercise.modifications.length > 0 && (
                 <div>
                   <h4 className="font-medium text-sage-800 mb-2">Modifications</h4>
                   <ul className="space-y-1">

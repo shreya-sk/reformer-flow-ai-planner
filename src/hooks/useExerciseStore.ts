@@ -113,11 +113,19 @@ export const useExerciseStore = () => {
 
       if (error) throw error;
 
-      // Update download count
-      await supabase
+      // Update download count by first getting current count
+      const { data: currentData } = await supabase
         .from('exercise_store')
-        .update({ download_count: supabase.raw('download_count + 1') })
-        .eq('id', storeExerciseId);
+        .select('download_count')
+        .eq('id', storeExerciseId)
+        .single();
+
+      if (currentData) {
+        await supabase
+          .from('exercise_store')
+          .update({ download_count: currentData.download_count + 1 })
+          .eq('id', storeExerciseId);
+      }
 
       setUserLibrary(prev => [...prev, storeExerciseId]);
     } catch (error) {
@@ -144,10 +152,18 @@ export const useExerciseStore = () => {
       await Promise.all(exerciseIds.map(id => addToUserLibrary(id)));
 
       // Update bundle download count
-      await supabase
+      const { data: currentData } = await supabase
         .from('exercise_bundles')
-        .update({ download_count: supabase.raw('download_count + 1') })
-        .eq('id', bundleId);
+        .select('download_count')
+        .eq('id', bundleId)
+        .single();
+
+      if (currentData) {
+        await supabase
+          .from('exercise_bundles')
+          .update({ download_count: currentData.download_count + 1 })
+          .eq('id', bundleId);
+      }
     } catch (error) {
       console.error('Error adding bundle to library:', error);
       throw error;
