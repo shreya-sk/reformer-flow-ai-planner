@@ -38,84 +38,84 @@ export const ModernClassBuilder = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
-      {/* Header */}
-      <div className="bg-white/60 backdrop-blur-xl border-b border-sage-200/50 p-6">
+      {/* Compact Mobile Header */}
+      <div className="bg-white/60 backdrop-blur-xl border-b border-sage-200/50 p-4">
         <div className="max-w-4xl mx-auto">
-          {/* Class title */}
-          <div className="flex items-center gap-3 mb-4">
+          {/* Class title - more compact */}
+          <div className="flex items-center gap-2 mb-3">
             {isEditing ? (
               <div className="flex items-center gap-2 flex-1">
                 <Input
                   value={className}
                   onChange={(e) => setClassName(e.target.value)}
-                  className="text-2xl font-bold bg-transparent border-0 focus:ring-0 p-0 h-auto"
+                  className="text-lg font-bold bg-transparent border-0 focus:ring-0 p-0 h-auto"
                   placeholder="Class name"
                 />
-                <Button size="sm" onClick={handleSaveName} className="bg-sage-600 hover:bg-sage-700">
-                  <Save className="h-4 w-4" />
+                <Button size="sm" onClick={handleSaveName} className="bg-sage-600 hover:bg-sage-700 px-2 py-1">
+                  <Save className="h-3 w-3" />
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center gap-3 flex-1">
-                <h1 className="text-3xl font-bold text-sage-800">{currentClass.name}</h1>
+              <div className="flex items-center gap-2 flex-1">
+                <h1 className="text-xl font-bold text-sage-800 truncate">{currentClass.name}</h1>
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => setIsEditing(true)}
-                  className="text-sage-600 hover:bg-sage-100 rounded-full p-2"
+                  className="text-sage-600 hover:bg-sage-100 rounded-full p-1"
                 >
-                  <Edit3 className="h-4 w-4" />
+                  <Edit3 className="h-3 w-3" />
                 </Button>
               </div>
             )}
           </div>
 
-          {/* Stats */}
-          <div className="flex items-center gap-6 text-sage-600">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span className="font-medium">{totalDuration} min</span>
+          {/* Compact Stats */}
+          <div className="flex items-center gap-4 text-sage-600 text-sm">
+            <div className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              <span className="font-medium">{totalDuration}min</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              <span className="font-medium">{exerciseCount} exercises</span>
+            <div className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              <span className="font-medium">{exerciseCount} ex</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto p-6">
-        {/* Add Exercise Button */}
-        <Card className="mb-6 bg-white/60 backdrop-blur-xl border-0 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group" onClick={onAddExercise}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center gap-3 text-sage-600 group-hover:text-sage-800 transition-colors">
-              <div className="p-3 bg-sage-100 rounded-2xl group-hover:bg-sage-200 transition-colors">
-                <Plus className="h-6 w-6" />
+      <div className="max-w-4xl mx-auto p-4">
+        {/* Compact Add Exercise Button */}
+        <Card className="mb-4 bg-white/60 backdrop-blur-xl border-0 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group" onClick={onAddExercise}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-center gap-2 text-sage-600 group-hover:text-sage-800 transition-colors">
+              <div className="p-2 bg-sage-100 rounded-xl group-hover:bg-sage-200 transition-colors">
+                <Plus className="h-4 w-4" />
               </div>
-              <span className="text-lg font-medium">Add Exercise</span>
+              <span className="text-sm font-medium">Add Exercise</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Exercise List */}
-        <div className="space-y-3">
+        {/* Compact Exercise List */}
+        <div className="space-y-2">
           {currentClass.exercises.map((exercise, index) => (
-            <Card key={exercise.id} className="bg-white/70 backdrop-blur-xl border-0 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 group">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  {/* Drag handle */}
+            <Card key={exercise.id} className="bg-white/70 backdrop-blur-xl border-0 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2">
+                  {/* Compact drag handle */}
                   <div className="cursor-grab hover:cursor-grabbing text-sage-400">
-                    <GripVertical className="h-5 w-5" />
+                    <GripVertical className="h-4 w-4" />
                   </div>
 
-                  {/* Exercise number */}
-                  <div className="w-8 h-8 bg-sage-100 rounded-full flex items-center justify-center font-bold text-sage-700 text-sm">
+                  {/* Compact exercise number */}
+                  <div className="w-6 h-6 bg-sage-100 rounded-full flex items-center justify-center font-bold text-sage-700 text-xs">
                     {index + 1}
                   </div>
 
-                  {/* Exercise image */}
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-sage-100">
+                  {/* Compact exercise image */}
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-sage-100 flex-shrink-0">
                     <img
                       src={exercise.image || '/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png'}
                       alt={exercise.name}
@@ -123,32 +123,32 @@ export const ModernClassBuilder = ({
                     />
                   </div>
 
-                  {/* Exercise info */}
+                  {/* Compact exercise info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sage-800 truncate">{exercise.name}</h3>
-                    <div className="flex items-center gap-3 mt-1">
-                      <Badge variant="outline" className="text-xs bg-sage-50 text-sage-600 border-sage-200">
+                    <h3 className="font-semibold text-sage-800 truncate text-sm leading-tight">{exercise.name}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="text-[10px] bg-sage-50 text-sage-600 border-sage-200 px-1 py-0">
                         {exercise.category}
                       </Badge>
-                      <div className="flex items-center gap-1 text-sage-500 text-sm">
-                        <Clock className="h-3 w-3" />
+                      <div className="flex items-center gap-0.5 text-sage-500 text-xs">
+                        <Clock className="h-2 w-2" />
                         <span>{exercise.duration}min</span>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-0.5">
                         <SpringVisual springs={exercise.springs} />
                       </div>
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {/* Compact Actions */}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onRemoveExercise(exercise.id)}
-                      className="text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full p-2 w-8 h-8"
+                      className="text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full p-1 w-6 h-6"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
@@ -157,31 +157,31 @@ export const ModernClassBuilder = ({
           ))}
         </div>
 
-        {/* Empty state */}
+        {/* Compact Empty state */}
         {currentClass.exercises.length === 0 && (
-          <Card className="bg-white/40 backdrop-blur-xl border-0 rounded-3xl shadow-lg">
-            <CardContent className="p-12 text-center">
-              <div className="p-6 bg-sage-100 rounded-3xl w-20 h-20 flex items-center justify-center mx-auto mb-6">
-                <Plus className="h-10 w-10 text-sage-400" />
+          <Card className="bg-white/40 backdrop-blur-xl border-0 rounded-2xl shadow-lg">
+            <CardContent className="p-8 text-center">
+              <div className="p-4 bg-sage-100 rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Plus className="h-8 w-8 text-sage-400" />
               </div>
-              <h3 className="text-xl font-semibold text-sage-800 mb-2">Start Building Your Class</h3>
-              <p className="text-sage-600 mb-6">Add exercises to create your perfect class plan</p>
-              <Button onClick={onAddExercise} className="bg-sage-600 hover:bg-sage-700 text-white rounded-2xl px-8">
+              <h3 className="text-lg font-semibold text-sage-800 mb-2">Start Building</h3>
+              <p className="text-sage-600 mb-4 text-sm">Add exercises to create your class</p>
+              <Button onClick={onAddExercise} className="bg-sage-600 hover:bg-sage-700 text-white rounded-xl px-6">
                 Add First Exercise
               </Button>
             </CardContent>
           </Card>
         )}
 
-        {/* Save button */}
+        {/* Compact Save button */}
         {currentClass.exercises.length > 0 && (
           <div className="fixed bottom-6 right-6">
             <Button
               onClick={onSaveClass}
-              className="bg-burgundy-800 hover:bg-burgundy-900 text-white rounded-full px-8 py-3 shadow-2xl hover:shadow-3xl transition-all duration-300"
+              className="bg-burgundy-800 hover:bg-burgundy-900 text-white rounded-full px-6 py-2 shadow-xl hover:shadow-2xl transition-all duration-300"
             >
-              <Save className="h-5 w-5 mr-2" />
-              Save Class
+              <Save className="h-4 w-4 mr-2" />
+              Save
             </Button>
           </div>
         )}

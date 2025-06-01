@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Dumbbell, Users, Clock, Play, ArrowRight, Store, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Dumbbell, Users, Clock, Play, ArrowRight, Store, Plus, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { useStatistics } from '@/hooks/useStatistics';
@@ -146,90 +146,60 @@ const Index = () => {
             </Card>
           </div>
 
-          {/* Enhanced Store Preview with Carousel - Updated Design */}
+          {/* New Highlights Section - Matching uploaded image */}
           <div className="px-6 mb-8">
-            <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-5 shadow-xl border border-white/40">
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 rounded-2xl shadow-lg">
-                    <Store className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-bold text-sage-800">New Highlights</h2>
-                  </div>
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">New Highlights</h2>
+                  <p className="text-sm text-gray-600">Fresh exercises from our store</p>
                 </div>
                 <Button 
                   onClick={() => navigate('/store')} 
                   variant="ghost" 
-                  className="text-sage-600 hover:bg-sage-100 rounded-2xl group"
+                  className="text-red-600 hover:bg-red-50 text-sm font-medium"
                 >
-                  <span className="text-sm">Explore All</span>
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  View All
+                  <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </div>
               
-              {/* Carousel Container - Larger Images */}
-              <div className="relative">
-                <div className="flex gap-3 overflow-hidden">
-                  {featuredExercises.slice(exerciseCarouselIndex, exerciseCarouselIndex + 2).map((exercise, index) => (
-                    <Card key={exercise.id} className="flex-1 bg-white/90 backdrop-blur-sm border-0 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 active:scale-95 overflow-hidden group">
-                      <CardContent className="p-0">
-                        <div className="relative aspect-[4/3] overflow-hidden">
-                          <img 
-                            src={reformerImages[(exerciseCarouselIndex + index) % reformerImages.length]}
-                            alt={exercise.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                          <div className="absolute top-3 right-3">
-                            <Badge className="bg-gradient-to-r from-amber-700 to-amber-800 text-white border-0 rounded-full px-3 py-1 text-xs font-medium shadow-lg">
-                              New
-                            </Badge>
-                          </div>
-                          <div className="absolute bottom-3 left-3 right-3">
-                            <h3 className="text-white font-bold text-sm leading-tight mb-2">{exercise.name}</h3>
-                            <div className="flex items-center gap-2 text-white/90 text-xs">
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                <span>{exercise.duration}min</span>
-                              </div>
-                              <Badge className="bg-white/20 text-white border-0 rounded-full px-2 py-0.5 text-xs backdrop-blur-sm">
-                                {exercise.category}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-                
-                {/* Carousel Controls */}
-                {featuredExercises.length > 2 && (
-                  <>
-                    <Button
-                      onClick={prevExercise}
-                      variant="ghost"
-                      size="icon"
-                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm hover:bg-white rounded-full shadow-lg w-8 h-8"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      onClick={nextExercise}
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm hover:bg-white rounded-full shadow-lg w-8 h-8"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </>
-                )}
+              <div className="space-y-3">
+                {featuredExercises.slice(0, 3).map((exercise, index) => (
+                  <div key={exercise.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100">
+                      <img 
+                        src={reformerImages[index % reformerImages.length]}
+                        alt={exercise.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-gray-900 text-sm">{exercise.name}</h3>
+                        {index < 2 && (
+                          <Badge className="bg-red-500 text-white text-xs px-2 py-0.5 rounded">
+                            New
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-600">{exercise.category} • {exercise.duration}min</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100">
+                        <Heart className="h-4 w-4 text-gray-400" />
+                      </button>
+                      <button className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700">
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Enhanced Recent Class Plans */}
+          {/* Enhanced Recent Class Plans - Portrait Carousel Style */}
           <div className="px-6 mb-8">
             <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/40">
               <div className="flex items-center justify-between mb-6">
@@ -265,36 +235,34 @@ const Index = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid gap-4">
+                <div className="flex gap-4 overflow-x-auto pb-2">
                   {recentPlans.map((plan, index) => (
-                    <Card key={plan.id} className="bg-white/90 backdrop-blur-sm border-0 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden">
+                    <Card key={plan.id} className="flex-shrink-0 w-48 bg-white/90 backdrop-blur-sm border-0 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden">
                       <CardContent className="p-0">
-                        <div className="flex items-center">
-                          <div className="relative w-24 h-24 overflow-hidden rounded-l-2xl">
-                            <img 
-                              src={classPlanCoverImage}
-                              alt={plan.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                            />
-                          </div>
-                          <div className="flex-1 p-4">
-                            <h3 className="font-semibold text-sage-800 text-base mb-1">{plan.name}</h3>
-                            <div className="flex items-center gap-3 text-sage-600 text-sm mb-3">
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {plan.totalDuration || 0}min
-                              </span>
+                        <div className="relative aspect-[3/4] overflow-hidden rounded-t-2xl">
+                          <img 
+                            src={classPlanCoverImage}
+                            alt={plan.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                          <div className="absolute bottom-3 left-3 right-3">
+                            <h3 className="font-semibold text-white text-sm mb-2 line-clamp-2">{plan.name}</h3>
+                            <div className="flex items-center gap-2 text-white/90 text-xs mb-2">
+                              <Clock className="h-3 w-3" />
+                              <span>{plan.totalDuration || 0}min</span>
                               <span>{plan.exercises?.length || 0} exercises</span>
                             </div>
-                            <Button
-                              onClick={() => navigate(`/teaching/${plan.id}`)}
-                              size="sm"
-                              className="bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                            >
-                              <Play className="h-3 w-3 mr-2" />
-                              Teach
-                            </Button>
                           </div>
+                        </div>
+                        <div className="p-3">
+                          <Button
+                            onClick={() => navigate(`/teaching/${plan.id}`)}
+                            className="w-full bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                          >
+                            <Play className="h-3 w-3 mr-2" />
+                            Teach
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
