@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BottomNavigation } from '@/components/BottomNavigation';
-import { Clock, Play, MoreHorizontal, Copy, EyeOff, ArrowLeft } from 'lucide-react';
+import { Clock, Play, MoreHorizontal, Copy, EyeOff, ArrowLeft, Calendar } from 'lucide-react';
 import { useClassPlans } from '@/hooks/useClassPlans';
 import {
   DropdownMenu,
