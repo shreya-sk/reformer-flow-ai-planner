@@ -1,7 +1,6 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Heart, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw, Check, Baby } from 'lucide-react';
+import { Plus, Heart, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw, Check } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
@@ -40,6 +39,7 @@ export const MobileExerciseCard = ({
 }: MobileExerciseCardProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [showActions, setShowActions] = useState(false);
 
   const isCustom = exercise.isCustom || false;
   const isSystemExercise = exercise.isSystemExercise || false;
@@ -58,9 +58,15 @@ export const MobileExerciseCard = ({
     setIsAdding(true);
     onAddToClass(exercise);
     
+    // Reset button after animation
     setTimeout(() => {
       setIsAdding(false);
     }, 1500);
+  };
+
+  const toggleActions = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowActions(!showActions);
   };
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
@@ -69,25 +75,14 @@ export const MobileExerciseCard = ({
     onToggleFavorite(e);
   };
 
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onEdit(e);
-  };
-
-  const handleDuplicateClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onDuplicate(e);
-  };
-
   return (
     <div 
-      className={`bg-white/90 backdrop-blur-xl rounded-lg overflow-hidden shadow-sm border border-sage-200/50 cursor-pointer transition-all duration-300 active:scale-95 hover:shadow-md ${isHidden ? 'opacity-60' : ''} ${className}`}
+      className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transition-all duration-300 active:scale-95 hover:shadow-lg ${isHidden ? 'opacity-60' : ''} ${className}`}
       onClick={() => onSelect(exercise)}
     >
-      {/* Image container - much smaller aspect ratio */}
-      <div className="relative aspect-[5/3] overflow-hidden">
+      {/* Image container with overlay elements */}
+      <div className="relative aspect-square overflow-hidden">
+        {/* Exercise image */}
         {exercise.image ? (
           <img
             ref={imageRef}
@@ -96,7 +91,7 @@ export const MobileExerciseCard = ({
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-sage-100 to-sage-200 flex items-center justify-center">
+          <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
             <img 
               src="/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png" 
               alt="Default exercise"
@@ -106,93 +101,177 @@ export const MobileExerciseCard = ({
         )}
         
         {/* Status indicators - top left */}
-        <div className="absolute top-1 left-1 flex flex-col gap-0.5">
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
           {isHidden && (
-            <Badge variant="secondary" className="text-[9px] bg-gray-500 text-white px-1 py-0">
+            <Badge variant="secondary" className="text-xs bg-gray-500 text-white">
               Hidden
             </Badge>
           )}
           {isCustomized && isSystemExercise && (
-            <Badge className="text-[9px] bg-orange-500 text-white px-1 py-0">
+            <Badge className="text-xs bg-orange-500 text-white">
               Modified
             </Badge>
           )}
           {isCustom && (
-            <Badge className="text-[9px] bg-sage-600 text-white px-1 py-0">
+            <Badge className="text-xs bg-blue-500 text-white">
               Custom
             </Badge>
           )}
         </div>
 
-        {/* Pregnancy safe indicator - top right */}
+        {/* Favorite heart - top right */}
+        <button
+          onClick={handleFavoriteClick}
+          className={`absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 z-10 ${
+            isFavorite 
+              ? 'bg-white/90 text-red-500 scale-110 shadow-md' 
+              : 'bg-black/30 text-white hover:bg-white/90 hover:text-red-500 hover:scale-110'
+          }`}
+          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
+        </button>
+
+        {/* Pregnancy safe indicator */}
         {exercise.isPregnancySafe && (
-          <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
-            <Baby className="h-2.5 w-2.5 text-white" />
+          <div className="absolute bottom-2 left-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
+            <span className="text-[10px]">👶</span>
+            <span>Safe</span>
           </div>
         )}
 
-        {/* Action buttons overlay - bottom */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1.5">
-          <div className="flex items-center justify-between">
-            {/* Left side actions */}
-            <div className="flex items-center gap-1">
+        {/* Action menu button - bottom right */}
+        <button
+          onClick={toggleActions}
+          className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center transition-all duration-200 hover:bg-black/80"
+        >
+          <Edit className="h-4 w-4" />
+        </button>
+
+        {/* Action menu overlay */}
+        {showActions && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
+            <div className="bg-white rounded-xl p-3 flex gap-2 shadow-lg">
+              {/* Edit button */}
               <button
-                onClick={handleFavoriteClick}
-                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
-                  isFavorite 
-                    ? 'bg-white/90 text-red-500' 
-                    : 'bg-black/30 text-white hover:bg-white/90 hover:text-red-500'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(e);
+                }}
+                className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"
+              >
+                <Edit className="h-4 w-4" />
+              </button>
+
+              {/* Duplicate button */}
+              <button
+                onClick={(e) => onDuplicate(e)}
+                className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"
+              >
+                <Copy className="h-4 w-4" />
+              </button>
+
+              {/* Hide/Show button */}
+              <button
+                onClick={(e) => onToggleHidden(e)}
+                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  isHidden 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-gray-600 hover:bg-gray-700 text-white'
                 }`}
-                aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
               >
-                <Heart className={`h-3 w-3 ${isFavorite ? 'fill-current' : ''}`} />
+                {isHidden ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
               </button>
 
-              <button
-                onClick={handleEditClick}
-                className="w-6 h-6 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-white/90 hover:text-sage-700 transition-all duration-200"
-                aria-label="Edit exercise"
-              >
-                <Edit className="h-3 w-3" />
-              </button>
-
-              <button
-                onClick={handleDuplicateClick}
-                className="w-6 h-6 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-white/90 hover:text-sage-700 transition-all duration-200"
-                aria-label="Duplicate exercise"
-              >
-                <Copy className="h-3 w-3" />
-              </button>
-            </div>
-
-            {/* Add button - right side */}
-            <button
-              onClick={handleAddClick}
-              disabled={isAdding}
-              className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 shadow-md active:scale-95 ${
-                isAdding
-                  ? 'bg-green-500 text-white scale-110'
-                  : 'bg-sage-600 hover:bg-sage-700 text-white hover:scale-110'
-              }`}
-            >
-              {isAdding ? (
-                <Check className="h-3.5 w-3.5 animate-bounce" />
-              ) : (
-                <Plus className="h-3.5 w-3.5" />
+              {/* Reset button for modified system exercises */}
+              {isCustomized && isSystemExercise && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button className="w-10 h-10 rounded-lg bg-orange-600 text-white flex items-center justify-center hover:bg-orange-700">
+                      <RotateCcw className="h-4 w-4" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Reset to Original</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to reset "{exercise.name}" to its original system version? All your customizations will be lost.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={(e) => onResetToOriginal(e)}
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        Reset
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
-            </button>
+
+              {/* Delete button for custom exercises */}
+              {isCustom && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <button className="w-10 h-10 rounded-lg bg-red-600 text-white flex items-center justify-center hover:bg-red-700">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Exercise</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to permanently delete "{exercise.name}"? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={(e) => onDelete(e)}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
       
-      {/* Exercise info - more compact */}
-      <div className="p-2 bg-white/95">
-        <h3 className="font-semibold text-xs text-sage-800 truncate mb-0.5">
-          {exercise.name}
-        </h3>
-        <p className="text-[10px] text-sage-500">
-          {exercise.duration}min • {exercise.category}
-        </p>
+      {/* Exercise info */}
+      <div className="p-3 bg-white">
+        <div className="flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-semibold text-sm text-gray-900 truncate">
+              {exercise.name}
+            </h3>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {exercise.duration}min • {exercise.category}
+            </p>
+          </div>
+          
+          {/* Add button with enhanced animation */}
+          <button
+            onClick={handleAddClick}
+            disabled={isAdding}
+            className={`ml-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-md active:scale-95 ${
+              isAdding
+                ? 'bg-green-500 text-white scale-110'
+                : 'bg-blue-600 hover:bg-blue-700 text-white hover:scale-110'
+            }`}
+          >
+            {isAdding ? (
+              <Check className="h-4 w-4 animate-bounce" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
