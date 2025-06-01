@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User, Settings, Star, EyeOff, Palette, Moon, Sun, Camera, ChevronRight, Baby } from 'lucide-react';
+import { User, Settings, Star, EyeOff, Palette, Moon, Sun, Camera, ChevronRight, Baby, BarChart3 } from 'lucide-react';
 import { CustomCalloutsManager } from './CustomCalloutsManager';
 import { TeachingModePreferences } from './TeachingModePreferences';
 import { UserStatsSection } from './UserStatsSection';
@@ -18,6 +19,7 @@ import { UserStatsSection } from './UserStatsSection';
 export const EnhancedUserProfile = () => {
   const { user, signOut } = useAuth();
   const { preferences, updatePreferences, togglePregnancySafeOnly } = useUserPreferences();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(user?.user_metadata?.full_name || user?.email?.split('@')[0] || '');
 
@@ -51,7 +53,7 @@ export const EnhancedUserProfile = () => {
     <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-6`}>
       <div className="max-w-4xl mx-auto p-4 space-y-6">
         {/* Profile Header */}
-        <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+        <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-lg rounded-2xl border-0`}>
           <CardContent className="pt-6">
             <div className="flex items-center space-x-4">
               <div className="relative">
@@ -106,23 +108,39 @@ export const EnhancedUserProfile = () => {
           </CardContent>
         </Card>
 
-        {/* Settings Tabs */}
-        <Tabs defaultValue="stats" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="stats">Stats</TabsTrigger>
-            <TabsTrigger value="general">General</TabsTrigger>
-            <TabsTrigger value="teaching">Teaching</TabsTrigger>
-            <TabsTrigger value="callouts">Callouts</TabsTrigger>
-            <TabsTrigger value="account">Account</TabsTrigger>
-          </TabsList>
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            onClick={() => navigate('/statistics')}
+            variant="outline"
+            className="h-16 flex flex-col items-center justify-center gap-2 bg-white hover:bg-sage-50 border-sage-200 rounded-2xl shadow-sm"
+          >
+            <BarChart3 className="h-6 w-6 text-sage-600" />
+            <span className="text-sm font-medium text-sage-700">View Statistics</span>
+          </Button>
+          
+          <Button
+            onClick={() => navigate('/settings')}
+            variant="outline"
+            className="h-16 flex flex-col items-center justify-center gap-2 bg-white hover:bg-sage-50 border-sage-200 rounded-2xl shadow-sm"
+          >
+            <Settings className="h-6 w-6 text-sage-600" />
+            <span className="text-sm font-medium text-sage-700">Settings</span>
+          </Button>
+        </div>
 
-          <TabsContent value="stats" className="space-y-4">
-            <UserStatsSection />
-          </TabsContent>
+        {/* Settings Tabs */}
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 bg-sage-50 rounded-2xl">
+            <TabsTrigger value="general" className="rounded-xl">General</TabsTrigger>
+            <TabsTrigger value="teaching" className="rounded-xl">Teaching</TabsTrigger>
+            <TabsTrigger value="callouts" className="rounded-xl">Callouts</TabsTrigger>
+            <TabsTrigger value="account" className="rounded-xl">Account</TabsTrigger>
+          </TabsList>
 
           <TabsContent value="general" className="space-y-4">
             {/* Display Preferences */}
-            <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+            <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-lg rounded-2xl border-0`}>
               <CardHeader>
                 <CardTitle className={`flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                   <Palette className="h-5 w-5" />
@@ -180,7 +198,7 @@ export const EnhancedUserProfile = () => {
 
           <TabsContent value="account" className="space-y-4">
             {/* Account Actions */}
-            <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}>
+            <Card className={`${preferences.darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-lg rounded-2xl border-0`}>
               <CardHeader>
                 <CardTitle className={`flex items-center gap-2 ${preferences.darkMode ? 'text-white' : 'text-sage-800'}`}>
                   <User className="h-5 w-5" />
@@ -191,7 +209,7 @@ export const EnhancedUserProfile = () => {
                 <Button 
                   onClick={handleSignOut}
                   variant="destructive"
-                  className="w-full"
+                  className="w-full rounded-xl"
                 >
                   Sign Out
                 </Button>

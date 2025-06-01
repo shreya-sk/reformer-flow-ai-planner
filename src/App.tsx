@@ -10,6 +10,7 @@ import PlanClass from './pages/PlanClass';
 import Teaching from './pages/Teaching';
 import Timer from './pages/Timer';
 import Profile from './pages/Profile';
+import Statistics from './pages/Statistics';
 import Settings from './pages/Settings';
 import Help from './pages/Help';
 import NotFound from './pages/NotFound';
@@ -32,6 +33,7 @@ function App() {
                 <Route path="/teaching/:classId" element={<Teaching />} />
                 <Route path="/timer" element={<Timer />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/statistics" element={<Statistics />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/help" element={<Help />} />
                 <Route path="/store" element={<Store />} />

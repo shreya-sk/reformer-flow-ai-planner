@@ -33,9 +33,9 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
     <>
       <div className="fixed bottom-0 left-0 right-0 z-30">
         <div className="relative overflow-hidden">
-          {/* Floating pill-shaped navigation */}
+          {/* Floating pill-shaped navigation with sage theming */}
           <div className="mx-4 mb-6">
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-2">
+            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-sage-200/50 p-2">
               <div className="flex items-center justify-around max-w-lg mx-auto">
                 {/* Core navigation items */}
                 {coreNavItems.map((item) => (
@@ -50,8 +50,8 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
                       <Badge 
                         className={`absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center p-0 border-2 border-white text-xs font-bold rounded-full ${
                           item.count && item.count > 0 
-                            ? 'bg-red-500 text-white animate-pulse' 
-                            : 'bg-gray-400 text-white'
+                            ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white animate-pulse' 
+                            : 'bg-sage-400 text-white'
                         }`}
                       >
                         {item.count && item.count > 99 ? '99+' : (item.count || 0)}
@@ -64,7 +64,7 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
                       variant="ghost"
                       className={`flex flex-col items-center rounded-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 p-3 min-w-[64px] h-16 ${
                         isActive(item.path) 
-                          ? 'bg-sage-100 text-sage-700' 
+                          ? 'bg-sage-100 text-sage-700 shadow-sm' 
                           : 'text-sage-600 hover:text-sage-700 hover:bg-sage-50'
                       }`}
                     >
