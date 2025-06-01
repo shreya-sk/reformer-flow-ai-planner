@@ -35,7 +35,7 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
         <div className="relative overflow-hidden">
           {/* Floating pill-shaped navigation with sage theming */}
           <div className="mx-4 mb-6">
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-sage-200/50 p-2">
+            <div className="bg-white/95 backdrop-blur-xl rounded-full shadow-2xl border border-sage-200/50 p-2">
               <div className="flex items-center justify-around max-w-lg mx-auto">
                 {/* Core navigation items */}
                 {coreNavItems.map((item) => (
@@ -43,7 +43,7 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
                     <div key={item.path} className="relative">
                       <Button
                         onClick={onPlanClass ? onPlanClass : () => navigate(item.path)}
-                        className="w-16 h-16 rounded-3xl bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 active:scale-95"
+                        className="w-16 h-16 rounded-full bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 active:scale-95"
                       >
                         <item.icon className="h-7 w-7" />
                       </Button>

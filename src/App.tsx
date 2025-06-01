@@ -15,6 +15,7 @@ import Settings from './pages/Settings';
 import Help from './pages/Help';
 import NotFound from './pages/NotFound';
 import Store from './pages/Store';
+import ClassPlans from './pages/ClassPlans';
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ function App() {
                 <Route path="/" element={<Index />} />
                 <Route path="/library" element={<Library />} />
                 <Route path="/plan" element={<PlanClass />} />
+                <Route path="/class-plans" element={<ClassPlans />} />
                 <Route path="/teaching/:classId" element={<Teaching />} />
                 <Route path="/timer" element={<Timer />} />
                 <Route path="/profile" element={<Profile />} />

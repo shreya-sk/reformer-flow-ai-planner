@@ -88,23 +88,23 @@ export const ExerciseStoreGrid = ({
               />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-sage-100 to-sage-200 flex items-center justify-center">
-                <Dumbbell className="h-8 w-8 text-sage-400" />
+                <Dumbbell className="h-6 w-6 text-sage-400" />
               </div>
             )}
             
             {/* Floating badges */}
-            <div className="absolute top-3 left-3 flex gap-2">
+            <div className="absolute top-2 left-2 flex gap-1">
               {exercise.is_featured && (
                 <Badge className="text-xs bg-gradient-to-r from-amber-400 to-orange-500 text-white px-2 py-1 rounded-full border-0 shadow-lg">
-                  <Star className="h-3 w-3 mr-1" />
+                  <Star className="h-2 w-2 mr-1" />
                   Hot
                 </Badge>
               )}
             </div>
             
             {exercise.video_url && (
-              <div className="absolute bottom-3 right-3 bg-black/60 text-white p-2 rounded-full backdrop-blur-sm">
-                <Play className="h-3 w-3" />
+              <div className="absolute bottom-2 right-2 bg-black/60 text-white p-1 rounded-full backdrop-blur-sm">
+                <Play className="h-2 w-2" />
               </div>
             )}
 
@@ -118,29 +118,29 @@ export const ExerciseStoreGrid = ({
                     handleAddToLibrary(exercise.id);
                   }}
                   disabled={isAdding}
-                  className={`rounded-full w-12 h-12 p-0 bg-white/90 hover:bg-white text-sage-600 shadow-lg transition-all duration-300 ${
+                  className={`rounded-full w-10 h-10 p-0 bg-white/90 hover:bg-white text-sage-600 shadow-lg transition-all duration-300 ${
                     isAdding ? 'scale-110 bg-green-500 text-white' : 'hover:scale-110'
                   }`}
                 >
                   {isAdding ? (
-                    <Check className="h-5 w-5 animate-bounce" />
+                    <Check className="h-4 w-4 animate-bounce" />
                   ) : (
-                    <Plus className="h-5 w-5" />
+                    <Plus className="h-4 w-4" />
                   )}
                 </Button>
               )}
             </div>
           </div>
 
-          <div className="p-4 space-y-3">
+          <div className="p-3 space-y-2">
             {/* Title */}
             <div>
-              <h3 className="font-semibold text-sage-800 text-sm leading-tight line-clamp-2 mb-1">
+              <h3 className="font-semibold text-sage-800 text-xs leading-tight line-clamp-2 mb-1">
                 {exercise.name}
               </h3>
               <div className="flex items-center gap-2 text-xs text-sage-500">
                 <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
+                  <Clock className="h-2 w-2" />
                   <span>{exercise.duration}min</span>
                 </div>
                 <span>•</span>
@@ -155,8 +155,8 @@ export const ExerciseStoreGrid = ({
 
             {/* Status indicator */}
             {isInLibrary && (
-              <div className="flex items-center gap-2 text-green-600 text-xs font-medium">
-                <Check className="h-3 w-3" />
+              <div className="flex items-center gap-1 text-green-600 text-xs font-medium">
+                <Check className="h-2 w-2" />
                 <span>In Library</span>
               </div>
             )}
@@ -172,11 +172,11 @@ export const ExerciseStoreGrid = ({
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl">
-              <Star className="h-5 w-5 text-white" />
+              <Star className="h-4 w-4 text-white" />
             </div>
             <h3 className="text-lg font-semibold text-sage-800">Featured</h3>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             {featuredExercises.map(renderExerciseCard)}
           </div>
         </div>
@@ -185,7 +185,7 @@ export const ExerciseStoreGrid = ({
       {regularExercises.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-sage-800">All Exercises</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             {regularExercises.map(renderExerciseCard)}
           </div>
         </div>

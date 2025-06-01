@@ -49,14 +49,18 @@ export const OnboardingFlow = ({ onComplete }: OnboardingFlowProps) => {
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(currentSlide + 1);
     } else {
-      // Mark onboarding as complete
-      localStorage.setItem('onboarding-completed', 'true');
+      // Mark onboarding as complete for this specific user
+      if (user) {
+        localStorage.setItem(`onboarding-completed-${user.id}`, 'true');
+      }
       onComplete();
     }
   };
 
   const skipOnboarding = () => {
-    localStorage.setItem('onboarding-completed', 'true');
+    if (user) {
+      localStorage.setItem(`onboarding-completed-${user.id}`, 'true');
+    }
     onComplete();
   };
 

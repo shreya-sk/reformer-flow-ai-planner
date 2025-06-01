@@ -49,58 +49,58 @@ export const FloatingMenu = ({ isOpen, onClose }: FloatingMenuProps) => {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop - More subtle */}
       <div 
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 animate-fade-in"
+        className="fixed inset-0 bg-black/10 backdrop-blur-sm z-40 animate-fade-in"
         onClick={onClose}
       />
       
-      {/* Floating Menu */}
-      <div className="fixed bottom-28 right-4 left-4 z-50 animate-slide-in-bottom">
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 overflow-hidden max-w-sm mx-auto">
+      {/* Floating Menu - Positioned near bottom navigation */}
+      <div className="fixed bottom-32 right-4 z-50 animate-slide-in-bottom">
+        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 overflow-hidden w-72">
           {/* Header */}
-          <div className="p-6 bg-gradient-to-r from-sage-500 to-sage-600 text-white relative">
+          <div className="p-4 bg-gradient-to-r from-sage-500 to-sage-600 text-white relative">
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full p-2"
+              className="absolute top-2 right-2 text-white hover:bg-white/20 rounded-full p-2 w-8 h-8"
             >
               <X className="h-4 w-4" />
             </Button>
             
-            <div className="flex items-center gap-4">
-              <Avatar className="h-12 w-12 border-2 border-white/30">
-                <AvatarFallback className="bg-white/20 text-white text-lg">
+            <div className="flex items-center gap-3 mr-8">
+              <Avatar className="h-10 w-10 border-2 border-white/30">
+                <AvatarFallback className="bg-white/20 text-white text-sm">
                   {user?.email?.charAt(0).toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">
+                <p className="font-medium truncate text-sm">
                   {user?.email || 'Guest'}
                 </p>
-                <p className="text-sm text-white/80">Reformer Instructor</p>
+                <p className="text-xs text-white/80">Reformer Instructor</p>
               </div>
             </div>
           </div>
 
           {/* Menu Items */}
-          <div className="p-4 space-y-2">
+          <div className="p-3 space-y-1">
             {menuItems.map((item) => (
               <Button
                 key={item.title}
                 variant="ghost"
                 onClick={() => handleNavigation(item.url)}
-                className={`w-full justify-start rounded-2xl h-14 transition-all duration-200 ${
+                className={`w-full justify-start rounded-2xl h-12 transition-all duration-200 ${
                   isActive(item.url) 
                     ? 'bg-sage-100 text-sage-800 shadow-sm' 
                     : 'hover:bg-sage-50 text-sage-700'
                 }`}
               >
-                <div className={`p-2 rounded-xl mr-4 ${item.color}`}>
-                  <item.icon className="h-5 w-5" />
+                <div className={`p-2 rounded-xl mr-3 ${item.color}`}>
+                  <item.icon className="h-4 w-4" />
                 </div>
-                <span className="font-medium">{item.title}</span>
+                <span className="font-medium text-sm">{item.title}</span>
                 {item.url === '/store' && (
                   <div className="ml-auto w-2 h-2 bg-sage-600 rounded-full"></div>
                 )}
@@ -109,16 +109,16 @@ export const FloatingMenu = ({ isOpen, onClose }: FloatingMenuProps) => {
           </div>
 
           {/* Sign Out */}
-          <div className="p-4 pt-0 border-t border-sage-100 mt-2">
+          <div className="p-3 pt-0 border-t border-sage-100 mt-1">
             <Button
               variant="ghost"
               onClick={handleSignOut}
-              className="w-full justify-start rounded-2xl h-14 text-red-600 hover:bg-red-50"
+              className="w-full justify-start rounded-2xl h-12 text-red-600 hover:bg-red-50"
             >
-              <div className="p-2 rounded-xl mr-4 bg-red-100 text-red-600">
-                <LogOut className="h-5 w-5" />
+              <div className="p-2 rounded-xl mr-3 bg-red-100 text-red-600">
+                <LogOut className="h-4 w-4" />
               </div>
-              <span className="font-medium">Sign Out</span>
+              <span className="font-medium text-sm">Sign Out</span>
             </Button>
           </div>
         </div>
