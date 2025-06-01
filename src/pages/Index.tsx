@@ -6,13 +6,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Dumbbell, Users, Clock, Play, ArrowRight, Sparkles } from 'lucide-react';
+import { Dumbbell, Users, Clock, Play, ArrowRight, Sparkles, Plus } from 'lucide-react';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { useStatistics } from '@/hooks/useStatistics';
 import { useExercises } from '@/hooks/useExercises';
 import { useClassPlans } from '@/hooks/useClassPlans';
-import { Dumbbell, Users, Clock, Play, ArrowRight, Sparkles, Plus } from 'lucide-react';
+
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
