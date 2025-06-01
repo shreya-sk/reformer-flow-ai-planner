@@ -1,50 +1,39 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
+import Index from './pages/Index';
+import Library from './pages/Library';
+import PlanClass from './pages/PlanClass';
+import Teaching from './pages/Teaching';
+import Timer from './pages/Timer';
+import Profile from './pages/Profile';
+import NotFound from './pages/NotFound';
+import Store from './pages/Store';
 
-import React, { useState } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import Index from "./pages/Index";
-import PlanClass from "./pages/PlanClass";
-import Library from "./pages/Library";
-import Timer from "./pages/Timer";
-import Profile from "./pages/Profile";
-import Teaching from "./pages/Teaching";
-import NotFound from "./pages/NotFound";
+const queryClient = new QueryClient();
 
-const App = () => {
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 1000 * 60 * 5, // 5 minutes
-        retry: 1,
-      },
-    },
-  }));
-
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
+      <BrowserRouter>
+        <AuthProvider>
           <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/plan" element={<PlanClass />} />
-              <Route path="/library" element={<Library />} />
-              <Route path="/timer" element={<Timer />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/teaching/:classId" element={<Teaching />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/library" element={<Library />} />
+            <Route path="/plan" element={<PlanClass />} />
+            <Route path="/teaching" element={<Teaching />} />
+            <Route path="/timer" element={<Timer />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/store" element={<Store />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;

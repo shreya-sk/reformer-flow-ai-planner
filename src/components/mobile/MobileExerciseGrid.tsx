@@ -1,5 +1,4 @@
-
-import { Search } from 'lucide-react';
+import { Search, Dumbbell } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
 import { MobileExerciseCard } from './MobileExerciseCard';
 
@@ -18,6 +17,7 @@ interface MobileExerciseGridProps {
   favoriteExercises: string[];
   hiddenExercises: string[];
   darkMode: boolean;
+  feedbackState?: {[key: string]: 'success' | 'error' | null};
 }
 
 export const MobileExerciseGrid = ({
@@ -34,47 +34,56 @@ export const MobileExerciseGrid = ({
   observeImage,
   favoriteExercises,
   hiddenExercises,
-  darkMode
+  darkMode,
+  feedbackState = {}
 }: MobileExerciseGridProps) => {
+  if (exercises.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4">
+        <div className="text-center space-y-3">
+          <div className="w-16 h-16 bg-sage-100 rounded-full flex items-center justify-center mx-auto">
+            <Dumbbell className="h-8 w-8 text-sage-400" />
+          </div>
+          <h3 className="text-lg font-medium text-sage-800">No exercises found</h3>
+          <p className="text-sage-600 max-w-sm">
+            Try adjusting your search terms or filters to find exercises.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex-1 overflow-y-auto p-3">
-      <div className="grid grid-cols-2 gap-3">
-        {exercises.map((exercise) => (
+    <div className="grid grid-cols-1 gap-3 p-4">
+      {exercises.map((exercise) => {
+        const feedback = feedbackState[exercise.id];
+        const cardClassName = `transition-all duration-200 ${
+          feedback === 'success' ? 'ring-2 ring-green-500 bg-green-50' :
+          feedback === 'error' ? 'ring-2 ring-red-500 bg-red-50' :
+          'hover:shadow-md'
+        }`;
+        
+        return (
           <MobileExerciseCard
             key={exercise.id}
             exercise={exercise}
-            onSelect={onExerciseSelect}
-            onAddToClass={onAddToClass}
-            onToggleFavorite={onToggleFavorite}
-            onToggleHidden={onToggleHidden}
-            onEdit={onEdit}
-            onDuplicate={onDuplicate}
-            onDelete={onDelete}
-            onResetToOriginal={onResetToOriginal}
-            observeImage={observeImage}
-            isFavorite={favoriteExercises?.includes(exercise.id) || false}
-            isHidden={hiddenExercises?.includes(exercise.id) || false}
+            isFavorite={favoriteExercises.includes(exercise.id)}
+            isHidden={hiddenExercises.includes(exercise.id)}
+            showHidden={showHidden}
             darkMode={darkMode}
+            onSelect={() => onExerciseSelect(exercise)}
+            onAddToClass={() => onAddToClass(exercise)}
+            onToggleFavorite={(e) => onToggleFavorite(exercise.id, e)}
+            onToggleHidden={(e) => onToggleHidden(exercise.id, e)}
+            onEdit={(e) => onEdit(exercise, e)}
+            onDuplicate={(e) => onDuplicate(exercise, e)}
+            onDelete={(e) => onDelete(exercise, e)}
+            onResetToOriginal={(e) => onResetToOriginal(exercise, e)}
+            observeImage={observeImage}
+            className={cardClassName}
           />
-        ))}
-      </div>
-
-      {exercises.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <Search className="h-8 w-8 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {showHidden ? 'No hidden exercises' : 'No exercises found'}
-          </h3>
-          <p className="text-gray-500 text-sm">
-            {showHidden 
-              ? 'You haven\'t hidden any exercises yet.'
-              : 'Try adjusting your search or filters'
-            }
-          </p>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 };

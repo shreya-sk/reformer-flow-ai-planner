@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,12 +12,10 @@ import { MobileLibraryHeader } from './mobile/MobileLibraryHeader';
 import { ExerciseDetailModal } from './ExerciseDetailModal';
 import { MobileFilterPanel } from './MobileFilterPanel';
 import { ImprovedExerciseForm } from './ImprovedExerciseForm';
-import { toast } from '@/hooks/use-toast';
 
 interface MobileOptimizedExerciseLibraryProps {
   onExerciseSelect?: (exercise: Exercise) => void;
 }
-
 
 export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptimizedExerciseLibraryProps) => {
   const navigate = useNavigate();
@@ -34,32 +33,34 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   const [showHidden, setShowHidden] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [feedbackState, setFeedbackState] = useState<{[key: string]: 'success' | 'error' | null}>({});
 
-  // Filter states - matching MobileFilterPanel interface
+  // Filter states
   const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | 'all'>('all');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
+
+  // Show feedback for actions
+  const showFeedback = useCallback((exerciseId: string, type: 'success' | 'error') => {
+    setFeedbackState(prev => ({ ...prev, [exerciseId]: type }));
+    setTimeout(() => {
+      setFeedbackState(prev => ({ ...prev, [exerciseId]: null }));
+    }, 2000);
+  }, []);
 
   // Filter exercises
   const filteredExercises = useMemo(() => {
     if (!exercises) return [];
 
     return exercises.filter(exercise => {
-      // Search filter
       const matchesSearch = !searchTerm || 
         exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         exercise.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      // Hidden exercises filter
       const isHidden = preferences.hiddenExercises?.includes(exercise.id);
       const matchesHiddenFilter = showHidden || !isHidden;
       
-      // Pregnancy safe filter
       const matchesPregnancy = !showPregnancySafe || exercise.isPregnancySafe;
-
-      // Category filter
       const matchesCategory = selectedCategory === 'all' || exercise.category === selectedCategory;
-
-      // Muscle group filter
       const matchesMuscleGroup = selectedMuscleGroup === 'all' ||
         exercise.muscleGroups.includes(selectedMuscleGroup);
 
@@ -76,47 +77,25 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     return count;
   }, [showPregnancySafe, showHidden, selectedCategory, selectedMuscleGroup]);
 
-  // Debug: Add to class function
   const handleAddToClass = useCallback((exercise: Exercise) => {
-    console.log('🔵 MobileOptimizedExerciseLibrary handleAddToClass called with:', exercise);
-    console.log('🔵 Current user:', user?.id);
-    console.log('🔵 onExerciseSelect prop:', !!onExerciseSelect);
+    console.log('🔵 Adding exercise to class:', exercise.name);
     
     try {
       if (onExerciseSelect) {
-        console.log('🔵 Calling onExerciseSelect prop');
         onExerciseSelect(exercise);
       } else {
-        console.log('🔵 Using addExercise from usePersistedClassPlan');
-        console.log('🔵 Exercise being added:', {
-          id: exercise.id,
-          name: exercise.name,
-          duration: exercise.duration,
-          category: exercise.category
-        });
-        
         addExercise(exercise);
-        
-        toast({
-          title: "Added to class",
-          description: `"${exercise.name}" has been added to your class plan.`,
-        });
-        
         console.log('🔵 Exercise added successfully, navigating to plan');
         navigate('/plan');
       }
+      showFeedback(exercise.id, 'success');
     } catch (error) {
-      console.error('🔴 Error in MobileOptimizedExerciseLibrary handleAddToClass:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add exercise to class plan.",
-        variant: "destructive",
-      });
+      console.error('🔴 Error adding exercise:', error);
+      showFeedback(exercise.id, 'error');
     }
-  }, [onExerciseSelect, addExercise, navigate, user]);
+  }, [onExerciseSelect, addExercise, navigate, showFeedback]);
 
   const handleExerciseSelect = useCallback((exercise: Exercise) => {
-    console.log('🔵 Exercise selected:', exercise.name);
     setSelectedExercise(exercise);
   }, []);
 
@@ -126,7 +105,6 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   }, []);
 
   const handleEditExercise = useCallback((exercise: Exercise) => {
-    console.log('🔵 Edit exercise:', exercise.name);
     setEditingExercise(exercise);
     setSelectedExercise(null);
   }, []);
@@ -150,59 +128,30 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   const handleSaveExercise = useCallback(async (exercise: Exercise) => {
     try {
       await createUserExercise(exercise);
-      toast({
-        title: "Exercise created",
-        description: `"${exercise.name}" has been added to your library.`,
-      });
+      showFeedback(exercise.id, 'success');
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create exercise.",
-        variant: "destructive",
-      });
+      showFeedback(exercise.id, 'error');
     }
     setIsCreating(false);
     setEditingExercise(null);
-  }, [createUserExercise]);
+  }, [createUserExercise, showFeedback]);
 
   const handleCancelExercise = useCallback(() => {
     setIsCreating(false);
     setEditingExercise(null);
   }, []);
 
-  // FIXED: Proper favorite functionality
   const handleToggleFavorite = useCallback((exerciseId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('❤️ Toggling favorite for exercise:', exerciseId);
-    
-    const isFavorite = preferences.favoriteExercises?.includes(exerciseId) || false;
-    const exerciseName = exercises.find(ex => ex.id === exerciseId)?.name || 'Exercise';
-    
     toggleFavoriteExercise(exerciseId);
-    
-    toast({
-      title: isFavorite ? "Removed from favorites" : "Added to favorites",
-      description: `"${exerciseName}" ${isFavorite ? 'removed from' : 'added to'} your favorites.`,
-    });
-  }, [preferences.favoriteExercises, exercises, toggleFavoriteExercise]);
+    showFeedback(exerciseId, 'success');
+  }, [toggleFavoriteExercise, showFeedback]);
 
-  // FIXED: Proper hidden functionality
   const handleToggleHidden = useCallback((exerciseId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('👁️ Toggling hidden for exercise:', exerciseId);
-    
-    const isHidden = preferences.hiddenExercises?.includes(exerciseId) || false;
-    const exerciseName = exercises.find(ex => ex.id === exerciseId)?.name || 'Exercise';
-    
     toggleHiddenExercise(exerciseId);
-    
-    toast({
-      title: isHidden ? "Exercise unhidden" : "Exercise hidden",
-      description: isHidden 
-        ? `"${exerciseName}" is now visible in your library.`
-        : `"${exerciseName}" has been hidden from your library.`,
-    });
-  }, [preferences.hiddenExercises, exercises, toggleHiddenExercise]);
+    showFeedback(exerciseId, 'success');
+  }, [toggleHiddenExercise, showFeedback]);
 
   const handleEdit = useCallback((exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -213,18 +162,11 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     e.stopPropagation();
     try {
       await duplicateExercise(exercise);
-      toast({
-        title: "Exercise duplicated",
-        description: `"${exercise.name} (Copy)" has been created.`,
-      });
+      showFeedback(exercise.id, 'success');
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to duplicate exercise.",
-        variant: "destructive",
-      });
+      showFeedback(exercise.id, 'error');
     }
-  }, [duplicateExercise]);
+  }, [duplicateExercise, showFeedback]);
 
   const handleDelete = useCallback(async (exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -232,18 +174,11 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     
     try {
       await deleteUserExercise(exercise.id);
-      toast({
-        title: "Exercise deleted",
-        description: `"${exercise.name}" has been permanently deleted.`,
-      });
+      showFeedback(exercise.id, 'success');
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete exercise.",
-        variant: "destructive",
-      });
+      showFeedback(exercise.id, 'error');
     }
-  }, [deleteUserExercise]);
+  }, [deleteUserExercise, showFeedback]);
 
   const handleResetToOriginal = useCallback(async (exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -251,21 +186,13 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     
     try {
       await resetSystemExerciseToOriginal(exercise.id);
-      toast({
-        title: "Exercise reset",
-        description: `"${exercise.name}" has been reset to its original version.`,
-      });
+      showFeedback(exercise.id, 'success');
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to reset exercise.",
-        variant: "destructive",
-      });
+      showFeedback(exercise.id, 'error');
     }
-  }, [resetSystemExerciseToOriginal]);
+  }, [resetSystemExerciseToOriginal, showFeedback]);
 
   const observeImage = useCallback((element: HTMLImageElement, src: string) => {
-    // Simple lazy loading implementation
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -297,7 +224,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
-      {/* Header - Fixed at top */}
+      {/* Header */}
       <MobileLibraryHeader
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -346,10 +273,11 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
           favoriteExercises={preferences.favoriteExercises || []}
           hiddenExercises={preferences.hiddenExercises || []}
           darkMode={preferences.darkMode || false}
+          feedbackState={feedbackState}
         />
       </div>
 
-      {/* Consolidated Modal */}
+      {/* Modals */}
       {selectedExercise && (
         <ExerciseDetailModal
           exercise={selectedExercise}
@@ -361,7 +289,6 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
         />
       )}
 
-      {/* Create/Edit Exercise Form */}
       {(isCreating || editingExercise) && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">

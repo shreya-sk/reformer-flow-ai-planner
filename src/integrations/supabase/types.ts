@@ -154,6 +154,149 @@ export type Database = {
           },
         ]
       }
+      exercise_bundles: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          download_count: number | null
+          exercise_count: number | null
+          icon_url: string | null
+          id: string
+          is_featured: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          download_count?: number | null
+          exercise_count?: number | null
+          icon_url?: string | null
+          id?: string
+          is_featured?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          download_count?: number | null
+          exercise_count?: number | null
+          icon_url?: string | null
+          id?: string
+          is_featured?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      exercise_store: {
+        Row: {
+          admin_notes: string | null
+          breathing_cues: string[] | null
+          bundle_id: string | null
+          category: string
+          contraindications: string[] | null
+          created_at: string | null
+          cues: string[] | null
+          description: string | null
+          difficulty: string
+          download_count: number | null
+          duration: number | null
+          equipment: string[] | null
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          is_pregnancy_safe: boolean | null
+          modifications: string[] | null
+          muscle_groups: string[]
+          name: string
+          notes: string | null
+          progressions: string[] | null
+          regressions: string[] | null
+          reps_or_duration: string | null
+          setup: string | null
+          springs: string
+          target_areas: string[] | null
+          teaching_focus: string[] | null
+          tempo: string | null
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          breathing_cues?: string[] | null
+          bundle_id?: string | null
+          category: string
+          contraindications?: string[] | null
+          created_at?: string | null
+          cues?: string[] | null
+          description?: string | null
+          difficulty: string
+          download_count?: number | null
+          duration?: number | null
+          equipment?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_pregnancy_safe?: boolean | null
+          modifications?: string[] | null
+          muscle_groups?: string[]
+          name: string
+          notes?: string | null
+          progressions?: string[] | null
+          regressions?: string[] | null
+          reps_or_duration?: string | null
+          setup?: string | null
+          springs: string
+          target_areas?: string[] | null
+          teaching_focus?: string[] | null
+          tempo?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          breathing_cues?: string[] | null
+          bundle_id?: string | null
+          category?: string
+          contraindications?: string[] | null
+          created_at?: string | null
+          cues?: string[] | null
+          description?: string | null
+          difficulty?: string
+          download_count?: number | null
+          duration?: number | null
+          equipment?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_pregnancy_safe?: boolean | null
+          modifications?: string[] | null
+          muscle_groups?: string[]
+          name?: string
+          notes?: string | null
+          progressions?: string[] | null
+          regressions?: string[] | null
+          reps_or_duration?: string | null
+          setup?: string | null
+          springs?: string
+          target_areas?: string[] | null
+          teaching_focus?: string[] | null
+          tempo?: string | null
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_exercise_store_bundle"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_bundles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_exercises: {
         Row: {
           breathing_cues: string[] | null
@@ -326,6 +469,35 @@ export type Database = {
             columns: ["system_exercise_id"]
             isOneToOne: false
             referencedRelation: "system_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_exercise_library: {
+        Row: {
+          added_at: string | null
+          id: string
+          store_exercise_id: string | null
+          user_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          id?: string
+          store_exercise_id?: string | null
+          user_id: string
+        }
+        Update: {
+          added_at?: string | null
+          id?: string
+          store_exercise_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_exercise_library_store_exercise_id_fkey"
+            columns: ["store_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_store"
             referencedColumns: ["id"]
           },
         ]

@@ -1,5 +1,5 @@
 
-// Utility functions for managing class plan images
+// Utility functions for managing class plan images and exercise videos
 export const getClassPlanImages = (): string[] => {
   // Default image pool - admin can add more images to /public/class-images/
   const defaultImages = [
@@ -16,7 +16,6 @@ export const getClassPlanImages = (): string[] => {
   ];
 
   // In the future, this could dynamically scan /public/class-images/ folder
-  // For now, returning the default pool
   return defaultImages;
 };
 
@@ -25,8 +24,64 @@ export const getRandomClassImage = (): string => {
   return images[Math.floor(Math.random() * images.length)];
 };
 
+// Enhanced video functionality for Phase 4
 export const getExerciseVideoUrl = (exerciseId: string): string | null => {
-  // Future implementation: return video URLs for exercises
-  // For now, return null as videos are not implemented yet
+  // Check if exercise has a video URL in the database
+  // This would be populated from exercise_store.video_url or system_exercises.video_url
+  // For now, return null until videos are uploaded
   return null;
+};
+
+// Video hover component utilities
+export const createVideoPreview = (videoUrl: string, thumbnailUrl: string) => {
+  return {
+    thumbnail: thumbnailUrl,
+    video: videoUrl,
+    previewDuration: 3000, // 3 seconds
+    autoPlay: true,
+    muted: true
+  };
+};
+
+// Dynamic background image management
+export const getClassBackgroundImages = (): string[] => {
+  // Future implementation: scan /public/class-backgrounds/ folder
+  // For now, return the existing image pool
+  return getClassPlanImages();
+};
+
+export const getRandomBackgroundImage = (): string => {
+  const backgrounds = getClassBackgroundImages();
+  return backgrounds[Math.floor(Math.random() * backgrounds.length)];
+};
+
+// Video processing utilities
+export const isVideoSupported = (url: string): boolean => {
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov'];
+  return videoExtensions.some(ext => url.toLowerCase().includes(ext));
+};
+
+export const generateVideoThumbnail = async (videoUrl: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.crossOrigin = 'anonymous';
+    video.currentTime = 2; // Capture frame at 2 seconds
+    
+    video.onloadeddata = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      } else {
+        reject(new Error('Could not create canvas context'));
+      }
+    };
+    
+    video.onerror = () => reject(new Error('Video load failed'));
+    video.src = videoUrl;
+  });
 };
