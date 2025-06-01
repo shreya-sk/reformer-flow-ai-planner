@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Save, Clock, Users, FolderOpen, Sparkles, LogOut } from 'lucide-react';
+import { Save, Clock, Users, FolderOpen, Sparkles } from 'lucide-react';
 import { ClassPlan } from '@/types/reformer';
 import { toast } from '@/hooks/use-toast';
+import { ProfileButton } from '@/components/ProfileButton';
 
 interface HeaderProps {
   currentClass: ClassPlan;
@@ -23,7 +24,6 @@ export const Header = ({
   showClassManager 
 }: HeaderProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const { user, signOut } = useAuth();
 
   const handleSave = () => {
     if (currentClass.exercises.length === 0) {
@@ -36,14 +36,6 @@ export const Header = ({
     }
     
     onSaveClass();
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-    toast({
-      title: "Signed out",
-      description: "You have been successfully signed out.",
-    });
   };
 
   const formatDuration = (minutes: number) => {
@@ -127,14 +119,7 @@ export const Header = ({
             Save Class
           </Button>
 
-          <Button
-            onClick={handleSignOut}
-            variant="outline"
-            className="border-sage-300 text-sage-700 hover:bg-sage-50"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          <ProfileButton />
         </div>
       </div>
     </header>
