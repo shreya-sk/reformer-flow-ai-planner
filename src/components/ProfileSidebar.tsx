@@ -54,24 +54,24 @@ export const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
         />
       )}
       
-      {/* Capsule Sidebar - Much smaller */}
-      <div className={`fixed top-0 right-0 h-full w-64 bg-sage-50/90 backdrop-blur-2xl shadow-2xl z-50 transform transition-all duration-300 ease-out rounded-l-[2rem] ${
+      {/* Compact Sidebar */}
+      <div className={`fixed top-0 right-0 h-full w-56 bg-white shadow-2xl z-50 transform transition-all duration-300 ease-out rounded-l-[1.5rem] ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         
         {/* Compact Header */}
-        <div className="p-4 bg-gradient-to-r from-sage-400/80 to-sage-500/80 text-white relative rounded-tl-[2rem] backdrop-blur-sm">
+        <div className="p-3 bg-gradient-to-r from-sage-400/80 to-sage-500/80 text-white relative rounded-tl-[1.5rem]">
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="absolute top-2 right-2 text-white hover:bg-white/20 rounded-full p-1 w-7 h-7"
+            className="absolute top-1 right-1 text-white hover:bg-white/20 rounded-full p-1 w-6 h-6"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3 w-3" />
           </Button>
           
-          <div className="flex items-center gap-2 mr-6">
-            <Avatar className="h-8 w-8 border border-white/30">
+          <div className="flex items-center gap-2 mr-5">
+            <Avatar className="h-7 w-7 border border-white/30">
               <AvatarFallback className="bg-white/20 text-white text-xs font-semibold">
                 {user?.email?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
@@ -80,23 +80,23 @@ export const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
               <p className="font-medium truncate text-xs">
                 {user?.email || 'Guest'}
               </p>
-              <p className="text-xs text-white/70">Instructor</p>
+              <p className="text-[10px] text-white/70">Instructor</p>
             </div>
           </div>
         </div>
 
         {/* Compact Menu */}
-        <div className="p-2 space-y-1">
+        <div className="p-2 space-y-0.5">
           {menuItems.map((item) => (
             <Button
               key={item.title}
               variant="ghost"
               onClick={() => handleNavigation(item.url)}
-              className={`w-full justify-start rounded-xl h-9 transition-all duration-200 hover:bg-sage-100/60 text-xs font-medium ${
+              className={`w-full justify-start rounded-lg h-8 transition-all duration-200 hover:bg-sage-100/60 text-xs font-medium ${
                 item.isStore ? 'text-burgundy-800 hover:text-burgundy-900' : 'text-sage-700'
               }`}
             >
-              <div className={`p-1.5 rounded-lg mr-2 ${item.color}`}>
+              <div className={`p-1 rounded-md mr-2 ${item.color}`}>
                 <item.icon className="h-3 w-3" />
               </div>
               <span>{item.title}</span>
@@ -108,13 +108,13 @@ export const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
         </div>
 
         {/* Compact Sign Out */}
-        <div className="absolute bottom-3 left-2 right-2">
+        <div className="absolute bottom-2 left-2 right-2">
           <Button
             variant="ghost"
             onClick={handleSignOut}
-            className="w-full justify-start rounded-xl h-9 text-red-600 hover:bg-red-50/60 text-xs font-medium"
+            className="w-full justify-start rounded-lg h-8 text-red-600 hover:bg-red-50/60 text-xs font-medium"
           >
-            <div className="p-1.5 rounded-lg mr-2 bg-red-100 text-red-600">
+            <div className="p-1 rounded-md mr-2 bg-red-100 text-red-600">
               <LogOut className="h-3 w-3" />
             </div>
             <span>Sign Out</span>

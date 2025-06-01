@@ -32,7 +32,7 @@ const Index = () => {
 
   // Get featured exercises for carousel
   const featuredExercises = exercises ? exercises.slice(0, 6) : [];
-  const recentPlans = classPlans ? classPlans.slice(0, 3) : [];
+  const recentPlans = classPlans ? classPlans.slice(0, 5) : [];
 
   // Use reformer images
   const reformerImages = [
@@ -98,12 +98,14 @@ const Index = () => {
         />
       )}
       
-      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 pb-24 overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white via-70% to-sage-100 pb-24 overflow-hidden relative">
         {/* Enhanced Background with Subtle Elements */}
         <div className="absolute inset-0 opacity-8">
           <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-sage-200 to-sage-300 rounded-full blur-3xl"></div>
           <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-r from-sage-100 to-sage-200 rounded-full blur-3xl"></div>
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-gradient-to-r from-sage-200 to-sage-300 rounded-full blur-3xl"></div>
+          {/* Additional bottom blur effect */}
+          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-sage-200/40 to-transparent blur-2xl"></div>
         </div>
 
         <div className="relative">
@@ -146,7 +148,7 @@ const Index = () => {
             </Card>
           </div>
 
-          {/* New Highlights Section - Matching uploaded image */}
+          {/* New Highlights Section */}
           <div className="px-6 mb-8">
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <div className="flex items-center justify-between mb-4">
@@ -189,7 +191,7 @@ const Index = () => {
                       <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100">
                         <Heart className="h-4 w-4 text-gray-400" />
                       </button>
-                      <button className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700">
+                      <button className="w-8 h-8 rounded-full bg-sage-600 text-white flex items-center justify-center hover:bg-sage-700">
                         <Plus className="h-4 w-4" />
                       </button>
                     </div>
@@ -199,9 +201,9 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Enhanced Recent Class Plans - Portrait Carousel Style */}
+          {/* Enhanced Your Classes Section with Better Visibility */}
           <div className="px-6 mb-8">
-            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/40">
+            <div className="bg-gradient-to-br from-sage-50/90 to-sage-100/70 backdrop-blur-xl rounded-3xl p-6 shadow-xl border border-sage-200/50">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h2 className="text-xl font-bold text-sage-800">Your Classes</h2>
@@ -235,38 +237,49 @@ const Index = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="flex gap-4 overflow-x-auto pb-2">
-                  {recentPlans.map((plan, index) => (
-                    <Card key={plan.id} className="flex-shrink-0 w-48 bg-white/90 backdrop-blur-sm border-0 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden">
-                      <CardContent className="p-0">
-                        <div className="relative aspect-[3/4] overflow-hidden rounded-t-2xl">
-                          <img 
-                            src={classPlanCoverImage}
-                            alt={plan.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                          <div className="absolute bottom-3 left-3 right-3">
-                            <h3 className="font-semibold text-white text-sm mb-2 line-clamp-2">{plan.name}</h3>
-                            <div className="flex items-center gap-2 text-white/90 text-xs mb-2">
-                              <Clock className="h-3 w-3" />
-                              <span>{plan.totalDuration || 0}min</span>
-                              <span>{plan.exercises?.length || 0} exercises</span>
+                <div className="relative">
+                  <div className="flex gap-3 overflow-x-auto pb-2">
+                    {recentPlans.map((plan, index) => (
+                      <Card 
+                        key={plan.id} 
+                        className={`flex-shrink-0 w-40 bg-white/95 backdrop-blur-sm border-0 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden ${
+                          index > 0 ? 'ml-[-20px]' : ''
+                        }`}
+                        style={{
+                          zIndex: recentPlans.length - index,
+                          transform: index > 0 ? `translateX(-${index * 5}px) scale(${1 - index * 0.02})` : 'none'
+                        }}
+                      >
+                        <CardContent className="p-0">
+                          <div className="relative aspect-[3/4] overflow-hidden rounded-t-2xl">
+                            <img 
+                              src={classPlanCoverImage}
+                              alt={plan.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                            <div className="absolute bottom-3 left-3 right-3">
+                              <h3 className="font-semibold text-white text-xs mb-2 line-clamp-2">{plan.name}</h3>
+                              <div className="flex items-center gap-2 text-white/90 text-[10px] mb-2">
+                                <Clock className="h-2.5 w-2.5" />
+                                <span>{plan.totalDuration || 0}min</span>
+                                <span>{plan.exercises?.length || 0} ex</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="p-3">
-                          <Button
-                            onClick={() => navigate(`/teaching/${plan.id}`)}
-                            className="w-full bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-                          >
-                            <Play className="h-3 w-3 mr-2" />
-                            Teach
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          <div className="p-2">
+                            <Button
+                              onClick={() => navigate(`/teaching/${plan.id}`)}
+                              className="w-full bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-xs py-1"
+                            >
+                              <Play className="h-2.5 w-2.5 mr-1" />
+                              Teach
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
