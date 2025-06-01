@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Heart, Edit, Copy, EyeOff, Eye, Trash2, RotateCcw, Check } from 'lucide-react';
@@ -9,16 +8,17 @@ interface MobileExerciseCardProps {
   exercise: Exercise;
   onSelect: (exercise: Exercise) => void;
   onAddToClass: (exercise: Exercise) => void;
-  onToggleFavorite: (exerciseId: string, e: React.MouseEvent) => void;
-  onToggleHidden: (exerciseId: string, e: React.MouseEvent) => void;
-  onEdit: (exercise: Exercise, e: React.MouseEvent) => void;
-  onDuplicate: (exercise: Exercise, e: React.MouseEvent) => void;
-  onDelete: (exercise: Exercise, e: React.MouseEvent) => void;
-  onResetToOriginal: (exercise: Exercise, e: React.MouseEvent) => void;
+  onToggleFavorite: (e: React.MouseEvent) => void;
+  onToggleHidden: (e: React.MouseEvent) => void;
+  onEdit: (e: React.MouseEvent) => void;
+  onDuplicate: (e: React.MouseEvent) => void;
+  onDelete: (e: React.MouseEvent) => void;
+  onResetToOriginal: (e: React.MouseEvent) => void;
   observeImage: (element: HTMLImageElement, src: string) => void;
   isFavorite: boolean;
   isHidden: boolean;
   darkMode: boolean;
+  className?: string;
 }
 
 export const MobileExerciseCard = ({ 
@@ -34,7 +34,8 @@ export const MobileExerciseCard = ({
   observeImage, 
   isFavorite,
   isHidden,
-  darkMode 
+  darkMode,
+  className = ''
 }: MobileExerciseCardProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -71,12 +72,12 @@ export const MobileExerciseCard = ({
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onToggleFavorite(exercise.id, e);
+    onToggleFavorite(e);
   };
 
   return (
     <div 
-      className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transition-all duration-300 active:scale-95 hover:shadow-lg ${isHidden ? 'opacity-60' : ''}`}
+      className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer transition-all duration-300 active:scale-95 hover:shadow-lg ${isHidden ? 'opacity-60' : ''} ${className}`}
       onClick={() => onSelect(exercise)}
     >
       {/* Image container with overlay elements */}
@@ -155,7 +156,7 @@ export const MobileExerciseCard = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onEdit(exercise, e);
+                  onEdit(e);
                 }}
                 className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"
               >
@@ -164,7 +165,7 @@ export const MobileExerciseCard = ({
 
               {/* Duplicate button */}
               <button
-                onClick={(e) => onDuplicate(exercise, e)}
+                onClick={(e) => onDuplicate(e)}
                 className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700"
               >
                 <Copy className="h-4 w-4" />
@@ -172,7 +173,7 @@ export const MobileExerciseCard = ({
 
               {/* Hide/Show button */}
               <button
-                onClick={(e) => onToggleHidden(exercise.id, e)}
+                onClick={(e) => onToggleHidden(e)}
                 className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                   isHidden 
                     ? 'bg-green-600 hover:bg-green-700 text-white' 
@@ -200,7 +201,7 @@ export const MobileExerciseCard = ({
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction 
-                        onClick={(e) => onResetToOriginal(exercise, e)}
+                        onClick={(e) => onResetToOriginal(e)}
                         className="bg-orange-600 hover:bg-orange-700"
                       >
                         Reset
@@ -228,7 +229,7 @@ export const MobileExerciseCard = ({
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction 
-                        onClick={(e) => onDelete(exercise, e)}
+                        onClick={(e) => onDelete(e)}
                         className="bg-red-600 hover:bg-red-700"
                       >
                         Delete

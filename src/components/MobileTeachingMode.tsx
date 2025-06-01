@@ -1,9 +1,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { Exercise } from '@/types/reformer';
+import { Exercise, ClassPlan } from '@/types/reformer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,9 +19,13 @@ import {
   Dumbbell
 } from 'lucide-react';
 
-export const MobileTeachingMode = () => {
+interface MobileTeachingModeProps {
+  classPlan: ClassPlan;
+  onClose: () => void;
+}
+
+export const MobileTeachingMode = ({ classPlan, onClose }: MobileTeachingModeProps) => {
   const navigate = useNavigate();
-  const { currentClass } = usePersistedClassPlan();
   const { preferences } = useUserPreferences();
   
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -30,7 +33,7 @@ export const MobileTeachingMode = () => {
   const [timeRemaining, setTimeRemaining] = useState(0);
 
   // Get actual exercises (not callouts)
-  const exercises = currentClass.exercises.filter(ex => ex.category !== 'callout');
+  const exercises = classPlan.exercises.filter(ex => ex.category !== 'callout');
   const currentExercise = exercises[currentExerciseIndex];
 
   // Initialize timer when exercise changes
@@ -90,7 +93,7 @@ export const MobileTeachingMode = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!currentClass || exercises.length === 0) {
+  if (!classPlan || exercises.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-50 to-white flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
@@ -115,14 +118,14 @@ export const MobileTeachingMode = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/plan')}
+            onClick={onClose}
             className="text-sage-600"
           >
             <Home className="h-4 w-4 mr-2" />
             Exit
           </Button>
           <div className="text-center">
-            <h1 className="font-semibold text-sage-800">{currentClass.name}</h1>
+            <h1 className="font-semibold text-sage-800">{classPlan.name}</h1>
             <p className="text-sm text-sage-600">
               {currentExerciseIndex + 1} of {exercises.length}
             </p>
@@ -156,7 +159,7 @@ export const MobileTeachingMode = () => {
                 </Badge>
               </div>
 
-              {/* Exercise Details - Always show as preferences structure is different */}
+              {/* Exercise Details - Always show */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center gap-2 text-sage-600">
                   <Clock className="h-4 w-4" />
