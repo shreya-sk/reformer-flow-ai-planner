@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Home, BookOpen, Calendar, Menu } from 'lucide-react';
+import { Home, BookOpen, Calendar, Layers3 } from 'lucide-react';
 import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { FloatingMenu } from '@/components/FloatingMenu';
 
@@ -22,11 +22,12 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
   // Count non-callout exercises for the badge
   const exerciseCount = currentClass.exercises.filter(ex => ex.category !== 'callout').length;
   
-  // Core navigation items with class plans as center icon
-  const coreNavItems = [
+  // Updated navigation items in the requested order
+  const navItems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/library', label: 'Library', icon: BookOpen },
-    { path: '/class-plans', label: 'Classes', icon: Calendar, special: true, count: exerciseCount },
+    { path: '/class-plans', label: 'Plans', icon: Calendar, special: true, count: exerciseCount },
+    { path: '/plan', label: 'Builder', icon: Layers3 },
   ];
 
   return (
@@ -37,8 +38,8 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
           <div className="mx-4 mb-6">
             <div className="bg-white/95 backdrop-blur-xl rounded-full shadow-2xl border border-sage-200/50 p-2">
               <div className="flex items-center justify-around max-w-lg mx-auto">
-                {/* Core navigation items */}
-                {coreNavItems.map((item) => (
+                {/* Navigation items */}
+                {navItems.map((item) => (
                   item.special ? (
                     <div key={item.path} className="relative">
                       <Button
@@ -71,16 +72,6 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
                     </Button>
                   )
                 ))}
-
-                {/* Menu button */}
-                <Button
-                  onClick={() => setIsMenuOpen(true)}
-                  variant="ghost"
-                  className="flex flex-col items-center text-sage-600 hover:text-sage-700 hover:bg-sage-50 rounded-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 p-3 min-w-[64px] h-16"
-                >
-                  <Menu className="h-6 w-6 mb-1" />
-                  <span className="text-xs font-medium">Menu</span>
-                </Button>
               </div>
             </div>
           </div>

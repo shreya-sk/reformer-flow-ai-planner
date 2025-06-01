@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, BookOpen, Timer, User, Layers3, Store } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, Timer, User, Layers3, Store, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const NavigationButtons = () => {
@@ -9,6 +9,7 @@ export const NavigationButtons = () => {
   const navigationItems = [
     { path: '/library', label: 'Exercise Library', icon: BookOpen },
     { path: '/store', label: 'Exercise Store', icon: Store },
+    { path: '/class-plans', label: 'Class Plans', icon: Calendar },
     { path: '/plan', label: 'Plan Class', icon: Layers3 },
     { path: '/timer', label: 'Timer', icon: Timer },
     { path: '/profile', label: 'Profile', icon: User },
