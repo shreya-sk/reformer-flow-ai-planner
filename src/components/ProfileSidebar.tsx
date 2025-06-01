@@ -35,20 +35,24 @@ export const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    onClose();
-    navigate('/');
+    try {
+      await signOut();
+      onClose();
+      navigate('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+    }
   };
-
-  if (!isOpen) return null;
 
   return (
     <>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 animate-fade-in"
-        onClick={onClose}
-      />
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-300"
+          onClick={onClose}
+        />
+      )}
       
       {/* Sidebar - slides in from right */}
       <div className={`fixed top-0 right-0 h-full w-80 bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out ${

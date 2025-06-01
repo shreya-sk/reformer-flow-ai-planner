@@ -6,17 +6,19 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Dumbbell, Users, Clock, Play, ArrowRight, Sparkles, Plus } from 'lucide-react';
+import { Dumbbell, Users, Clock, Play, ArrowRight, Sparkles, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { useStatistics } from '@/hooks/useStatistics';
 import { useExercises } from '@/hooks/useExercises';
 import { useClassPlans } from '@/hooks/useClassPlans';
+import { ProfileButton } from '@/components/ProfileButton';
 
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [exerciseCarouselIndex, setExerciseCarouselIndex] = useState(0);
   const { stats, loading: statsLoading } = useStatistics();
   const { exercises, loading: exercisesLoading } = useExercises();
   const { classPlans, loading: classPlansLoading } = useClassPlans();
@@ -28,11 +30,11 @@ const Index = () => {
     }
   }, [user]);
 
-  // Get featured exercises with images - reduced to 2
-  const featuredExercises = exercises ? exercises.slice(0, 2) : [];
+  // Get featured exercises for carousel
+  const featuredExercises = exercises ? exercises.slice(0, 6) : [];
   const recentPlans = classPlans ? classPlans.slice(0, 3) : [];
 
-  // Use your uploaded reformer/pilates images
+  // Use reformer images
   const reformerImages = [
     '/lovable-uploads/52923e3d-1669-4ae1-9710-9e1c18d8820d.png',
     '/lovable-uploads/4f3b5d45-3013-4b5a-a650-b00727408e73.png',
@@ -43,6 +45,18 @@ const Index = () => {
   ];
 
   const classPlanCoverImage = '/lovable-uploads/f986f49e-45f2-4dd4-8758-4be41a199bfd.png';
+
+  const nextExercise = () => {
+    setExerciseCarouselIndex((prev) => 
+      prev + 2 >= featuredExercises.length ? 0 : prev + 2
+    );
+  };
+
+  const prevExercise = () => {
+    setExerciseCarouselIndex((prev) => 
+      prev - 2 < 0 ? Math.max(0, featuredExercises.length - 2) : prev - 2
+    );
+  };
 
   if (!user) {
     return (
@@ -85,190 +99,203 @@ const Index = () => {
       )}
       
       <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 pb-24 overflow-hidden">
-        {/* Enhanced Background with Floating Elements */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-sage-300 to-sage-400 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-r from-sage-200 to-sage-300 rounded-full blur-3xl animate-pulse delay-1000"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-gradient-to-r from-sage-300 to-sage-400 rounded-full blur-3xl animate-pulse delay-500"></div>
+        {/* Enhanced Background with Subtle Elements */}
+        <div className="absolute inset-0 opacity-8">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-sage-200 to-sage-300 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-r from-sage-100 to-sage-200 rounded-full blur-3xl"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-gradient-to-r from-sage-200 to-sage-300 rounded-full blur-3xl"></div>
         </div>
 
         <div className="relative">
-          {/* Enhanced Header with Floating Profile */}
-          <div className="flex items-center justify-between p-4 pt-12">
+          {/* Modern Header */}
+          <div className="flex items-center justify-between p-6 pt-14">
             <div className="flex-1">
               <div className="mb-2">
-                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-sage-800 to-sage-600 bg-clip-text text-transparent mb-1">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-sage-800 via-sage-700 to-sage-600 bg-clip-text text-transparent mb-2">
                   Welcome back
                 </h1>
-                <p className="text-sage-600 text-sm sm:text-base">
+                <p className="text-sage-600 text-base font-medium">
                   Ready to create amazing classes?
                 </p>
               </div>
             </div>
             
-            <Button
-              onClick={() => navigate('/profile')}
-              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/90 backdrop-blur-sm border border-white/50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 p-0 group"
-            >
-              <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
-                <AvatarFallback className="bg-gradient-to-r from-sage-500 to-sage-600 text-white text-sm sm:text-lg">
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white animate-pulse"></div>
-            </Button>
+            <ProfileButton />
           </div>
 
-          {/* Enhanced Quick Stats with Sage Colors */}
-          <div className="px-4 mb-6">
-            <Card className="bg-white/95 backdrop-blur-xl border-0 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-[1.02] overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-sage-50 to-sage-100 opacity-60"></div>
-              <CardContent className="p-4 sm:p-6 relative">
-                <div className="grid grid-cols-3 gap-3 sm:gap-6 text-center">
-                  <div className="group">
-                    <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-sage-800 to-sage-600 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">{stats.totalClasses}</div>
-                    <div className="text-xs sm:text-sm text-sage-600 font-medium">Classes</div>
+          {/* Enhanced Quick Stats */}
+          <div className="px-6 mb-8">
+            <Card className="bg-white/80 backdrop-blur-xl border-0 rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-700 hover:scale-[1.02] overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-sage-50/80 to-sage-100/50"></div>
+              <CardContent className="p-6 relative">
+                <div className="grid grid-cols-3 gap-6 text-center">
+                  <div className="group cursor-pointer" onClick={() => navigate('/statistics')}>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-sage-800 to-sage-600 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 mb-1">{stats.totalClasses}</div>
+                    <div className="text-sm text-sage-600 font-semibold">Classes</div>
                   </div>
-                  <div className="group">
-                    <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-sage-700 to-sage-500 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">{stats.totalHours}</div>
-                    <div className="text-xs sm:text-sm text-sage-600 font-medium">Hours</div>
+                  <div className="group cursor-pointer" onClick={() => navigate('/statistics')}>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-sage-700 to-sage-500 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 mb-1">{stats.totalHours}</div>
+                    <div className="text-sm text-sage-600 font-semibold">Hours</div>
                   </div>
-                  <div className="group">
-                    <div className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-sage-600 to-sage-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">{stats.exercisesUsed}</div>
-                    <div className="text-xs sm:text-sm text-sage-600 font-medium">Exercises</div>
+                  <div className="group cursor-pointer" onClick={() => navigate('/statistics')}>
+                    <div className="text-3xl font-bold bg-gradient-to-r from-sage-600 to-sage-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300 mb-1">{stats.exercisesUsed}</div>
+                    <div className="text-sm text-sage-600 font-semibold">Exercises</div>
                   </div>
                 </div>
-                <Button 
-                  onClick={() => navigate('/statistics')}
-                  variant="ghost" 
-                  className="w-full mt-3 text-sage-600 hover:bg-sage-100 rounded-2xl group transition-all duration-300 text-xs sm:text-sm"
-                >
-                  <span>View Statistics</span>
-                  <ArrowRight className="ml-2 h-3 w-3 sm:h-4 sm:w-4 group-hover:translate-x-1 transition-transform duration-300" />
-                </Button>
               </CardContent>
             </Card>
           </div>
 
-          {/* Enhanced Store Preview with Better Separation */}
-          <div className="px-4 mb-8">
-            <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-white/30">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl sm:rounded-2xl">
-                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+          {/* Enhanced Store Preview with Carousel */}
+          <div className="px-6 mb-8">
+            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/40">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl shadow-lg">
+                    <Sparkles className="h-6 w-6 text-white" />
                   </div>
-                  <h2 className="text-lg sm:text-xl font-bold text-sage-800">Discover Exercises</h2>
+                  <div>
+                    <h2 className="text-xl font-bold text-sage-800">Discover Exercises</h2>
+                    <p className="text-sage-600 text-sm">Explore our exercise library</p>
+                  </div>
                 </div>
                 <Button 
                   onClick={() => navigate('/store')} 
                   variant="ghost" 
-                  className="text-sage-600 hover:bg-sage-100 rounded-xl sm:rounded-2xl group text-xs sm:text-sm"
+                  className="text-sage-600 hover:bg-sage-100 rounded-2xl group"
                 >
-                  <span>Explore</span>
-                  <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  <span>Explore All</span>
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
                 </Button>
               </div>
               
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                {featuredExercises.slice(0, 2).map((exercise, index) => (
-                  <Card key={exercise.id} className="bg-white/90 backdrop-blur-sm border-0 rounded-2xl sm:rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 active:scale-95 overflow-hidden group">
-                    <CardContent className="p-0">
-                      <div className="relative aspect-[4/3] overflow-hidden">
-                        <img 
-                          src={reformerImages[index % reformerImages.length]}
-                          alt={exercise.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                        <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
-                          <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 rounded-full px-2 sm:px-3 py-1 text-xs font-medium">
-                            New
-                          </Badge>
-                        </div>
-                        <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3">
-                          <h3 className="text-white font-bold text-sm sm:text-base leading-tight mb-1">{exercise.name}</h3>
-                          <div className="flex items-center gap-2 sm:gap-3 text-white/90 text-xs sm:text-sm">
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{exercise.duration}min</span>
-                            </div>
-                            <Badge className="bg-white/20 text-white border-0 rounded-full px-2 py-0.5 text-xs backdrop-blur-sm">
-                              {exercise.category}
+              {/* Carousel Container */}
+              <div className="relative">
+                <div className="flex gap-4 overflow-hidden">
+                  {featuredExercises.slice(exerciseCarouselIndex, exerciseCarouselIndex + 2).map((exercise, index) => (
+                    <Card key={exercise.id} className="flex-1 bg-white/90 backdrop-blur-sm border-0 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 active:scale-95 overflow-hidden group">
+                      <CardContent className="p-0">
+                        <div className="relative aspect-[4/3] overflow-hidden">
+                          <img 
+                            src={reformerImages[(exerciseCarouselIndex + index) % reformerImages.length]}
+                            alt={exercise.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                          <div className="absolute top-3 right-3">
+                            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 rounded-full px-3 py-1 text-xs font-medium shadow-lg">
+                              New
                             </Badge>
                           </div>
+                          <div className="absolute bottom-3 left-3 right-3">
+                            <h3 className="text-white font-bold text-base leading-tight mb-2">{exercise.name}</h3>
+                            <div className="flex items-center gap-3 text-white/90 text-sm">
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span>{exercise.duration}min</span>
+                              </div>
+                              <Badge className="bg-white/20 text-white border-0 rounded-full px-2 py-0.5 text-xs backdrop-blur-sm">
+                                {exercise.category}
+                              </Badge>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                
+                {/* Carousel Controls */}
+                {featuredExercises.length > 2 && (
+                  <>
+                    <Button
+                      onClick={prevExercise}
+                      variant="ghost"
+                      size="icon"
+                      className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm hover:bg-white rounded-full shadow-lg w-8 h-8"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      onClick={nextExercise}
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 backdrop-blur-sm hover:bg-white rounded-full shadow-lg w-8 h-8"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Enhanced Recent Class Plans - Carousel Style */}
-          <div className="px-4 mb-8">
-            <div className="bg-white/40 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-white/30">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-bold text-sage-800">Your Classes</h2>
+          {/* Enhanced Recent Class Plans */}
+          <div className="px-6 mb-8">
+            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/40">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-sage-800">Your Classes</h2>
+                  <p className="text-sage-600 text-sm">Recently created class plans</p>
+                </div>
                 <Button 
                   onClick={() => navigate('/class-plans')}
                   variant="ghost" 
-                  className="text-sage-600 hover:bg-sage-100 rounded-xl sm:rounded-2xl group text-xs sm:text-sm"
+                  className="text-sage-600 hover:bg-sage-100 rounded-2xl group"
                 >
                   <span>See All</span>
-                  <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
                 </Button>
               </div>
               
               {recentPlans.length === 0 ? (
-                <Card className="bg-white/90 backdrop-blur-sm border-0 rounded-2xl sm:rounded-3xl shadow-xl">
-                  <CardContent className="p-6 sm:p-8 text-center">
-                    <div className="p-3 sm:p-4 bg-gradient-to-r from-sage-100 to-sage-200 rounded-2xl sm:rounded-3xl w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                      <Users className="h-8 w-8 sm:h-10 sm:w-10 text-sage-600" />
+                <Card className="bg-white/90 backdrop-blur-sm border-0 rounded-3xl shadow-xl">
+                  <CardContent className="p-8 text-center">
+                    <div className="p-4 bg-gradient-to-r from-sage-100 to-sage-200 rounded-3xl w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                      <Users className="h-10 w-10 text-sage-600" />
                     </div>
-                    <h3 className="text-lg sm:text-xl font-semibold text-sage-800 mb-2">Start Your Journey</h3>
-                    <p className="text-sage-600 mb-4 sm:mb-6 text-sm sm:text-base">Create your first class plan</p>
+                    <h3 className="text-xl font-semibold text-sage-800 mb-2">Start Your Journey</h3>
+                    <p className="text-sage-600 mb-6">Create your first class plan</p>
                     <Button 
                       onClick={() => navigate('/plan')}
-                      className="bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-2xl px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                      className="bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-2xl px-8 py-3 font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                     >
-                      <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                      <Plus className="h-5 w-5 mr-2" />
                       Create Class
                     </Button>
                   </CardContent>
                 </Card>
               ) : (
-                <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="grid gap-4">
                   {recentPlans.map((plan, index) => (
-                    <Card key={plan.id} className="flex-shrink-0 w-64 sm:w-72 bg-white/90 backdrop-blur-sm border-0 rounded-2xl sm:rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 group overflow-hidden">
+                    <Card key={plan.id} className="bg-white/90 backdrop-blur-sm border-0 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] group overflow-hidden">
                       <CardContent className="p-0">
-                        <div className="relative h-32 sm:h-40 overflow-hidden">
-                          <img 
-                            src={classPlanCoverImage}
-                            alt={plan.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                          <div className="absolute bottom-3 left-3 right-3">
-                            <h3 className="font-semibold text-white text-sm sm:text-base truncate mb-1">{plan.name}</h3>
-                            <div className="flex items-center gap-3 text-white/90 text-xs sm:text-sm">
+                        <div className="flex items-center">
+                          <div className="relative w-24 h-24 overflow-hidden rounded-l-2xl">
+                            <img 
+                              src={classPlanCoverImage}
+                              alt={plan.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            />
+                          </div>
+                          <div className="flex-1 p-4">
+                            <h3 className="font-semibold text-sage-800 text-base mb-1">{plan.name}</h3>
+                            <div className="flex items-center gap-3 text-sage-600 text-sm mb-3">
                               <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
                                 {plan.totalDuration || 0}min
                               </span>
                               <span>{plan.exercises?.length || 0} exercises</span>
                             </div>
+                            <Button
+                              onClick={() => navigate(`/teaching/${plan.id}`)}
+                              size="sm"
+                              className="bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                            >
+                              <Play className="h-3 w-3 mr-2" />
+                              Teach
+                            </Button>
                           </div>
-                        </div>
-                        <div className="p-3 sm:p-4">
-                          <Button
-                            onClick={() => navigate(`/teaching/${plan.id}`)}
-                            className="w-full bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-xl sm:rounded-2xl py-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-xs sm:text-sm"
-                          >
-                            <Play className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
-                            Teach
-                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -278,13 +305,13 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Quick Action Floating Button */}
-          <div className="fixed bottom-28 sm:bottom-32 right-4 sm:right-6 z-20">
+          {/* Floating Action Button */}
+          <div className="fixed bottom-32 right-6 z-20">
             <Button
               onClick={() => navigate('/plan')}
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 active:scale-95"
+              className="w-16 h-16 rounded-full bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 active:scale-95"
             >
-              <Plus className="h-6 w-6 sm:h-8 sm:w-8" />
+              <Plus className="h-8 w-8" />
             </Button>
           </div>
         </div>
