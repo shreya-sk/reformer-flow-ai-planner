@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Exercise, ClassPlan } from '@/types/reformer';
-import { ImprovedClassBuilderUI } from '@/components/ImprovedClassBuilderUI';
+import { ModernClassBuilder } from '@/components/ModernClassBuilder';
 
 interface ClassBuilderProps {
   currentClass: ClassPlan;
@@ -16,5 +16,5 @@ interface ClassBuilderProps {
 }
 
 export const ClassBuilder = (props: ClassBuilderProps) => {
-  return <ImprovedClassBuilderUI {...props} />;
+  return <ModernClassBuilder {...props} />;
 };
