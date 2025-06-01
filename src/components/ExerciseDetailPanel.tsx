@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { X, AlertTriangle, TrendingUp, TrendingDown } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
+import { useTouchGestures } from '@/hooks/useTouchGestures';
 
 interface ExerciseDetailPanelProps {
   exercise: Exercise;
@@ -12,26 +13,37 @@ interface ExerciseDetailPanelProps {
 }
 
 export const ExerciseDetailPanel = ({ exercise, isOpen, onClose }: ExerciseDetailPanelProps) => {
+  const { isPulling, pullDistance } = useTouchGestures({
+    onSwipeDown: onClose,
+    minSwipeDistance: 100,
+  });
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 animate-slide-in-right">
+    <div className="fixed inset-x-0 bottom-0 z-50 animate-slide-in-bottom">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/30 backdrop-blur-sm"
         onClick={onClose}
       />
       
-      {/* Panel */}
-      <Card className="relative bg-white/95 backdrop-blur-xl border-0 rounded-t-3xl shadow-2xl max-h-[80vh] overflow-hidden">
+      {/* Enhanced Panel with curved top */}
+      <Card 
+        className="relative bg-white/95 backdrop-blur-xl border-0 rounded-t-3xl shadow-2xl max-h-[75vh] overflow-hidden"
+        style={{
+          transform: isPulling ? `translateY(${Math.min(pullDistance, 100)}px)` : 'translateY(0)',
+          transition: isPulling ? 'none' : 'transform 0.3s ease-out'
+        }}
+      >
         <CardContent className="p-0">
-          {/* Handle */}
-          <div className="flex justify-center pt-3 pb-2">
-            <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+          {/* Enhanced Handle */}
+          <div className="flex justify-center pt-4 pb-3">
+            <div className="w-16 h-1.5 bg-gray-300 rounded-full"></div>
           </div>
           
           {/* Header */}
-          <div className="flex items-center justify-between p-6 pb-4">
+          <div className="flex items-center justify-between px-6 pb-4">
             <h3 className="text-xl font-bold text-sage-800">{exercise.name}</h3>
             <button
               onClick={onClose}
@@ -42,7 +54,7 @@ export const ExerciseDetailPanel = ({ exercise, isOpen, onClose }: ExerciseDetai
           </div>
           
           {/* Content */}
-          <div className="px-6 pb-6 space-y-6 max-h-[60vh] overflow-y-auto">
+          <div className="px-6 pb-8 space-y-6 max-h-[55vh] overflow-y-auto">
             {/* Progressions */}
             {exercise.progressions && exercise.progressions.length > 0 && (
               <div>
@@ -52,7 +64,7 @@ export const ExerciseDetailPanel = ({ exercise, isOpen, onClose }: ExerciseDetai
                 </div>
                 <div className="space-y-2">
                   {exercise.progressions.map((progression, index) => (
-                    <Badge key={index} variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    <Badge key={index} variant="outline" className="bg-green-50 text-green-700 border-green-200 mr-2 mb-2">
                       {progression}
                     </Badge>
                   ))}
@@ -69,7 +81,7 @@ export const ExerciseDetailPanel = ({ exercise, isOpen, onClose }: ExerciseDetai
                 </div>
                 <div className="space-y-2">
                   {exercise.regressions.map((regression, index) => (
-                    <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                    <Badge key={index} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 mr-2 mb-2">
                       {regression}
                     </Badge>
                   ))}
@@ -86,7 +98,7 @@ export const ExerciseDetailPanel = ({ exercise, isOpen, onClose }: ExerciseDetai
                 </div>
                 <div className="space-y-2">
                   {exercise.contraindications.map((contraindication, index) => (
-                    <Badge key={index} variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                    <Badge key={index} variant="outline" className="bg-red-50 text-red-700 border-red-200 mr-2 mb-2">
                       {contraindication}
                     </Badge>
                   ))}

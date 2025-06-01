@@ -135,9 +135,9 @@ export const ClassTeachingMode = ({
       </div>
 
       {/* Main content - centered */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-8 py-8">
+      <div className="relative z-10 flex flex-col items-center justify-center px-8 py-4">
         {/* Large circular image with progress ring */}
-        <div className="relative mb-8">
+        <div className="relative mb-6">
           <CircularProgress 
             percentage={progressPercentage} 
             size={320} 
@@ -164,28 +164,20 @@ export const ClassTeachingMode = ({
           <div className="absolute inset-0 w-80 h-80 rounded-full bg-gradient-to-r from-sage-400/20 via-sage-500/20 to-sage-600/20 blur-3xl -z-10"></div>
         </div>
 
-        {/* Exercise title and info */}
-        <div className="text-center mb-6 max-w-sm">
-          <h1 className="text-2xl font-bold text-white mb-3">{currentExercise.name}</h1>
-          
-          {/* Spring visual */}
-          <div className="flex items-center justify-center mb-4">
-            <SpringVisual springs={currentExercise.springs} className="scale-125" />
-          </div>
-          
-          <div className="flex items-center justify-center gap-3 text-white/60 text-sm mb-4">
-            <span>{classPlan.name}</span>
-            <span>•</span>
-            <span className="capitalize">{currentExercise.category}</span>
+        {/* Exercise title and spring in one line */}
+        <div className="text-center mb-4 max-w-sm">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <h1 className="text-xl font-bold text-white">{currentExercise.name}</h1>
+            <SpringVisual springs={currentExercise.springs} className="scale-110" />
           </div>
         </div>
 
-        {/* Teaching cues - more prominent */}
+        {/* Teaching cues - improved spacing and visibility */}
         {currentExercise.cues && currentExercise.cues.length > 0 && (
-          <div className="max-w-md mx-auto mb-8 bg-white/10 backdrop-blur-sm rounded-2xl p-4">
-            <div className="space-y-2">
-              {currentExercise.cues.slice(0, 2).map((cue, index) => (
-                <p key={index} className="text-sm text-white/90 text-center font-light leading-relaxed">
+          <div className="max-w-lg mx-auto mb-16 bg-white/15 backdrop-blur-sm rounded-2xl p-5">
+            <div className="space-y-3">
+              {currentExercise.cues.slice(0, 3).map((cue, index) => (
+                <p key={index} className="text-base text-white font-light leading-relaxed text-center">
                   • {cue}
                 </p>
               ))}
@@ -197,30 +189,30 @@ export const ClassTeachingMode = ({
         <Button
           onClick={() => setShowDetailPanel(true)}
           variant="ghost"
-          className="text-white/60 hover:text-white hover:bg-white/10 rounded-full p-2"
+          className="text-white/60 hover:text-white hover:bg-white/10 rounded-full p-2 mb-4"
         >
           <ChevronUp className="h-5 w-5" />
         </Button>
       </div>
 
-      {/* Compact media controls in translucent pill */}
+      {/* Compact media controls in shorter translucent pill */}
       <div className="fixed bottom-12 left-1/2 transform -translate-x-1/2 z-30">
-        <div className="flex items-center gap-4 bg-white/15 backdrop-blur-xl rounded-full px-6 py-3 shadow-2xl">
+        <div className="flex items-center gap-3 bg-white/15 backdrop-blur-xl rounded-full px-5 py-2.5 shadow-2xl">
           <Button 
             onClick={previousExercise} 
             disabled={currentExerciseIndex === 0} 
             variant="ghost" 
             size="icon" 
-            className="w-10 h-10 text-white/80 hover:text-white disabled:opacity-30 hover:bg-transparent"
+            className="w-9 h-9 text-white/80 hover:text-white disabled:opacity-30 hover:bg-transparent"
           >
-            <SkipBack className="h-5 w-5" />
+            <SkipBack className="h-4 w-4" />
           </Button>
           
           <Button 
             onClick={resetTimer} 
             variant="ghost" 
             size="icon" 
-            className="w-10 h-10 text-white/80 hover:text-white hover:bg-transparent"
+            className="w-9 h-9 text-white/80 hover:text-white hover:bg-transparent"
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
@@ -229,9 +221,9 @@ export const ClassTeachingMode = ({
           <Button 
             onClick={handlePlayPause} 
             size="icon" 
-            className="w-12 h-12 rounded-full bg-white text-black hover:bg-white/90 shadow-xl hover:scale-105 transition-all duration-200" 
+            className="w-11 h-11 rounded-full bg-white text-black hover:bg-white/90 shadow-xl hover:scale-105 transition-all duration-200" 
           >
-            {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6 ml-0.5" />}
+            {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
           </Button>
           
           <Button 
@@ -239,21 +231,21 @@ export const ClassTeachingMode = ({
             disabled={currentExerciseIndex === exercises.length - 1} 
             variant="ghost" 
             size="icon" 
-            className="w-10 h-10 text-white/80 hover:text-white disabled:opacity-30 hover:bg-transparent rotate-180"
+            className="w-9 h-9 text-white/80 hover:text-white disabled:opacity-30 hover:bg-transparent rotate-180"
           >
-            <SkipBack className="h-5 w-5" />
+            <SkipBack className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Exercise counter */}
-        <div className="text-center mt-4">
+        <div className="text-center mt-3">
           <p className="text-xs text-white/40">
             Exercise {currentExerciseIndex + 1} of {exercises.length}
           </p>
         </div>
       </div>
 
-      {/* Exercise Detail Panel */}
+      {/* Enhanced Exercise Detail Panel */}
       <ExerciseDetailPanel 
         exercise={currentExercise}
         isOpen={showDetailPanel}

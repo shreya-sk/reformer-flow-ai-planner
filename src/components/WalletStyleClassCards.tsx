@@ -63,16 +63,17 @@ export const WalletStyleClassCards = ({
     
     if (isStacked) {
       return {
-        transform: `translateY(${-120 - (distanceFromTop * 8)}px) scale(0.95)`,
+        transform: `translateY(${-150 - (distanceFromTop * 12)}px) scale(0.94)`,
         zIndex: 50 - distanceFromTop,
-        opacity: 0.7,
+        opacity: 0.8,
       };
     }
     
+    // Show more of each card behind - increased spacing and visibility
     return {
-      transform: `translateY(${-index * 20}px) scale(${1 - index * 0.02})`,
+      transform: `translateY(${-index * 35}px) scale(${1 - index * 0.015})`,
       zIndex: 50 - index,
-      opacity: 1 - index * 0.1,
+      opacity: 1 - index * 0.08,
     };
   };
 
@@ -96,15 +97,19 @@ export const WalletStyleClassCards = ({
     );
   }
 
+  // Improved container height calculation to prevent spillage
+  const containerHeight = Math.max(280, 180 + (classPlans.length - 1) * 35);
+
   return (
-    <div className="relative px-4 pb-32" style={{ height: `${200 + classPlans.length * 20}px` }}>
+    <div className="relative px-4 pb-32" style={{ height: `${containerHeight}px` }}>
       {classPlans.map((plan, index) => (
         <Card 
           key={plan.id}
           className="absolute w-full bg-white/95 backdrop-blur-sm border-0 rounded-3xl shadow-2xl transition-all duration-500 ease-out cursor-pointer overflow-hidden"
           style={{
-            top: `${index * 8}px`,
+            top: `${index * 12}px`,
             ...getCardStyle(index),
+            maxWidth: 'calc(100% - 2rem)',
           }}
           onClick={() => handleCardTap(index)}
         >

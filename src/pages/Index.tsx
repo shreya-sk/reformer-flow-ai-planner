@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Dumbbell, Users, Clock, Play, ArrowRight, Sparkles, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Dumbbell, Users, Clock, Play, ArrowRight, Store, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { useStatistics } from '@/hooks/useStatistics';
@@ -146,17 +146,16 @@ const Index = () => {
             </Card>
           </div>
 
-          {/* Enhanced Store Preview with Carousel */}
+          {/* Enhanced Store Preview with Carousel - Updated Design */}
           <div className="px-6 mb-8">
-            <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 shadow-xl border border-white/40">
-              <div className="flex items-center justify-between mb-6">
+            <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-5 shadow-xl border border-white/40">
+              <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl shadow-lg">
-                    <Sparkles className="h-6 w-6 text-white" />
+                  <div className="p-3 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 rounded-2xl shadow-lg">
+                    <Store className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-sage-800">Discover Exercises</h2>
-                    <p className="text-sage-600 text-sm">Explore our exercise library</p>
+                    <h2 className="text-lg font-bold text-sage-800">New Highlights</h2>
                   </div>
                 </div>
                 <Button 
@@ -164,16 +163,16 @@ const Index = () => {
                   variant="ghost" 
                   className="text-sage-600 hover:bg-sage-100 rounded-2xl group"
                 >
-                  <span>Explore All</span>
+                  <span className="text-sm">Explore All</span>
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
                 </Button>
               </div>
               
-              {/* Carousel Container */}
+              {/* Carousel Container - Larger Images */}
               <div className="relative">
-                <div className="flex gap-4 overflow-hidden">
+                <div className="flex gap-3 overflow-hidden">
                   {featuredExercises.slice(exerciseCarouselIndex, exerciseCarouselIndex + 2).map((exercise, index) => (
-                    <Card key={exercise.id} className="flex-1 bg-white/90 backdrop-blur-sm border-0 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 active:scale-95 overflow-hidden group">
+                    <Card key={exercise.id} className="flex-1 bg-white/90 backdrop-blur-sm border-0 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 active:scale-95 overflow-hidden group">
                       <CardContent className="p-0">
                         <div className="relative aspect-[4/3] overflow-hidden">
                           <img 
@@ -183,13 +182,13 @@ const Index = () => {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
                           <div className="absolute top-3 right-3">
-                            <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0 rounded-full px-3 py-1 text-xs font-medium shadow-lg">
+                            <Badge className="bg-gradient-to-r from-amber-700 to-amber-800 text-white border-0 rounded-full px-3 py-1 text-xs font-medium shadow-lg">
                               New
                             </Badge>
                           </div>
                           <div className="absolute bottom-3 left-3 right-3">
-                            <h3 className="text-white font-bold text-base leading-tight mb-2">{exercise.name}</h3>
-                            <div className="flex items-center gap-3 text-white/90 text-sm">
+                            <h3 className="text-white font-bold text-sm leading-tight mb-2">{exercise.name}</h3>
+                            <div className="flex items-center gap-2 text-white/90 text-xs">
                               <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
                                 <span>{exercise.duration}min</span>
@@ -303,16 +302,6 @@ const Index = () => {
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Floating Action Button */}
-          <div className="fixed bottom-32 right-6 z-20">
-            <Button
-              onClick={() => navigate('/plan')}
-              className="w-16 h-16 rounded-full bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 active:scale-95"
-            >
-              <Plus className="h-8 w-8" />
-            </Button>
           </div>
         </div>
 
