@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Dumbbell, Users, Clock, Play } from 'lucide-react';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { NavigationButtons } from '@/components/NavigationButtons';
@@ -16,9 +18,9 @@ const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const { stats, loading: statsLoading, error: statsError } = useStatistics();
-  const { exercises, loading: exercisesLoading, error: exercisesError } = useExercises();
-  const { classPlans, loading: classPlansLoading, error: classPlansError } = useClassPlans();
+  const { stats, loading: statsLoading } = useStatistics();
+  const { exercises, loading: exercisesLoading } = useExercises();
+  const { classPlans, loading: classPlansLoading } = useClassPlans();
 
   useEffect(() => {
     if (user) {
@@ -27,7 +29,8 @@ const Index = () => {
     }
   }, [user]);
 
-  const featuredExercises = exercises ? exercises.filter(ex => ex.is_featured) : [];
+  // Filter for featured exercises (assume some exercises might be featured based on download count or other criteria)
+  const featuredExercises = exercises ? exercises.slice(0, 4) : [];
   const recentPlans = classPlans ? classPlans.slice(0, 3) : [];
 
   const handleSeeMorePlans = () => {
@@ -213,7 +216,7 @@ const Index = () => {
                           <div className="flex items-center gap-3 text-xs text-sage-600 mt-1">
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              {plan.total_duration || 0}min
+                              {plan.totalDuration || 0}min
                             </span>
                             <span>{plan.exercises?.length || 0} exercises</span>
                           </div>

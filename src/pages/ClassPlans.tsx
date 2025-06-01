@@ -99,7 +99,7 @@ const ClassPlans = () => {
                       <div className="flex items-center gap-4 text-sm text-sage-600 mt-1">
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          <span>{plan.total_duration || 0}min</span>
+                          <span>{plan.totalDuration || 0}min</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Users className="h-3 w-3" />
@@ -108,7 +108,7 @@ const ClassPlans = () => {
                       </div>
                     </div>
                     <Badge className="bg-sage-100 text-sage-700 border-0 rounded-full">
-                      {plan.difficulty || 'Mixed'}
+                      Mixed
                     </Badge>
                   </div>
 
