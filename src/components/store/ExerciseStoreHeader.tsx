@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
   Search, 
-  Filter, 
   ShoppingCart,
   ArrowLeft
 } from 'lucide-react';
@@ -40,7 +39,7 @@ export const ExerciseStoreHeader = ({
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white border-b border-sage-200 sticky top-0 z-40 shadow-sm">
+    <div className="bg-white/90 backdrop-blur-xl border-b border-white/50 sticky top-0 z-40 shadow-lg">
       <div className="p-4 space-y-4">
         {/* Top Bar */}
         <div className="flex items-center justify-between">
@@ -48,23 +47,22 @@ export const ExerciseStoreHeader = ({
             variant="ghost"
             size="sm"
             onClick={() => navigate('/')}
-            className="text-sage-600"
+            className="text-sage-600 rounded-full p-2 hover:bg-sage-100"
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Home
+            <ArrowLeft className="h-5 w-5" />
           </Button>
           
-          <h1 className="text-lg font-semibold text-sage-800">Exercise Store</h1>
+          <h1 className="text-xl font-semibold text-sage-800">Exercise Store</h1>
           
           <Button
             variant="ghost"
             size="sm"
             onClick={onCartClick}
-            className="text-sage-600 relative"
+            className="text-sage-600 relative rounded-full p-2 hover:bg-sage-100"
           >
             <ShoppingCart className="h-5 w-5" />
             {cartCount > 0 && (
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 bg-red-500 text-white text-xs">
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full border-2 border-white">
                 {cartCount > 9 ? '9+' : cartCount}
               </Badge>
             )}
@@ -73,27 +71,27 @@ export const ExerciseStoreHeader = ({
 
         {/* Search Bar */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-sage-400" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-sage-400" />
           <Input
             placeholder="Search exercises..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 pr-4 bg-sage-50 border-sage-200 focus:border-sage-400"
+            className="pl-12 pr-4 bg-sage-50/80 border-0 focus:ring-2 focus:ring-sage-300 rounded-2xl h-12 backdrop-blur-sm"
           />
         </div>
 
-        {/* Categories - Horizontal scroll on mobile */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {/* Categories - Horizontal scroll */}
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
           {categories.map((category) => (
             <Button
               key={category.value}
               variant={selectedCategory === category.value ? "default" : "outline"}
               size="sm"
               onClick={() => onCategoryChange(category.value)}
-              className={`whitespace-nowrap flex-shrink-0 ${
+              className={`whitespace-nowrap flex-shrink-0 rounded-2xl h-10 px-4 transition-all duration-200 ${
                 selectedCategory === category.value
-                  ? 'bg-sage-600 hover:bg-sage-700 text-white'
-                  : 'border-sage-300 text-sage-700 hover:bg-sage-50'
+                  ? 'bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white shadow-lg'
+                  : 'border-sage-200 bg-white/80 text-sage-700 hover:bg-sage-50 backdrop-blur-sm'
               }`}
             >
               {category.label}

@@ -5,6 +5,7 @@ import { ExerciseStoreHeader } from './store/ExerciseStoreHeader';
 import { ExerciseStoreBundles } from './store/ExerciseStoreBundles';
 import { ExerciseStoreGrid } from './store/ExerciseStoreGrid';
 import { ExerciseStoreCart } from './store/ExerciseStoreCart';
+import { BottomNavigation } from '@/components/BottomNavigation';
 import { useExerciseStore } from '@/hooks/useExerciseStore';
 import { useToast } from '@/hooks/use-toast';
 
@@ -93,23 +94,33 @@ export const ExerciseStore = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-64 px-4">
-        <p className="text-sage-600 text-center">Please sign in to access the exercise store.</p>
+      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 pb-24">
+        <div className="flex items-center justify-center h-64 px-4">
+          <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg">
+            <p className="text-sage-600">Please sign in to access the exercise store.</p>
+          </div>
+        </div>
+        <BottomNavigation />
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 px-4">
-        <div className="animate-spin w-6 h-6 border-4 border-sage-600 border-t-transparent rounded-full"></div>
-        <p className="text-sage-600 ml-3">Loading store...</p>
+      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 pb-24">
+        <div className="flex items-center justify-center h-64 px-4">
+          <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg">
+            <div className="animate-spin w-8 h-8 border-4 border-sage-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-sage-600">Loading store...</p>
+          </div>
+        </div>
+        <BottomNavigation />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
+    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 pb-24">
       <ExerciseStoreHeader
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -119,7 +130,7 @@ export const ExerciseStore = () => {
         onCartClick={() => setShowCart(true)}
       />
 
-      <div className="p-4 space-y-6 pb-20">
+      <div className="p-4 space-y-6">
         <ExerciseStoreBundles
           bundles={bundles}
           exercises={storeExercises}
@@ -149,6 +160,8 @@ export const ExerciseStore = () => {
           onAddToLibrary={handleAddToLibrary}
         />
       )}
+
+      <BottomNavigation />
     </div>
   );
 };
