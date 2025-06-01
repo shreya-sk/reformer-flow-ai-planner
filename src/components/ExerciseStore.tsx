@@ -93,16 +93,16 @@ export const ExerciseStore = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sage-600">Please sign in to access the exercise store.</p>
+      <div className="flex items-center justify-center h-64 px-4">
+        <p className="text-sage-600 text-center">Please sign in to access the exercise store.</p>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin w-8 h-8 border-4 border-sage-600 border-t-transparent rounded-full"></div>
+      <div className="flex items-center justify-center h-64 px-4">
+        <div className="animate-spin w-6 h-6 border-4 border-sage-600 border-t-transparent rounded-full"></div>
         <p className="text-sage-600 ml-3">Loading store...</p>
       </div>
     );

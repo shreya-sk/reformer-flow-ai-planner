@@ -2,8 +2,9 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Home, BookOpen, Plus, Timer, User, Store } from 'lucide-react';
+import { Home, BookOpen, Plus, Menu } from 'lucide-react';
 import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
+import { useSidebar } from '@/components/ui/sidebar';
 
 interface BottomNavigationProps {
   onPlanClass?: () => void;
@@ -13,20 +14,18 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentClass } = usePersistedClassPlan();
+  const { toggleSidebar } = useSidebar();
   
   const isActive = (path: string) => location.pathname === path;
   
   // Count non-callout exercises for the badge
   const exerciseCount = currentClass.exercises.filter(ex => ex.category !== 'callout').length;
   
-  // Define navigation items - updated to include store
-  const navItems = [
+  // Core navigation items only - clean and focused
+  const coreNavItems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/library', label: 'Library', icon: BookOpen },
     { path: '/plan', label: 'Plan', icon: Plus, special: true, count: exerciseCount },
-    { path: '/store', label: 'Store', icon: Store },
-    { path: '/timer', label: 'Timer', icon: Timer },
-    { path: '/profile', label: 'Profile', icon: User },
   ];
 
   return (
@@ -40,8 +39,9 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
           <path d="M0,60 C360,20 600,50 840,30 C1080,10 1320,40 1440,25 L1440,0 L0,0 Z" fill="rgba(255,255,255,0.1)" />
         </svg>
         
-        <div className="relative flex items-center justify-around px-2 py-3 max-w-lg mx-auto">
-          {navItems.map((item) => (
+        <div className="relative flex items-center justify-around px-4 py-3 max-w-lg mx-auto">
+          {/* Core navigation items */}
+          {coreNavItems.map((item) => (
             item.special ? (
               <div key={item.path} className="relative">
                 <Button
@@ -65,26 +65,25 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 variant="ghost"
-                className={`flex flex-col items-center text-white hover:text-sage-200 hover:bg-white/20 rounded-2xl transition-all duration-300 transform hover:scale-110 p-2 min-w-[60px] ${
+                className={`flex flex-col items-center text-white hover:text-sage-200 hover:bg-white/20 rounded-2xl transition-all duration-300 transform hover:scale-110 p-3 min-w-[70px] ${
                   isActive(item.path) ? 'bg-white/20' : ''
                 }`}
               >
-                {item.path === '/profile' ? (
-                  <div className="w-5 h-5 rounded-full bg-white/30 mb-1 flex items-center justify-center">
-                    <span className="text-xs font-bold">U</span>
-                  </div>
-                ) : item.path === '/store' ? (
-                  <div className="relative">
-                    <item.icon className="h-5 w-5 mb-1" />
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-sage-300 rounded-full"></span>
-                  </div>
-                ) : (
-                  <item.icon className="h-5 w-5 mb-1" />
-                )}
+                <item.icon className="h-5 w-5 mb-1" />
                 <span className="text-xs font-medium">{item.label}</span>
               </Button>
             )
           ))}
+
+          {/* Menu button to open sidebar */}
+          <Button
+            onClick={toggleSidebar}
+            variant="ghost"
+            className="flex flex-col items-center text-white hover:text-sage-200 hover:bg-white/20 rounded-2xl transition-all duration-300 transform hover:scale-110 p-3 min-w-[70px]"
+          >
+            <Menu className="h-5 w-5 mb-1" />
+            <span className="text-xs font-medium">Menu</span>
+          </Button>
         </div>
       </div>
     </div>

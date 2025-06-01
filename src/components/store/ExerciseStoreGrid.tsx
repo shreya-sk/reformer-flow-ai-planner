@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Users, Dumbbell, Plus, ShoppingCart, Check, Target, Star, TrendingUp } from 'lucide-react';
+import { Clock, Users, Dumbbell, Plus, ShoppingCart, Check, Target, Star, TrendingUp, Play } from 'lucide-react';
 
 interface StoreExercise {
   id: string;
@@ -70,45 +70,16 @@ export const ExerciseStoreGrid = ({
     }
   };
 
-  const getWhyUseful = (exercise: StoreExercise) => {
-    const benefits = [];
-    
-    if (exercise.muscle_groups.includes('core')) {
-      benefits.push('Core strengthening');
-    }
-    if (exercise.difficulty === 'beginner') {
-      benefits.push('Perfect for newcomers');
-    }
-    if (exercise.difficulty === 'advanced') {
-      benefits.push('Challenge your limits');
-    }
-    if (exercise.duration <= 3) {
-      benefits.push('Quick & effective');
-    }
-    if (exercise.muscle_groups.includes('full-body')) {
-      benefits.push('Total body workout');
-    }
-    if (exercise.springs === 'light') {
-      benefits.push('Joint-friendly');
-    }
-    if (exercise.download_count > 100) {
-      benefits.push('Instructor favorite');
-    }
-    
-    return benefits.slice(0, 2);
-  };
-
   const renderExerciseCard = (exercise: StoreExercise) => {
     const isInCart = cartItems.includes(exercise.id);
     const isInLibrary = userLibrary.includes(exercise.id);
     const isAdding = addingExercises.includes(exercise.id);
-    const whyUseful = getWhyUseful(exercise);
 
     return (
-      <Card key={exercise.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 group bg-gradient-to-br from-white to-sage-25 border-sage-200">
+      <Card key={exercise.id} className="overflow-hidden hover:shadow-lg transition-all duration-300 group bg-white border border-sage-200 hover:border-sage-300">
         <CardContent className="p-0">
-          {/* Image/Video Preview */}
-          <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-sage-100 to-sage-200">
+          {/* Compact Image/Video Preview */}
+          <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-sage-50 to-sage-100">
             {exercise.image_url ? (
               <img
                 src={exercise.image_url}
@@ -116,64 +87,46 @@ export const ExerciseStoreGrid = ({
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-sage-200 to-sage-300 flex items-center justify-center">
-                <Dumbbell className="h-8 w-8 text-sage-500" />
+              <div className="w-full h-full bg-gradient-to-br from-sage-100 to-sage-200 flex items-center justify-center">
+                <Dumbbell className="h-6 w-6 text-sage-400" />
               </div>
             )}
             
-            {/* Overlay badges */}
-            <div className="absolute top-2 left-2 flex flex-col gap-1">
+            {/* Compact overlay badges */}
+            <div className="absolute top-2 left-2 flex gap-1">
               {exercise.is_featured && (
-                <Badge className="text-xs bg-amber-500 text-white">
-                  <Star className="h-3 w-3 mr-1" />
-                  Featured
+                <Badge className="text-xs bg-amber-500 text-white px-1.5 py-0.5">
+                  <Star className="h-2.5 w-2.5 mr-1" />
+                  Hot
                 </Badge>
               )}
               {exercise.download_count > 50 && (
-                <Badge variant="secondary" className="text-xs bg-blue-500 text-white">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  Popular
+                <Badge variant="secondary" className="text-xs bg-blue-500 text-white px-1.5 py-0.5">
+                  <TrendingUp className="h-2.5 w-2.5 mr-1" />
+                  {exercise.download_count}
                 </Badge>
               )}
             </div>
             
             {exercise.video_url && (
-              <div className="absolute bottom-2 right-2 bg-black/60 text-white px-2 py-1 rounded text-xs">
-                Video
+              <div className="absolute bottom-2 right-2 bg-black/70 text-white p-1 rounded flex items-center gap-1">
+                <Play className="h-2.5 w-2.5" />
+                <span className="text-xs">Video</span>
               </div>
             )}
           </div>
 
-          <div className="p-4 space-y-3">
-            <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-sage-800 truncate">{exercise.name}</h3>
-                <Badge variant="secondary" className="text-xs mt-1 bg-sage-100 text-sage-700">
-                  {exercise.category}
-                </Badge>
-              </div>
+          <div className="p-3 space-y-2">
+            {/* Title and category */}
+            <div>
+              <h3 className="font-medium text-sage-800 text-sm leading-tight line-clamp-2">{exercise.name}</h3>
+              <Badge variant="secondary" className="text-xs mt-1 bg-sage-100 text-sage-600 px-1.5 py-0.5">
+                {exercise.category}
+              </Badge>
             </div>
 
-            {/* Why Useful Section */}
-            {whyUseful.length > 0 && (
-              <div className="bg-sage-50 p-2 rounded-lg">
-                <p className="text-xs font-medium text-sage-700 mb-1">Why this exercise?</p>
-                <div className="flex flex-wrap gap-1">
-                  {whyUseful.map((benefit, index) => (
-                    <span key={index} className="text-xs bg-sage-200 text-sage-700 px-2 py-1 rounded">
-                      {benefit}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <p className="text-sm text-sage-600 line-clamp-2">
-              {exercise.description}
-            </p>
-
-            {/* Exercise Stats */}
-            <div className="grid grid-cols-3 gap-2 text-xs text-sage-500">
+            {/* Compact stats */}
+            <div className="flex items-center justify-between text-xs text-sage-500">
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 <span>{exercise.duration}min</span>
@@ -183,34 +136,17 @@ export const ExerciseStoreGrid = ({
                 <span className="capitalize">{exercise.difficulty}</span>
               </div>
               <div className="flex items-center gap-1">
-                <Dumbbell className="h-3 w-3" />
-                <span className="capitalize">{exercise.springs}</span>
-              </div>
-            </div>
-
-            {/* Muscle Groups */}
-            {exercise.muscle_groups.length > 0 && (
-              <div className="flex items-center gap-1 text-xs text-sage-600">
                 <Target className="h-3 w-3" />
-                <span>Targets: {exercise.muscle_groups.slice(0, 3).join(', ')}</span>
-                {exercise.muscle_groups.length > 3 && (
-                  <span className="text-sage-400">+{exercise.muscle_groups.length - 3} more</span>
-                )}
+                <span>{exercise.muscle_groups.slice(0, 2).join(', ')}</span>
               </div>
-            )}
-
-            {/* Download count */}
-            <div className="text-xs text-sage-500 flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" />
-              {exercise.download_count} downloads
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 pt-2">
+            {/* Action Buttons - Compact */}
+            <div className="flex items-center gap-1.5 pt-1">
               {isInLibrary ? (
-                <Button size="sm" disabled className="flex-1 bg-green-600 text-white">
-                  <Check className="h-4 w-4 mr-2" />
-                  In Library
+                <Button size="sm" disabled className="flex-1 h-8 bg-green-600 text-white text-xs">
+                  <Check className="h-3 w-3 mr-1" />
+                  Owned
                 </Button>
               ) : (
                 <>
@@ -219,17 +155,17 @@ export const ExerciseStoreGrid = ({
                     variant="outline"
                     onClick={() => onAddToCart(exercise.id)}
                     disabled={isInCart}
-                    className="flex-1"
+                    className="flex-1 h-8 text-xs border-sage-300"
                   >
                     {isInCart ? (
                       <>
-                        <Check className="h-4 w-4 mr-2" />
+                        <Check className="h-3 w-3 mr-1" />
                         In Cart
                       </>
                     ) : (
                       <>
-                        <ShoppingCart className="h-4 w-4 mr-2" />
-                        Add to Cart
+                        <ShoppingCart className="h-3 w-3 mr-1" />
+                        Cart
                       </>
                     )}
                   </Button>
@@ -237,14 +173,14 @@ export const ExerciseStoreGrid = ({
                     size="sm"
                     onClick={() => handleAddToLibrary(exercise.id)}
                     disabled={isAdding}
-                    className={`bg-sage-600 hover:bg-sage-700 px-3 transition-all duration-300 ${
+                    className={`bg-sage-600 hover:bg-sage-700 px-3 h-8 transition-all duration-300 ${
                       isAdding ? 'scale-105 bg-green-600' : ''
                     }`}
                   >
                     {isAdding ? (
-                      <Check className="h-4 w-4 animate-bounce" />
+                      <Check className="h-3 w-3 animate-bounce" />
                     ) : (
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3" />
                     )}
                   </Button>
                 </>
@@ -257,14 +193,14 @@ export const ExerciseStoreGrid = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {featuredExercises.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <Star className="h-5 w-5 text-amber-500" />
-            <h3 className="text-lg font-semibold text-sage-800">Featured Exercises</h3>
+            <Star className="h-4 w-4 text-amber-500" />
+            <h3 className="text-base font-semibold text-sage-800">Featured</h3>
           </div>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             {featuredExercises.map(renderExerciseCard)}
           </div>
         </div>
@@ -272,8 +208,8 @@ export const ExerciseStoreGrid = ({
 
       {regularExercises.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-sage-800">All Exercises</h3>
-          <div className="grid grid-cols-1 gap-4">
+          <h3 className="text-base font-semibold text-sage-800">All Exercises</h3>
+          <div className="grid grid-cols-2 gap-3">
             {regularExercises.map(renderExerciseCard)}
           </div>
         </div>
@@ -281,8 +217,8 @@ export const ExerciseStoreGrid = ({
 
       {filteredExercises.length === 0 && (
         <div className="text-center py-8">
-          <Dumbbell className="h-12 w-12 text-sage-400 mx-auto mb-4" />
-          <p className="text-sage-600">No exercises found matching your criteria.</p>
+          <Dumbbell className="h-8 w-8 text-sage-400 mx-auto mb-3" />
+          <p className="text-sage-600 text-sm">No exercises found</p>
         </div>
       )}
     </div>
