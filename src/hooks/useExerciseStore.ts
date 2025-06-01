@@ -101,33 +101,56 @@ export const useExerciseStore = () => {
 
   // Add exercise to user library
   const addToUserLibrary = async (storeExerciseId: string) => {
-    if (!user) return;
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
 
     try {
-      const { error } = await supabase
+      // Check if already in library
+      const { data: existing, error: checkError } = await supabase
+        .from('user_exercise_library')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('store_exercise_id', storeExerciseId)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw checkError;
+      }
+
+      if (existing) {
+        console.log('Exercise already in library');
+        return;
+      }
+
+      // Add to library
+      const { error: insertError } = await supabase
         .from('user_exercise_library')
         .insert([{
           user_id: user.id,
           store_exercise_id: storeExerciseId
         }]);
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
-      // Update download count by first getting current count
-      const { data: currentData } = await supabase
+      // Update download count
+      const { data: currentData, error: fetchError } = await supabase
         .from('exercise_store')
         .select('download_count')
         .eq('id', storeExerciseId)
         .single();
 
-      if (currentData) {
+      if (!fetchError && currentData) {
         await supabase
           .from('exercise_store')
-          .update({ download_count: currentData.download_count + 1 })
+          .update({ download_count: (currentData.download_count || 0) + 1 })
           .eq('id', storeExerciseId);
       }
 
+      // Update local state
       setUserLibrary(prev => [...prev, storeExerciseId]);
+      
+      console.log('Successfully added exercise to library:', storeExerciseId);
     } catch (error) {
       console.error('Error adding to user library:', error);
       throw error;
@@ -136,7 +159,9 @@ export const useExerciseStore = () => {
 
   // Add bundle to user library
   const addBundleToLibrary = async (bundleId: string) => {
-    if (!user) return;
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
 
     try {
       // Get all exercises in the bundle
@@ -149,21 +174,30 @@ export const useExerciseStore = () => {
 
       // Add all exercises to user library
       const exerciseIds = bundleExercises?.map(ex => ex.id) || [];
-      await Promise.all(exerciseIds.map(id => addToUserLibrary(id)));
+      
+      for (const exerciseId of exerciseIds) {
+        try {
+          await addToUserLibrary(exerciseId);
+        } catch (error) {
+          console.warn(`Failed to add exercise ${exerciseId}:`, error);
+        }
+      }
 
       // Update bundle download count
-      const { data: currentData } = await supabase
+      const { data: currentData, error: fetchError } = await supabase
         .from('exercise_bundles')
         .select('download_count')
         .eq('id', bundleId)
         .single();
 
-      if (currentData) {
+      if (!fetchError && currentData) {
         await supabase
           .from('exercise_bundles')
-          .update({ download_count: currentData.download_count + 1 })
+          .update({ download_count: (currentData.download_count || 0) + 1 })
           .eq('id', bundleId);
       }
+
+      console.log('Successfully added bundle to library:', bundleId);
     } catch (error) {
       console.error('Error adding bundle to library:', error);
       throw error;
