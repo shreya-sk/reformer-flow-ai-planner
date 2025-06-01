@@ -1,9 +1,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Heart, Edit, Copy, EyeOff, Eye, Trash2, Check, ChevronUp, Baby } from 'lucide-react';
+import { Plus, Heart, Edit, Copy, EyeOff, Eye, Check, ChevronUp, Baby } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface MobileExerciseCardProps {
   exercise: Exercise;
@@ -30,12 +29,9 @@ export const MobileExerciseCard = ({
   onToggleHidden,
   onEdit,
   onDuplicate,
-  onDelete,
-  onResetToOriginal,
   observeImage, 
   isFavorite,
   isHidden,
-  darkMode,
   className = ''
 }: MobileExerciseCardProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
@@ -95,11 +91,11 @@ export const MobileExerciseCard = ({
 
   return (
     <div 
-      className={`relative group bg-white/80 backdrop-blur-xl rounded-2xl overflow-hidden shadow-lg border border-white/20 cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${isHidden ? 'opacity-60' : ''} ${className}`}
+      className={`relative group bg-white/90 backdrop-blur-xl rounded-xl overflow-hidden shadow-md border border-white/30 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${isHidden ? 'opacity-60' : ''} ${className}`}
       onClick={() => onSelect(exercise)}
     >
-      {/* Compact image container - e-commerce style */}
-      <div className="relative aspect-[3/2] overflow-hidden">
+      {/* Compact image container */}
+      <div className="relative aspect-[4/3] overflow-hidden">
         {exercise.image ? (
           <img
             ref={imageRef}
@@ -117,10 +113,10 @@ export const MobileExerciseCard = ({
           </div>
         )}
         
-        {/* Gradient overlay for better text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/5" />
         
-        {/* Top status badges */}
+        {/* Status badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {isHidden && (
             <Badge variant="secondary" className="text-[8px] bg-gray-600/90 text-white px-1.5 py-0.5 backdrop-blur-sm">
@@ -139,42 +135,42 @@ export const MobileExerciseCard = ({
           )}
         </div>
 
-        {/* Floating action buttons - e-commerce style */}
+        {/* Floating action buttons */}
         <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={handleFavoriteClick}
-            className={`w-7 h-7 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-200 shadow-sm ${
+            className={`w-6 h-6 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-200 shadow-sm ${
               isFavorite 
                 ? 'bg-red-500/90 text-white scale-110' 
                 : 'bg-white/80 text-gray-600 hover:bg-red-500/90 hover:text-white hover:scale-110'
             }`}
           >
-            <Heart className={`h-3 w-3 ${isFavorite ? 'fill-current' : ''}`} />
+            <Heart className={`h-2.5 w-2.5 ${isFavorite ? 'fill-current' : ''}`} />
           </button>
 
           <button
             onClick={handleEditClick}
-            className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-xl text-gray-600 flex items-center justify-center transition-all duration-200 hover:bg-sage-500/90 hover:text-white hover:scale-110 shadow-sm"
+            className="w-6 h-6 rounded-full bg-white/80 backdrop-blur-xl text-gray-600 flex items-center justify-center transition-all duration-200 hover:bg-sage-500/90 hover:text-white hover:scale-110 shadow-sm"
           >
-            <Edit className="h-3 w-3" />
+            <Edit className="h-2.5 w-2.5" />
           </button>
 
           <button
             onClick={handleDuplicateClick}
-            className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-xl text-gray-600 flex items-center justify-center transition-all duration-200 hover:bg-blue-500/90 hover:text-white hover:scale-110 shadow-sm"
+            className="w-6 h-6 rounded-full bg-white/80 backdrop-blur-xl text-gray-600 flex items-center justify-center transition-all duration-200 hover:bg-blue-500/90 hover:text-white hover:scale-110 shadow-sm"
           >
-            <Copy className="h-3 w-3" />
+            <Copy className="h-2.5 w-2.5" />
           </button>
 
           <button
             onClick={handleHideClick}
-            className={`w-7 h-7 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-200 shadow-sm ${
+            className={`w-6 h-6 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-200 shadow-sm ${
               isHidden 
                 ? 'bg-green-500/90 text-white' 
                 : 'bg-white/80 text-gray-600 hover:bg-gray-500/90 hover:text-white hover:scale-110'
             }`}
           >
-            {isHidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+            {isHidden ? <Eye className="h-2.5 w-2.5" /> : <EyeOff className="h-2.5 w-2.5" />}
           </button>
         </div>
 
@@ -182,8 +178,8 @@ export const MobileExerciseCard = ({
         <div className="absolute bottom-0 left-0 right-0 p-2">
           <div className="flex items-center justify-between">
             {exercise.isPregnancySafe && (
-              <div className="bg-emerald-500/90 backdrop-blur-sm text-white text-[8px] px-1.5 py-1 rounded-lg flex items-center gap-1">
-                <Baby className="h-2.5 w-2.5" />
+              <div className="bg-emerald-500/90 backdrop-blur-sm text-white text-[8px] px-1.5 py-1 rounded-md flex items-center gap-1">
+                <Baby className="h-2 w-2" />
                 <span>Safe</span>
               </div>
             )}
@@ -191,16 +187,16 @@ export const MobileExerciseCard = ({
             <button
               onClick={handleAddClick}
               disabled={isAdding}
-              className={`ml-auto w-8 h-8 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-300 shadow-lg ${
+              className={`ml-auto w-7 h-7 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-300 shadow-lg ${
                 isAdding
                   ? 'bg-green-500/90 text-white scale-110'
                   : 'bg-sage-600/90 hover:bg-sage-700/90 text-white hover:scale-110'
               }`}
             >
               {isAdding ? (
-                <Check className="h-3.5 w-3.5 animate-bounce" />
+                <Check className="h-3 w-3 animate-bounce" />
               ) : (
-                <Plus className="h-3.5 w-3.5" />
+                <Plus className="h-3 w-3" />
               )}
             </button>
           </div>
@@ -208,8 +204,8 @@ export const MobileExerciseCard = ({
       </div>
       
       {/* Compact content section */}
-      <div className="p-3 bg-white/90 backdrop-blur-sm">
-        <div className="flex items-center justify-between mb-2">
+      <div className="p-3 bg-white/95 backdrop-blur-sm">
+        <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm text-gray-900 truncate leading-tight">
               {exercise.name}
@@ -217,33 +213,33 @@ export const MobileExerciseCard = ({
             <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
               <span>{exercise.duration}min</span>
               <span>•</span>
-              <span>{exercise.category}</span>
+              <span className="truncate">{exercise.category}</span>
             </div>
           </div>
           
           {/* Details toggle */}
           <button
             onClick={toggleDetails}
-            className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-sage-100 transition-all duration-200"
+            className="w-5 h-5 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-sage-100 transition-all duration-200 flex-shrink-0 ml-2"
           >
-            <ChevronUp className={`h-3 w-3 transition-transform duration-300 ${showDetails ? 'rotate-180' : ''}`} />
+            <ChevronUp className={`h-2.5 w-2.5 transition-transform duration-300 ${showDetails ? 'rotate-180' : ''}`} />
           </button>
         </div>
 
-        {/* Pull-up details section with smooth animation */}
-        <div className={`overflow-hidden transition-all duration-300 ${showDetails ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
-          <div className="pt-2 border-t border-gray-100 space-y-2">
-            <div className="text-[10px] text-gray-600 space-y-1">
+        {/* Pull-up details section */}
+        <div className={`overflow-hidden transition-all duration-300 ${showDetails ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
+          <div className="pt-2 border-t border-gray-100 space-y-1">
+            <div className="text-[9px] text-gray-600 space-y-0.5">
               {exercise.regressions && exercise.regressions.length > 0 && (
                 <div className="flex justify-between">
                   <span>Regression:</span>
-                  <span className="text-green-600 font-medium">{exercise.regressions[0]}</span>
+                  <span className="text-green-600 font-medium truncate ml-1">{exercise.regressions[0]}</span>
                 </div>
               )}
               {exercise.progressions && exercise.progressions.length > 0 && (
                 <div className="flex justify-between">
                   <span>Progression:</span>
-                  <span className="text-blue-600 font-medium">{exercise.progressions[0]}</span>
+                  <span className="text-blue-600 font-medium truncate ml-1">{exercise.progressions[0]}</span>
                 </div>
               )}
               <div className="flex justify-between">
@@ -260,57 +256,6 @@ export const MobileExerciseCard = ({
           </div>
         </div>
       </div>
-
-      {/* Action dialogs remain hidden but functional */}
-      {isCustomized && isSystemExercise && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button className="hidden">Reset</button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Reset to Original</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to reset "{exercise.name}" to its original system version? All your customizations will be lost.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={(e) => onResetToOriginal(e)}
-                className="bg-orange-600 hover:bg-orange-700"
-              >
-                Reset
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-
-      {isCustom && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button className="hidden">Delete</button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Exercise</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to permanently delete "{exercise.name}"? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={(e) => onDelete(e)}
-                className="bg-red-600 hover:bg-red-700"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
     </div>
   );
 };
