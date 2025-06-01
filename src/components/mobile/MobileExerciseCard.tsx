@@ -83,11 +83,11 @@ export const MobileExerciseCard = ({
 
   return (
     <div 
-      className={`bg-white/90 backdrop-blur-xl rounded-xl overflow-hidden shadow-sm border border-sage-200/50 cursor-pointer transition-all duration-300 active:scale-95 hover:shadow-md ${isHidden ? 'opacity-60' : ''} ${className}`}
+      className={`bg-white/90 backdrop-blur-xl rounded-lg overflow-hidden shadow-sm border border-sage-200/50 cursor-pointer transition-all duration-300 active:scale-95 hover:shadow-md ${isHidden ? 'opacity-60' : ''} ${className}`}
       onClick={() => onSelect(exercise)}
     >
-      {/* Image container - smaller aspect ratio */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      {/* Image container - much smaller aspect ratio */}
+      <div className="relative aspect-[5/3] overflow-hidden">
         {exercise.image ? (
           <img
             ref={imageRef}
@@ -106,19 +106,19 @@ export const MobileExerciseCard = ({
         )}
         
         {/* Status indicators - top left */}
-        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
+        <div className="absolute top-1 left-1 flex flex-col gap-0.5">
           {isHidden && (
-            <Badge variant="secondary" className="text-[10px] bg-gray-500 text-white px-1.5 py-0.5">
+            <Badge variant="secondary" className="text-[9px] bg-gray-500 text-white px-1 py-0">
               Hidden
             </Badge>
           )}
           {isCustomized && isSystemExercise && (
-            <Badge className="text-[10px] bg-orange-500 text-white px-1.5 py-0.5">
+            <Badge className="text-[9px] bg-orange-500 text-white px-1 py-0">
               Modified
             </Badge>
           )}
           {isCustom && (
-            <Badge className="text-[10px] bg-sage-600 text-white px-1.5 py-0.5">
+            <Badge className="text-[9px] bg-sage-600 text-white px-1 py-0">
               Custom
             </Badge>
           )}
@@ -126,42 +126,42 @@ export const MobileExerciseCard = ({
 
         {/* Pregnancy safe indicator - top right */}
         {exercise.isPregnancySafe && (
-          <div className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
-            <Baby className="h-3 w-3 text-white" />
+          <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+            <Baby className="h-2.5 w-2.5 text-white" />
           </div>
         )}
 
         {/* Action buttons overlay - bottom */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1.5">
           <div className="flex items-center justify-between">
             {/* Left side actions */}
             <div className="flex items-center gap-1">
               <button
                 onClick={handleFavoriteClick}
-                className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 ${
+                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-200 ${
                   isFavorite 
                     ? 'bg-white/90 text-red-500' 
                     : 'bg-black/30 text-white hover:bg-white/90 hover:text-red-500'
                 }`}
                 aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
               >
-                <Heart className={`h-3.5 w-3.5 ${isFavorite ? 'fill-current' : ''}`} />
+                <Heart className={`h-3 w-3 ${isFavorite ? 'fill-current' : ''}`} />
               </button>
 
               <button
                 onClick={handleEditClick}
-                className="w-7 h-7 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-white/90 hover:text-sage-700 transition-all duration-200"
+                className="w-6 h-6 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-white/90 hover:text-sage-700 transition-all duration-200"
                 aria-label="Edit exercise"
               >
-                <Edit className="h-3.5 w-3.5" />
+                <Edit className="h-3 w-3" />
               </button>
 
               <button
                 onClick={handleDuplicateClick}
-                className="w-7 h-7 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-white/90 hover:text-sage-700 transition-all duration-200"
+                className="w-6 h-6 rounded-full bg-black/30 text-white flex items-center justify-center hover:bg-white/90 hover:text-sage-700 transition-all duration-200"
                 aria-label="Duplicate exercise"
               >
-                <Copy className="h-3.5 w-3.5" />
+                <Copy className="h-3 w-3" />
               </button>
             </div>
 
@@ -169,16 +169,16 @@ export const MobileExerciseCard = ({
             <button
               onClick={handleAddClick}
               disabled={isAdding}
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 shadow-md active:scale-95 ${
+              className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 shadow-md active:scale-95 ${
                 isAdding
                   ? 'bg-green-500 text-white scale-110'
                   : 'bg-sage-600 hover:bg-sage-700 text-white hover:scale-110'
               }`}
             >
               {isAdding ? (
-                <Check className="h-4 w-4 animate-bounce" />
+                <Check className="h-3.5 w-3.5 animate-bounce" />
               ) : (
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
               )}
             </button>
           </div>
@@ -186,11 +186,11 @@ export const MobileExerciseCard = ({
       </div>
       
       {/* Exercise info - more compact */}
-      <div className="p-2.5 bg-white/95">
-        <h3 className="font-semibold text-sm text-sage-800 truncate mb-1">
+      <div className="p-2 bg-white/95">
+        <h3 className="font-semibold text-xs text-sage-800 truncate mb-0.5">
           {exercise.name}
         </h3>
-        <p className="text-xs text-sage-500">
+        <p className="text-[10px] text-sage-500">
           {exercise.duration}min • {exercise.category}
         </p>
       </div>
