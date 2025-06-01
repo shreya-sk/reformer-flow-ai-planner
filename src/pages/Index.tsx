@@ -12,7 +12,7 @@ import { BottomNavigation } from '@/components/BottomNavigation';
 import { useStatistics } from '@/hooks/useStatistics';
 import { useExercises } from '@/hooks/useExercises';
 import { useClassPlans } from '@/hooks/useClassPlans';
-
+import { Dumbbell, Users, Clock, Play, ArrowRight, Sparkles, Plus } from 'lucide-react';
 const Index = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
