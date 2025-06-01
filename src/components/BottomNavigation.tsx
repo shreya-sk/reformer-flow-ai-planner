@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Home, BookOpen, Plus, Menu } from 'lucide-react';
+import { Home, BookOpen, Calendar, Menu } from 'lucide-react';
 import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { FloatingMenu } from '@/components/FloatingMenu';
 
@@ -22,11 +22,11 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
   // Count non-callout exercises for the badge
   const exerciseCount = currentClass.exercises.filter(ex => ex.category !== 'callout').length;
   
-  // Core navigation items only - clean and focused
+  // Core navigation items with class plans as center icon
   const coreNavItems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/library', label: 'Library', icon: BookOpen },
-    { path: '/plan', label: 'Plan', icon: Plus, special: true, count: exerciseCount },
+    { path: '/class-plans', label: 'Classes', icon: Calendar, special: true, count: exerciseCount },
   ];
 
   return (
@@ -42,20 +42,18 @@ export const BottomNavigation = ({ onPlanClass }: BottomNavigationProps) => {
                   item.special ? (
                     <div key={item.path} className="relative">
                       <Button
-                        onClick={onPlanClass ? onPlanClass : () => navigate(item.path)}
+                        onClick={() => navigate(item.path)}
                         className="w-16 h-16 rounded-full bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 active:scale-95"
                       >
                         <item.icon className="h-7 w-7" />
                       </Button>
-                      <Badge 
-                        className={`absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center p-0 border-2 border-white text-xs font-bold rounded-full ${
-                          item.count && item.count > 0 
-                            ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white animate-pulse' 
-                            : 'bg-sage-400 text-white'
-                        }`}
-                      >
-                        {item.count && item.count > 99 ? '99+' : (item.count || 0)}
-                      </Badge>
+                      {exerciseCount > 0 && (
+                        <Badge 
+                          className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center p-0 border-2 border-white text-xs font-bold rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white animate-pulse"
+                        >
+                          {exerciseCount > 99 ? '99+' : exerciseCount}
+                        </Badge>
+                      )}
                     </div>
                   ) : (
                     <Button

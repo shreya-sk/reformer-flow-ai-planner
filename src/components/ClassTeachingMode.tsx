@@ -29,6 +29,16 @@ export const ClassTeachingMode = ({
   // Calculate progress percentage
   const progressPercentage = exercises.length > 0 ? ((currentExerciseIndex + 1) / exercises.length) * 100 : 0;
 
+  // Use reformer images
+  const reformerImages = [
+    '/lovable-uploads/52923e3d-1669-4ae1-9710-9e1c18d8820d.png',
+    '/lovable-uploads/4f3b5d45-3013-4b5a-a650-b00727408e73.png',
+    '/lovable-uploads/6df53ad2-d4c7-4ef5-9b70-2a57511c5421.png',
+    '/lovable-uploads/f2338ebb-8a0c-4afe-9088-9a7ebb481767.png',
+    '/lovable-uploads/88ad6c7c-6357-4065-a69f-836c59627047.png',
+    '/lovable-uploads/dcef387f-d6db-46cb-8908-cdee0eb3d361.png'
+  ];
+
   // Initialize exercise timer
   useEffect(() => {
     if (currentExercise && currentExercise.duration) {
@@ -80,335 +90,154 @@ export const ClassTeachingMode = ({
   const getEnhancedCues = (exercise: Exercise): string[] => {
     const exerciseCues = exercise.cues || [];
     
-    // Only return exercise-specific cues
     if (exerciseCues.length > 0) {
       return exerciseCues;
     }
     
-    // Optional: Return empty array or a single generic message
-    return ["No specific cues available for this exercise"];
+    return ["Focus on proper alignment and breathing"];
   };
 
-  const getSetupInstructions = (exercise: Exercise): string => {
-    // Use actual setup field if available
-    if (exercise.setup) return exercise.setup;
-    
-    // Keep default fallbacks for categories
-    const defaultSetups = {
-      'supine': "Position client supine on carriage, head on headrest. Check spine alignment and adjust springs accordingly.",
-      'prone': "Guide client to prone position, ensuring proper shoulder placement and abdominal engagement.",
-      'standing': "Position client standing on platform or carriage, establish proper posture and spring tension.",
-      'sitting': "Seat client with feet flat, spine elongated, shoulders over hips in neutral alignment.",
-      'side-lying': "Position client on side with body aligned, supporting head and maintaining hip stability.",
-      'kneeling': "Guide client to kneeling position, ensuring knee alignment and core engagement."
-    };
-    return defaultSetups[exercise.category as keyof typeof defaultSetups] || "Position client according to exercise requirements, ensuring proper alignment and spring setup.";
+  const getExerciseImage = () => {
+    const index = currentExerciseIndex % reformerImages.length;
+    return reformerImages[index];
   };
 
   if (!currentExercise) return null;
 
   return (
-    <div className="min-h-screen bg-sage-700 text-white">
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-30 bg-sage-800/95 backdrop-blur-sm border-b border-sage-600">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 gap-3">
-          <Button 
-            onClick={onClose} 
-            variant="ghost" 
-            size="sm" 
-            className="text-white hover:bg-sage-600 rounded-xl w-full sm:w-auto"
-          >
-            <X className="h-5 w-5 mr-2" />
-            Exit Teaching
-          </Button>
-          
-          <div className="flex-1 max-w-md mx-auto sm:mx-4">
-            <div className="mb-2">
-              <Progress value={progressPercentage} className="h-4 bg-sage-600" />
+    <div className="min-h-screen bg-gradient-to-br from-sage-900 via-sage-800 to-sage-900 text-white relative overflow-hidden">
+      {/* Background elements */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-10 w-40 h-40 bg-sage-400 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-32 h-32 bg-sage-500 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      </div>
+
+      {/* Fixed Timer & Progress Header - Music Player Style */}
+      <div className="fixed top-0 left-0 right-0 z-30 bg-sage-900/95 backdrop-blur-xl border-b border-sage-700/50">
+        <div className="px-4 py-4">
+          {/* Timer Display - Large and Central */}
+          <div className="text-center mb-3">
+            <div className={`text-4xl sm:text-6xl font-light mb-2 ${exerciseTimeLeft < 30 ? 'text-red-300' : 'text-white'}`}>
+              {currentExercise.duration && currentExercise.duration > 0 ? formatTime(exerciseTimeLeft) : '00:00'}
             </div>
-            <div className="text-center text-sm text-sage-200">
-              {Math.round(progressPercentage)}% Complete • {currentExerciseIndex + 1} of {exercises.length}
+            <div className="text-sage-300 text-sm">
+              {currentExerciseIndex + 1} of {exercises.length} • {Math.round(progressPercentage)}% Complete
             </div>
           </div>
           
-          <div className="flex items-center gap-2 bg-sage-600/50 rounded-xl px-3 py-1 w-full sm:w-auto justify-center">
-            <Timer className="h-4 w-4" />
-            <span className="text-sm font-medium">{classPlan.classDuration}min class</span>
+          {/* Progress Bar */}
+          <div className="mb-4">
+            <Progress value={progressPercentage} className="h-2 bg-sage-700" />
+          </div>
+
+          {/* Translucent Controls */}
+          <div className="flex items-center justify-center gap-6">
+            <Button 
+              onClick={onClose} 
+              variant="ghost" 
+              size="sm" 
+              className="text-sage-300 hover:text-white hover:bg-sage-700/50 rounded-full"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            
+            <Button 
+              onClick={previousExercise} 
+              disabled={currentExerciseIndex === 0} 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:bg-sage-700/50 rounded-full disabled:opacity-30 w-12 h-12"
+            >
+              <SkipBack className="h-6 w-6" />
+            </Button>
+            
+            <Button 
+              onClick={handlePlayPause} 
+              size="icon" 
+              className="bg-white/20 hover:bg-white/30 text-white rounded-full w-16 h-16 backdrop-blur-sm" 
+            >
+              {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8" />}
+            </Button>
+            
+            <Button 
+              onClick={nextExercise} 
+              disabled={currentExerciseIndex === exercises.length - 1} 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:bg-sage-700/50 rounded-full disabled:opacity-30 w-12 h-12"
+            >
+              <SkipForward className="h-6 w-6" />
+            </Button>
+
+            <div className="text-sage-300 text-sm bg-sage-700/50 rounded-full px-3 py-1 backdrop-blur-sm">
+              {classPlan.classDuration}min class
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="pt-32 sm:pt-24 px-4 sm:px-6 pb-6 max-w-7xl mx-auto">
-        {/* Exercise Name */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2">{currentExercise.name}</h1>
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
-            <Badge variant="outline" className="border-sage-400 text-sage-200 bg-sage-600/30 text-xs sm:text-sm">
+      {/* Main Content - Music Player Layout */}
+      <div className="pt-48 px-4 pb-6 max-w-6xl mx-auto relative">
+        {/* Exercise Name - Album Title Style */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl sm:text-5xl font-light text-white mb-4 leading-tight">{currentExercise.name}</h1>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Badge variant="outline" className="border-sage-400 text-sage-200 bg-sage-700/50 backdrop-blur-sm rounded-full">
               {currentExercise.category}
             </Badge>
-            <div className="flex items-center gap-2">
-              <span className="text-sage-300 text-xs sm:text-sm">Springs:</span>
+            <div className="flex items-center gap-2 text-sage-300">
+              <span className="text-sm">Springs:</span>
               <SpringVisual springs={currentExercise.springs} />
             </div>
-            <Badge variant="outline" className="border-sage-400 text-sage-200 bg-sage-600/30 text-xs sm:text-sm">
-              {currentExercise.equipment.join(', ')}
-            </Badge>
-            {/* Show reps/duration if different from time */}
-            {currentExercise.repsOrDuration && (
-              <Badge variant="outline" className="border-blue-400 text-blue-200 bg-blue-600/30 text-xs sm:text-sm">
-                {currentExercise.repsOrDuration}
-              </Badge>
-            )}
-            {/* Show tempo if specified */}
-            {currentExercise.tempo && (
-              <Badge variant="outline" className="border-purple-400 text-purple-200 bg-purple-600/30 text-xs sm:text-sm">
-                {currentExercise.tempo}
-              </Badge>
-            )}
           </div>
         </div>
 
-        {/* Two Column Layout - Stack on mobile */}
-        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 mb-6">
-          {/* Left Column */}
-          <div className="space-y-4">
-            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-2xl shadow-lg">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base sm:text-lg flex items-center gap-2 text-white">
-                  <Settings className="h-4 w-4 sm:h-5 sm:w-5 text-sage-300" />
-                  Setup & Equipment
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sage-100 leading-relaxed text-sm sm:text-base">{getSetupInstructions(currentExercise)}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-2xl shadow-lg">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base sm:text-lg flex items-center gap-2 text-white">
-                  <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
-                  Teaching Cues
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {getEnhancedCues(currentExercise).map((cue, index) => (
-                    <li key={index} className="text-sage-100 leading-relaxed flex items-start gap-3 text-sm sm:text-base">
-                      <span className="text-sage-400 font-bold text-lg mt-0.5">•</span>
-                      <span>{cue}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Breathing Cues Card */}
-            {currentExercise.breathingCues && currentExercise.breathingCues.length > 0 && (
-              <Card className="bg-white/10 backdrop-blur-sm border-cyan-500/30 rounded-2xl shadow-lg">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base sm:text-lg flex items-center gap-2 text-white">
-                    <Wind className="h-4 w-4 sm:h-5 sm:w-5 text-cyan-400" />
-                    Breathing Cues
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {currentExercise.breathingCues.map((cue, index) => (
-                      <li key={index} className="text-cyan-100 leading-relaxed flex items-start gap-3 text-sm sm:text-base">
-                        <span className="text-cyan-400 font-bold text-lg mt-0.5">•</span>
-                        <span>{cue}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Layers Card */}
-            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-2xl shadow-lg">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base sm:text-lg flex items-center gap-2 text-white">
-                   <Layers className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                  Layers
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-col space-y-4 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0">
-                  {currentExercise.regressions && currentExercise.regressions.length > 0 && (
-                    <div className="flex flex-col h-full">
-                      <h4 className="text-sm font-semibold text-blue-300 flex items-center gap-1 mb-2">
-                        <TrendingDown className="h-4 w-4" />
-                        Regressions
-                      </h4>
-                      <ul className="space-y-1">
-                        {currentExercise.regressions.slice(0, 3).map((regression, index) => (
-                          <li key={index} className="text-sage-100 text-sm flex items-start gap-2">
-                            <div className="w-2 h-2 mt-1 bg-blue-400 rounded-full flex-shrink-0"></div>
-                            <span>{regression}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {currentExercise.progressions && currentExercise.progressions.length > 0 && (
-                    <div className="flex flex-col h-full">
-                      <h4 className="text-sm font-semibold text-green-300 flex items-center gap-1 mb-2">
-                        <TrendingUp className="h-4 w-4" />
-                        Progressions
-                      </h4>
-                      <ul className="space-y-1">
-                        {currentExercise.progressions.slice(0, 3).map((progression, index) => (
-                          <li key={index} className="text-sage-100 text-sm flex items-start gap-2">
-                            <div className="w-2 h-2 mt-1 bg-green-400 rounded-full flex-shrink-0"></div>
-                            <span>{progression}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div> {/* END Left Column */}
-
-          {/* Right Column */}
-          <div className="space-y-4">
-            {/* Safety Notes & Timer Container */}
-            <div className="flex flex-col sm:grid sm:grid-cols-2 gap-4">
-              {/* Safety Notes */}
-              {(currentExercise.contraindications && currentExercise.contraindications.length > 0) || currentExercise.isPregnancySafe !== undefined ? (
-                <Card className="bg-amber-900/20 backdrop-blur-sm border-amber-500/30 rounded-2xl shadow-lg">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base sm:text-lg flex items-center gap-2 text-amber-200">
-                      <Shield className="h-4 w-4 sm:h-5 sm:w-5" />
-                      Safety Notes
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {/* Contraindications List */}
-                    {currentExercise.contraindications && currentExercise.contraindications.length > 0 && (
-                      <ul className="space-y-1">
-                        {currentExercise.contraindications.slice(0, 4).map((item, index) => (
-                          <li key={index} className="text-amber-100 text-sm flex items-start gap-2">
-                            <span className="text-amber-400">⚠️</span>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                    {/* Pregnancy Safety Check */}
-                    <div className={
-                         (currentExercise.contraindications && currentExercise.contraindications.length > 0)
-                            ? "mt-3 pt-3 border-t border-amber-500/20"
-                            : ""
-                         }>
-                      <div className="flex items-center gap-2 text-sm">
-                        {currentExercise.isPregnancySafe ? (
-                          <>
-                            <Check className="h-4 w-4 text-green-400 flex-shrink-0" />
-                            <span className="text-sage-100">Safe for pregnancy</span>
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="h-4 w-4 text-red-400 flex-shrink-0" />
-                            <span className="text-amber-100">Not recommended for pregnancy</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : null}
-
-              {/* Timer */}
-              <Card className="bg-white/15 backdrop-blur-sm border-sage-500/30 rounded-2xl shadow-lg flex flex-col justify-center">
-                <CardContent className="p-4 text-center flex flex-col justify-center h-full">
-                  {currentExercise.duration && currentExercise.duration > 0 ? (
-                    <div className={`text-3xl sm:text-5xl font-bold mb-2 ${exerciseTimeLeft < 30 ? 'text-red-300' : 'text-white'}`}>
-                      {formatTime(exerciseTimeLeft)}
-                    </div>
-                  ) : (
-                    <div className="text-xl sm:text-2xl font-bold text-white mb-4">
-                      {currentExercise.repsOrDuration || 'Hold position'}
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center justify-center gap-2 sm:gap-3">
-                    <Button 
-                      onClick={previousExercise} 
-                      disabled={currentExerciseIndex === 0} 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-white hover:bg-sage-600 rounded-xl disabled:opacity-30 h-8 w-8 sm:h-10 sm:w-10"
-                    >
-                      <SkipBack className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </Button>
-                    
-                    <Button 
-                      onClick={handlePlayPause} 
-                      size="icon" 
-                      className="bg-white/20 hover:bg-white/30 text-white rounded-xl h-10 w-10 sm:h-12 sm:w-12" 
-                    >
-                      {isPlaying ? <Pause className="h-5 w-5 sm:h-6 sm:w-6" /> : <Play className="h-5 w-5 sm:h-6 sm:w-6" />}
-                    </Button>
-                    
-                    <Button 
-                      onClick={nextExercise} 
-                      disabled={currentExerciseIndex === exercises.length - 1} 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-white hover:bg-sage-600 rounded-xl disabled:opacity-30 h-8 w-8 sm:h-10 sm:w-10"
-                    >
-                      <SkipForward className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* Exercise Image */}
-            <Card className="bg-white/10 backdrop-blur-sm border-sage-500/30 rounded-xl shadow-lg overflow-hidden">
-              {currentExercise.image ? (
-                <div className="relative h-60 sm:h-80">
-                  <img 
-                    src={currentExercise.image} 
-                    alt={currentExercise.name} 
-                    className="w-full h-full object-cover" 
-                  />
-                  <div className="absolute top-4 left-4">
-                    <Badge className="bg-black/60 text-white text-xs">
-                      Reference Image
-                    </Badge>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-60 sm:h-80 bg-sage-600/30 flex flex-col items-center justify-center border-2 border-dashed border-sage-400/50 rounded-xl m-4">
-                  <ImageIcon className="h-12 w-12 sm:h-16 sm:w-16 mb-4 text-sage-400" />
-                  <span className="text-lg sm:text-xl font-medium text-sage-200 text-center px-4">
-                    No reference image
-                  </span>
-                  <span className="text-sm text-sage-400 mt-2 text-center px-4">
-                    {currentExercise.name}
-                  </span>
-                </div>
-              )}
-            </Card>
-          </div> {/* END Right Column */}
-        </div> {/* END Two Column Layout */}
-
-        {/* Footer */}
-        <div className="mt-8 text-center text-sage-300">
-          <p className="text-xs sm:text-sm">
-            Teaching Mode © 2025 - All rights reserved.
-          </p>
-          <p className="text-xs mt-1">
-            Developed by Reformer Team
-          </p>
+        {/* Central Exercise Image - Album Cover Style */}
+        <div className="flex justify-center mb-8">
+          <div className="relative w-80 h-80 sm:w-96 sm:h-96">
+            <img 
+              src={currentExercise.image || getExerciseImage()}
+              alt={currentExercise.name}
+              className="w-full h-full object-cover rounded-3xl shadow-2xl"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-3xl"></div>
+          </div>
         </div>
-      </div> {/* END Main Content */}
-    </div> // END Main Container
+
+        {/* Teaching Cues - Subtle and Faded */}
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-6">
+            <h3 className="text-sage-300 text-lg font-medium mb-4 flex items-center justify-center gap-2">
+              <Lightbulb className="h-5 w-5" />
+              Teaching Cues
+            </h3>
+            <div className="space-y-2">
+              {getEnhancedCues(currentExercise).slice(0, 3).map((cue, index) => (
+                <p key={index} className="text-sage-400 text-sm leading-relaxed opacity-80">
+                  {cue}
+                </p>
+              ))}
+            </div>
+          </div>
+
+          {/* Breathing Cues */}
+          {currentExercise.breathingCues && currentExercise.breathingCues.length > 0 && (
+            <div className="text-center">
+              <h4 className="text-sage-300 text-base font-medium mb-3 flex items-center justify-center gap-2">
+                <Wind className="h-4 w-4" />
+                Breathing
+              </h4>
+              <div className="space-y-2">
+                {currentExercise.breathingCues.slice(0, 2).map((cue, index) => (
+                  <p key={index} className="text-sage-400 text-sm opacity-70">
+                    {cue}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

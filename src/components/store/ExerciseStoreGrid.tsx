@@ -41,18 +41,18 @@ export const ExerciseStoreGrid = ({
 }: ExerciseStoreGridProps) => {
   const [addingExercises, setAddingExercises] = useState<string[]>([]);
 
-  // Enhanced exercise images from the library
-  const exerciseImages = [
-    'https://images.unsplash.com/photo-1649972904349-6e44c42644a7',
-    'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b',
-    'https://images.unsplash.com/photo-1518770660439-4636190af475',
-    'https://images.unsplash.com/photo-1461749280684-dccba630e2f6',
-    'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-    'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5',
-    'https://images.unsplash.com/photo-1531297484001-80022131f5a1',
-    'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7',
-    'https://images.unsplash.com/photo-1605810230434-7631ac76ec81',
-    'https://images.unsplash.com/photo-1519389950473-47ba0277781c'
+  // Use your uploaded reformer/pilates images
+  const reformerImages = [
+    '/lovable-uploads/52923e3d-1669-4ae1-9710-9e1c18d8820d.png',
+    '/lovable-uploads/4f3b5d45-3013-4b5a-a650-b00727408e73.png',
+    '/lovable-uploads/6df53ad2-d4c7-4ef5-9b70-2a57511c5421.png',
+    '/lovable-uploads/f2338ebb-8a0c-4afe-9088-9a7ebb481767.png',
+    '/lovable-uploads/88ad6c7c-6357-4065-a69f-836c59627047.png',
+    '/lovable-uploads/dcef387f-d6db-46cb-8908-cdee0eb3d361.png',
+    '/lovable-uploads/156c5622-2826-4e16-8de0-e4c9aaa78cd3.png',
+    '/lovable-uploads/52c9b506-ac25-4335-8a26-0c2b10d2c954.png',
+    '/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png',
+    '/lovable-uploads/8cb5e632-af4e-471a-a2c4-0371ce90cda2.png'
   ];
 
   const filteredExercises = useMemo(() => {
@@ -86,7 +86,7 @@ export const ExerciseStoreGrid = ({
 
   const getExerciseImage = (exerciseId: string) => {
     const index = parseInt(exerciseId.slice(-1)) || 0;
-    return `${exerciseImages[index % exerciseImages.length]}?w=400&h=300&fit=crop`;
+    return reformerImages[index % reformerImages.length];
   };
 
   const renderExerciseCard = (exercise: StoreExercise) => {
@@ -97,16 +97,16 @@ export const ExerciseStoreGrid = ({
     return (
       <Card key={exercise.id} className="overflow-hidden hover:shadow-2xl transition-all duration-500 group bg-white/95 backdrop-blur-sm border-0 rounded-3xl shadow-lg hover:scale-105 active:scale-95">
         <CardContent className="p-0">
-          {/* Enhanced Image with better aspect ratio */}
-          <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-sage-50 to-sage-100">
+          {/* Enhanced Image with pill-shaped design */}
+          <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-sage-50 to-sage-100 rounded-3xl">
             <img
               src={exercise.image_url || getExerciseImage(exercise.id)}
               alt={exercise.name}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 rounded-3xl"
             />
             
             {/* Enhanced gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent rounded-3xl"></div>
             
             {/* Floating badges */}
             <div className="absolute top-3 left-3 flex gap-2">
@@ -124,8 +124,8 @@ export const ExerciseStoreGrid = ({
               </div>
             )}
 
-            {/* Enhanced overlay for quick add */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+            {/* Enhanced overlay for quick add - pill-shaped button */}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-3xl">
               {!isInLibrary && (
                 <Button
                   size="lg"
@@ -147,12 +147,12 @@ export const ExerciseStoreGrid = ({
               )}
             </div>
 
-            {/* Bottom content overlay */}
+            {/* Bottom content overlay - improved mobile text */}
             <div className="absolute bottom-0 left-0 right-0 p-4">
-              <h3 className="font-bold text-white text-lg leading-tight mb-2 line-clamp-2">
+              <h3 className="font-bold text-white text-sm sm:text-lg leading-tight mb-2 line-clamp-2">
                 {exercise.name}
               </h3>
-              <div className="flex items-center gap-3 text-white/90 text-sm mb-2">
+              <div className="flex items-center gap-2 sm:gap-3 text-white/90 text-xs sm:text-sm mb-2">
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   <span>{exercise.duration}min</span>
@@ -167,7 +167,7 @@ export const ExerciseStoreGrid = ({
                 </Badge>
                 
                 {isInLibrary && (
-                  <div className="flex items-center gap-1 text-green-400 text-sm font-medium bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
+                  <div className="flex items-center gap-1 text-green-400 text-xs sm:text-sm font-medium bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
                     <Check className="h-3 w-3" />
                     <span>Owned</span>
                   </div>
@@ -181,16 +181,16 @@ export const ExerciseStoreGrid = ({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {featuredExercises.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-gradient-to-r from-amber-400 to-orange-500 rounded-2xl">
-              <Star className="h-6 w-6 text-white" />
+              <Star className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
-            <h3 className="text-2xl font-bold text-sage-800">Featured Exercises</h3>
+            <h3 className="text-xl sm:text-2xl font-bold text-sage-800">Featured Exercises</h3>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {featuredExercises.map(renderExerciseCard)}
           </div>
         </div>
@@ -198,20 +198,20 @@ export const ExerciseStoreGrid = ({
 
       {regularExercises.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-2xl font-bold text-sage-800">All Exercises</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <h3 className="text-xl sm:text-2xl font-bold text-sage-800">All Exercises</h3>
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {regularExercises.map(renderExerciseCard)}
           </div>
         </div>
       )}
 
       {filteredExercises.length === 0 && (
-        <div className="text-center py-16">
-          <div className="p-6 bg-gradient-to-r from-sage-100 to-blue-100 rounded-3xl w-24 h-24 flex items-center justify-center mx-auto mb-6">
-            <Dumbbell className="h-12 w-12 text-sage-400" />
+        <div className="text-center py-12 sm:py-16">
+          <div className="p-4 sm:p-6 bg-gradient-to-r from-sage-100 to-sage-200 rounded-3xl w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center mx-auto mb-4 sm:mb-6">
+            <Dumbbell className="h-10 w-10 sm:h-12 sm:w-12 text-sage-400" />
           </div>
-          <h3 className="text-xl font-semibold text-sage-800 mb-2">No exercises found</h3>
-          <p className="text-sage-600">Try adjusting your search or filters</p>
+          <h3 className="text-lg sm:text-xl font-semibold text-sage-800 mb-2">No exercises found</h3>
+          <p className="text-sage-600 text-sm sm:text-base">Try adjusting your search or filters</p>
         </div>
       )}
     </div>
