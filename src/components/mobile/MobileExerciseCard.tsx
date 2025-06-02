@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Heart, Edit, Copy, EyeOff, Eye, Check, ChevronUp, Baby } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Plus, Heart, Edit, Copy, EyeOff, Eye, Check, ChevronUp, Baby, AlertTriangle, TrendingUp } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
 
 interface MobileExerciseCardProps {
@@ -135,8 +136,8 @@ export const MobileExerciseCard = ({
           )}
         </div>
 
-        {/* Floating action buttons */}
-        <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        {/* Always visible action buttons */}
+        <div className="absolute top-2 right-2 flex flex-col gap-1">
           <button
             onClick={handleFavoriteClick}
             className={`w-6 h-6 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-200 shadow-sm ${
@@ -203,7 +204,7 @@ export const MobileExerciseCard = ({
         </div>
       </div>
       
-      {/* Compact content section */}
+      {/* Enhanced content section */}
       <div className="p-3 bg-white/95 backdrop-blur-sm">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
@@ -226,33 +227,61 @@ export const MobileExerciseCard = ({
           </button>
         </div>
 
-        {/* Pull-up details section */}
-        <div className={`overflow-hidden transition-all duration-300 ${showDetails ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
-          <div className="pt-2 border-t border-gray-100 space-y-1">
-            <div className="text-[9px] text-gray-600 space-y-0.5">
-              {exercise.regressions && exercise.regressions.length > 0 && (
-                <div className="flex justify-between">
-                  <span>Regression:</span>
-                  <span className="text-green-600 font-medium truncate ml-1">{exercise.regressions[0]}</span>
+        {/* Extended details section */}
+        <div className={`overflow-hidden transition-all duration-300 ${showDetails ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0'}`}>
+          <div className="pt-2 border-t border-gray-100 space-y-2">
+            
+            {/* Safety and Difficulty */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className={`text-[8px] px-1.5 py-0.5 rounded-full font-medium ${
+                exercise.difficulty === 'beginner' ? 'bg-green-100 text-green-700' :
+                exercise.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-700' :
+                'bg-red-100 text-red-700'
+              }`}>
+                {exercise.difficulty}
+              </div>
+              {exercise.isPregnancySafe && (
+                <div className="text-[8px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">
+                  Pregnancy Safe
                 </div>
               )}
-              {exercise.progressions && exercise.progressions.length > 0 && (
-                <div className="flex justify-between">
-                  <span>Progression:</span>
-                  <span className="text-blue-600 font-medium truncate ml-1">{exercise.progressions[0]}</span>
+              {exercise.contraindications && exercise.contraindications.length > 0 && (
+                <div className="flex items-center gap-1 text-[8px] text-amber-600">
+                  <AlertTriangle className="h-2 w-2" />
+                  <span>Cautions</span>
                 </div>
               )}
-              <div className="flex justify-between">
-                <span>Safety:</span>
-                <span className={exercise.isPregnancySafe ? 'text-green-600 font-medium' : 'text-gray-500'}>
-                  {exercise.isPregnancySafe ? 'Pregnancy Safe' : 'Standard'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Level:</span>
-                <span className="text-gray-700 font-medium capitalize">{exercise.difficulty}</span>
-              </div>
             </div>
+
+            {/* Modifications and Progressions */}
+            {(exercise.modifications?.length > 0 || exercise.progressions?.length > 0 || exercise.regressions?.length > 0) && (
+              <div className="space-y-1">
+                {exercise.regressions && exercise.regressions.length > 0 && (
+                  <div className="text-[8px] text-green-600 truncate">
+                    <span className="font-medium">Easier:</span> {exercise.regressions[0]}
+                  </div>
+                )}
+                {exercise.progressions && exercise.progressions.length > 0 && (
+                  <div className="text-[8px] text-blue-600 truncate flex items-center gap-1">
+                    <TrendingUp className="h-2 w-2" />
+                    <span className="font-medium">Harder:</span> <span className="truncate">{exercise.progressions[0]}</span>
+                  </div>
+                )}
+                {exercise.modifications && exercise.modifications.length > 0 && (
+                  <div className="text-[8px] text-purple-600 truncate">
+                    <span className="font-medium">Modify:</span> {exercise.modifications[0]}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Teaching Focus */}
+            {exercise.teachingFocus && exercise.teachingFocus.length > 0 && (
+              <div className="text-[8px] text-gray-600">
+                <span className="font-medium">Focus:</span> {exercise.teachingFocus.slice(0, 2).join(', ')}
+              </div>
+            )}
+
           </div>
         </div>
       </div>
