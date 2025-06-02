@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { MobileOptimizedExerciseLibrary } from './MobileOptimizedExerciseLibrary';
+import { MuscleGroupExerciseLibrary } from './MuscleGroupExerciseLibrary';
 
 export const ExerciseLibrary = () => {
-  return <MobileOptimizedExerciseLibrary />;
+  return <MuscleGroupExerciseLibrary />;
 };

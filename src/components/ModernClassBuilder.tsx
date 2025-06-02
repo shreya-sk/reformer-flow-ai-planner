@@ -4,9 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Clock, Users, Edit3, Save, Trash2, X, GripVertical } from 'lucide-react';
+import { Plus, Clock, Users, Edit3, Save, X, GripVertical } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { SpringVisual } from './SpringVisual';
+import { MobileExerciseModal } from './MobileExerciseModal';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 
 interface ModernClassBuilderProps {
@@ -29,6 +30,7 @@ export const ModernClassBuilder = ({
 }: ModernClassBuilderProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [className, setClassName] = useState(currentClass.name);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
 
   const totalDuration = currentClass.exercises.reduce((total, ex) => total + (ex.duration || 0), 0);
   const exerciseCount = currentClass.exercises.filter(ex => ex.category !== 'callout').length;
@@ -48,9 +50,13 @@ export const ModernClassBuilder = ({
     onReorderExercises(exercises);
   };
 
+  const handleExerciseClick = (exercise: Exercise) => {
+    setSelectedExercise(exercise);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-50 via-white to-sage-100">
-      {/* Mobile-Optimized Header */}
+      {/* Simplified Header */}
       <div className="bg-white/95 backdrop-blur-xl border-b border-sage-200/50 p-6 sticky top-0 z-10 shadow-sm">
         <div className="max-w-md mx-auto">
           {/* Class title */}
@@ -83,20 +89,18 @@ export const ModernClassBuilder = ({
           </div>
 
           {/* Stats */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4 text-sage-600">
-              <div className="flex items-center gap-2 bg-sage-100 px-3 py-1.5 rounded-full">
-                <Clock className="h-4 w-4" />
-                <span className="font-medium text-sm">{totalDuration}min</span>
-              </div>
-              <div className="flex items-center gap-2 bg-sage-100 px-3 py-1.5 rounded-full">
-                <Users className="h-4 w-4" />
-                <span className="font-medium text-sm">{exerciseCount} exercises</span>
-              </div>
+          <div className="flex items-center gap-4 text-sage-600 mb-4">
+            <div className="flex items-center gap-2 bg-sage-100 px-3 py-1.5 rounded-full">
+              <Clock className="h-4 w-4" />
+              <span className="font-medium text-sm">{totalDuration}min</span>
+            </div>
+            <div className="flex items-center gap-2 bg-sage-100 px-3 py-1.5 rounded-full">
+              <Users className="h-4 w-4" />
+              <span className="font-medium text-sm">{exerciseCount} exercises</span>
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Simplified Action Buttons */}
           <div className="flex gap-3">
             <Button
               onClick={onAddExercise}
@@ -140,7 +144,7 @@ export const ModernClassBuilder = ({
           </Card>
         )}
 
-        {/* Exercise List */}
+        {/* Simplified Exercise List */}
         {currentClass.exercises.length > 0 && (
           <DragDropContext onDragEnd={handleDragEnd}>
             <Droppable droppableId="exercises">
@@ -152,9 +156,10 @@ export const ModernClassBuilder = ({
                         <Card
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          className={`bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-sage-200/30 transition-all duration-300 ${
+                          className={`bg-white/95 backdrop-blur-xl rounded-2xl shadow-lg border border-sage-200/30 transition-all duration-300 cursor-pointer ${
                             snapshot.isDragging ? 'shadow-2xl scale-105 rotate-1' : 'hover:shadow-xl'
                           }`}
+                          onClick={() => handleExerciseClick(exercise)}
                         >
                           <CardContent className="p-4">
                             <div className="flex items-center gap-4">
@@ -162,6 +167,7 @@ export const ModernClassBuilder = ({
                               <div 
                                 {...provided.dragHandleProps}
                                 className="cursor-move text-sage-400 hover:text-sage-600 transition-colors p-1"
+                                onClick={(e) => e.stopPropagation()}
                               >
                                 <GripVertical className="h-5 w-5" />
                               </div>
@@ -219,6 +225,17 @@ export const ModernClassBuilder = ({
         {/* Bottom Spacing */}
         <div className="h-20" />
       </div>
+
+      {/* Exercise Modal for consistency */}
+      {selectedExercise && (
+        <MobileExerciseModal
+          exercise={selectedExercise}
+          isOpen={!!selectedExercise}
+          onClose={() => setSelectedExercise(null)}
+          onAddToClass={() => {}} // No action needed in builder
+          onEdit={() => {}} // Keep edit functionality if needed
+        />
+      )}
     </div>
   );
 };
