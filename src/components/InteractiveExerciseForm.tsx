@@ -56,10 +56,10 @@ const POSITIONS: { value: ExercisePosition; label: string }[] = [
 ];
 
 const SPRING_COLORS = [
-  { id: 'red', color: 'bg-red-500', label: 'Red (Heavy)', available: 2 },
-  { id: 'yellow', color: 'bg-yellow-500', label: 'Yellow (Medium)', available: 1 },
-  { id: 'blue', color: 'bg-blue-500', label: 'Blue (Light)', available: 1 },
-  { id: 'green', color: 'bg-green-500', label: 'Green (Extra Light)', available: 1 }
+  { id: 'red', color: 'bg-red-800', label: 'Red', available: 2 },
+  { id: 'yellow', color: 'bg-amber-400', label: 'Yellow', available: 2 },
+  { id: 'blue', color: 'bg-cyan-500', label: 'Blue', available: 2 },
+  { id: 'green', color: 'bg-green-400', label: 'Green', available: 2 }
 ];
 
 const DIFFICULTY_LEVELS: { value: DifficultyLevel; label: string; color: string }[] = [
@@ -496,7 +496,7 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
                 {SPRING_COLORS.map((spring) => (
                   <div key={spring.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                     <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${spring.color}`}></div>
+                      <div className={`w-2 h-2 rounded-full ${spring.color}`}></div>
                       <span className="font-medium">{spring.label}</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -890,7 +890,7 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
 
   return (
     <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-sage-500/20 backdrop-blur-md z-50 flex items-center justify-center p-4"
       onClick={handleBackdropClick}
     >
       <Card className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl max-h-[90vh] overflow-hidden animate-scale-in">

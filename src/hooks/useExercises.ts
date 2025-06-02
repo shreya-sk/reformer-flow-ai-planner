@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment } from '@/types/reformer';
+import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment, TeachingFocus } from '@/types/reformer';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useExercises = () => {
@@ -44,7 +44,7 @@ export const useExercises = () => {
         tempo: exercise.tempo || '',
         targetAreas: exercise.target_areas || [],
         breathingCues: exercise.breathing_cues || [],
-        teachingFocus: exercise.teaching_focus || [],
+        teachingFocus: (exercise.teaching_focus || []) as TeachingFocus[],
         modifications: exercise.modifications || [],
         progressions: exercise.progressions || [],
         regressions: exercise.regressions || [],
@@ -90,7 +90,7 @@ export const useExercises = () => {
           tempo: exercise.tempo || '',
           targetAreas: exercise.target_areas || [],
           breathingCues: exercise.breathing_cues || [],
-          teachingFocus: exercise.teaching_focus || [],
+          teachingFocus: (exercise.teaching_focus || []) as TeachingFocus[],
           modifications: exercise.modifications || [],
           progressions: exercise.progressions || [],
           regressions: exercise.regressions || [],
@@ -105,7 +105,7 @@ export const useExercises = () => {
       }
 
       const allExercises = [...systemExercises, ...userExercises];
-      setExercises(allExercises);
+      setExercises([...systemExercises, ...userExercises] as Exercise[]);
     } catch (err) {
       console.error('Error fetching exercises:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
