@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -81,7 +80,7 @@ export const ExerciseDetailModal = ({
       if (isCustomExercise) {
         await updateUserExercise(updatedExercise.id, updatedExercise);
       } else if (isSystemExercise) {
-        await customizeSystemExercise(updatedExercise.id, {
+        await customizeSystemExercise(updatedExercise, {
           custom_name: updatedExercise.name,
           custom_duration: updatedExercise.duration,
           custom_springs: updatedExercise.springs,
