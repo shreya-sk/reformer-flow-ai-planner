@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Exercise } from '@/types/reformer';
@@ -25,12 +26,12 @@ export const useCustomExercises = () => {
       const exercises: Exercise[] = data?.map(exercise => ({
         id: exercise.id,
         name: exercise.name,
-        category: exercise.category,
-        position: 'supine' as const, // Default position for existing exercises
-        primaryMuscle: 'core' as const, // Default primary muscle for existing exercises
+        category: exercise.category as any, // Type assertion for database string
+        position: 'supine' as const,
+        primaryMuscle: 'core' as const,
         duration: exercise.duration,
-        springs: exercise.springs,
-        difficulty: exercise.difficulty,
+        springs: exercise.springs as any,
+        difficulty: exercise.difficulty as any,
         intensityLevel: 'medium' as const,
         muscleGroups: exercise.muscle_groups || [],
         equipment: exercise.equipment || [],
@@ -64,10 +65,6 @@ export const useCustomExercises = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchCustomExercises();
-  }, [user]);
 
   const saveCustomExercise = async (exercise: Exercise) => {
     if (!user) return;
@@ -130,6 +127,10 @@ export const useCustomExercises = () => {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
+
+  useEffect(() => {
+    fetchCustomExercises();
+  }, [user]);
 
   return {
     customExercises,

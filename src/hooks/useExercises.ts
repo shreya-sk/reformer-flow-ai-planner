@@ -25,12 +25,12 @@ export const useExercises = () => {
       const systemExercises = systemData?.map(exercise => ({
         id: exercise.id,
         name: exercise.name,
-        category: exercise.category,
-        position: 'supine' as const, // Default position for existing exercises
-        primaryMuscle: 'core' as const, // Default primary muscle for existing exercises  
+        category: exercise.category as any,
+        position: 'supine' as const,
+        primaryMuscle: 'core' as const,
         duration: exercise.duration,
-        springs: exercise.springs,
-        difficulty: exercise.difficulty,
+        springs: exercise.springs as any,
+        difficulty: exercise.difficulty as any,
         intensityLevel: 'medium' as const,
         muscleGroups: exercise.muscle_groups || [],
         equipment: exercise.equipment || [],
@@ -48,7 +48,7 @@ export const useExercises = () => {
         modifications: exercise.modifications || [],
         progressions: exercise.progressions || [],
         regressions: exercise.regressions || [],
-        transitions: exercise.transitions || [],
+        transitions: [], // Default empty array since property doesn't exist in DB
         contraindications: exercise.contraindications || [],
         isPregnancySafe: exercise.is_pregnancy_safe || false,
         isSystemExercise: true,
@@ -71,12 +71,12 @@ export const useExercises = () => {
         userExercises = userData?.map(exercise => ({
           id: exercise.id,
           name: exercise.name,
-          category: exercise.category,
-          position: 'supine' as const, // Default position for existing exercises
-          primaryMuscle: 'core' as const, // Default primary muscle for existing exercises
+          category: exercise.category as any,
+          position: 'supine' as const,
+          primaryMuscle: 'core' as const,
           duration: exercise.duration,
-          springs: exercise.springs,
-          difficulty: exercise.difficulty,
+          springs: exercise.springs as any,
+          difficulty: exercise.difficulty as any,
           intensityLevel: 'medium' as const,
           muscleGroups: exercise.muscle_groups || [],
           equipment: exercise.equipment || [],
@@ -94,7 +94,7 @@ export const useExercises = () => {
           modifications: exercise.modifications || [],
           progressions: exercise.progressions || [],
           regressions: exercise.regressions || [],
-          transitions: exercise.transitions || [],
+          transitions: [], // Default empty array since property doesn't exist in DB
           contraindications: exercise.contraindications || [],
           isPregnancySafe: exercise.is_pregnancy_safe || false,
           isCustom: true,
@@ -234,12 +234,10 @@ export const useExercises = () => {
   };
 
   const customizeSystemExercise = async (exercise: Exercise, customizations: Partial<Exercise>) => {
-    // This would create a customization record for a system exercise
     return updateUserExercise(exercise.id, customizations);
   };
 
   const resetSystemExerciseToOriginal = async (exerciseId: string) => {
-    // This would reset a customized system exercise to its original state
     await fetchExercises();
   };
 

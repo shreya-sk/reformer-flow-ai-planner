@@ -14,7 +14,7 @@ const Library = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { preferences } = useUserPreferences();
-  const { exercises, loading: exercisesLoading, refetchExercises } = useExercises();
+  const { exercises, loading: exercisesLoading, refetch } = useExercises();
   const { addExercise } = usePersistedClassPlan();
 
   if (loading || exercisesLoading) {

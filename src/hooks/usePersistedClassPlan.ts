@@ -54,6 +54,30 @@ export const usePersistedClassPlan = () => {
     }));
   }, []);
 
+  const updateClassDuration = useCallback((duration: number) => {
+    setCurrentClassPlan(prev => ({
+      ...prev,
+      duration,
+      updatedAt: new Date()
+    }));
+  }, []);
+
+  const updateClassNotes = useCallback((notes: string) => {
+    setCurrentClassPlan(prev => ({
+      ...prev,
+      notes,
+      updatedAt: new Date()
+    }));
+  }, []);
+
+  const updateClassImage = useCallback((imageUrl: string) => {
+    setCurrentClassPlan(prev => ({
+      ...prev,
+      imageUrl,
+      updatedAt: new Date()
+    }));
+  }, []);
+
   const addExercise = useCallback((exercise: Exercise) => {
     setCurrentClassPlan(prev => ({
       ...prev,
@@ -149,6 +173,10 @@ export const usePersistedClassPlan = () => {
     return currentClassPlan.exercises.reduce((total, exercise) => total + exercise.duration, 0);
   }, [currentClassPlan.exercises]);
 
+  const getRealExerciseCount = useCallback(() => {
+    return currentClassPlan.exercises.filter(exercise => exercise.category !== 'callout').length;
+  }, [currentClassPlan.exercises]);
+
   const createCallout = useCallback((text: string, color: string, duration: number = 1) => {
     const callout: Exercise = {
       id: uuidv4(),
@@ -188,11 +216,18 @@ export const usePersistedClassPlan = () => {
     addExercise(callout);
   }, [addExercise]);
 
+  const addCallout = useCallback((name: string, position: number) => {
+    createCallout(name, '#e5e7eb');
+  }, [createCallout]);
+
   return {
     currentClassPlan,
     currentClass: currentClassPlan, // Alias for backward compatibility
     updateClassPlan,
     updateClassName,
+    updateClassDuration,
+    updateClassNotes,
+    updateClassImage,
     addExercise,
     removeExercise,
     reorderExercises,
@@ -202,6 +237,8 @@ export const usePersistedClassPlan = () => {
     loadClass,
     syncExerciseUpdates,
     getTotalDuration,
-    createCallout
+    realExerciseCount: getRealExerciseCount(),
+    createCallout,
+    addCallout
   };
 };

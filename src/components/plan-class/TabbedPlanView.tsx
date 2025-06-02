@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ClassPlanSettings } from './ClassPlanSettings';
 import { ClassBuilder } from '@/components/ClassBuilder';
@@ -40,16 +41,11 @@ export const TabbedPlanView = ({
   viewMode = 'builder'
 }: TabbedPlanViewProps) => {
   // Get the persisted class plan functions
-  const { reorderExercises: persistedReorderExercises } = usePersistedClassPlan();
+  const { updateExercise } = usePersistedClassPlan();
 
-  const updateExercise = (updatedExercise: Exercise) => {
+  const handleUpdateExercise = (updatedExercise: Exercise) => {
     console.log('🔄 TabbedPlanView updateExercise:', updatedExercise.name);
-    const updatedExercises = currentClass.exercises.map(ex => 
-      ex.id === updatedExercise.id ? updatedExercise : ex
-    );
-    
-    // Use the persisted reorder function to maintain consistency
-    persistedReorderExercises(updatedExercises);
+    updateExercise(updatedExercise.id, updatedExercise);
   };
 
   if (viewMode === 'settings') {
@@ -67,7 +63,7 @@ export const TabbedPlanView = ({
       currentClass={currentClass}
       onRemoveExercise={onRemoveExercise}
       onReorderExercises={onReorderExercises}
-      onUpdateExercise={updateExercise}
+      onUpdateExercise={handleUpdateExercise}
       onAddExercise={onAddExercise}
       onAddCallout={onAddCallout}
       onUpdateClassName={onUpdateClassName}
