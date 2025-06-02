@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Clock, Heart, Edit, Copy, EyeOff, Eye, Trash2, Play, Plus, Check, X, Baby } from 'lucide-react';
+import { Clock, Heart, Edit, Copy, EyeOff, Eye, Trash2, Plus, Check, X, Baby, AlertTriangle, Target, Zap, Shield } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
 import { SpringVisual } from './SpringVisual';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
@@ -27,7 +27,7 @@ export const MobileExerciseModal = ({
   onEdit
 }: MobileExerciseModalProps) => {
   const [isAdding, setIsAdding] = useState(false);
-  const [showMoreDetails, setShowMoreDetails] = useState(false);
+  const [showAllDetails, setShowAllDetails] = useState(false);
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
   const { duplicateExercise, deleteUserExercise } = useExercises();
 
@@ -111,6 +111,12 @@ export const MobileExerciseModal = ({
     }
   };
 
+  const handleEdit = () => {
+    if (onEdit) {
+      onEdit(exercise);
+    }
+  };
+
   const getExerciseStatus = () => {
     if (isCustom) return { label: 'Custom', color: 'bg-blue-500' };
     if (isCustomized) return { label: 'Modified', color: 'bg-orange-500' };
@@ -128,8 +134,8 @@ export const MobileExerciseModal = ({
         onClick={onClose}
       />
       
-      {/* Compact Modal */}
-      <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl max-h-[80vh] flex flex-col border border-sage-200/50 animate-scale-in">
+      {/* Enhanced Modal */}
+      <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl max-h-[85vh] flex flex-col border border-sage-200/50 animate-scale-in">
         {/* Close button */}
         <Button
           variant="ghost"
@@ -140,7 +146,7 @@ export const MobileExerciseModal = ({
           <X className="h-4 w-4" />
         </Button>
 
-        {/* Compact Header with Image */}
+        {/* Header with Image */}
         <div className="relative">
           <div className="h-48 overflow-hidden rounded-t-3xl">
             <img 
@@ -175,7 +181,9 @@ export const MobileExerciseModal = ({
                 <span>{exercise.duration} min</span>
               </div>
               <span>•</span>
-              <span>{exercise.category}</span>
+              <span className="capitalize">{exercise.category}</span>
+              <span>•</span>
+              <span className="capitalize">{exercise.difficulty}</span>
               <span>•</span>
               <div className="flex items-center gap-1">
                 <SpringVisual springs={exercise.springs} />
@@ -196,6 +204,16 @@ export const MobileExerciseModal = ({
             >
               <Heart className={`h-4 w-4 mr-2 ${isFavorite ? 'fill-current' : ''}`} />
               {isFavorite ? 'Favorited' : 'Favorite'}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEdit}
+              className="flex-1 h-10"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
             </Button>
 
             <Button
@@ -230,65 +248,177 @@ export const MobileExerciseModal = ({
             </Card>
           )}
 
-          {/* More Details Toggle */}
-          <Button
-            variant="ghost"
-            onClick={() => setShowMoreDetails(!showMoreDetails)}
-            className="w-full h-10 text-sage-600 hover:bg-sage-50"
-          >
-            {showMoreDetails ? 'Show Less' : 'Show More Details'}
-          </Button>
-
-          {/* Extended Details */}
-          {showMoreDetails && (
-            <div className="space-y-3">
-              {exercise.cues && exercise.cues.length > 0 && (
-                <Card className="border-sage-200/50">
-                  <CardContent className="p-3">
-                    <h4 className="font-semibold mb-2 text-sage-800 text-sm">Teaching Cues</h4>
-                    <div className="space-y-2">
-                      {exercise.cues.slice(0, 3).map((cue, index) => (
-                        <div key={index} className="flex gap-2 text-xs">
-                          <div className="w-4 h-4 rounded-full bg-sage-100 flex items-center justify-center text-[10px] font-bold text-sage-700 flex-shrink-0 mt-0.5">
-                            {index + 1}
-                          </div>
-                          <p className="text-gray-700 leading-relaxed">{cue}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Additional Info */}
-              <Card className="border-sage-200/50">
+          {/* Key Information Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Muscle Groups */}
+            {exercise.muscleGroups && exercise.muscleGroups.length > 0 && (
+              <Card className="border-blue-200/50 bg-blue-50/50">
                 <CardContent className="p-3">
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <span className="text-gray-500">Level:</span>
-                      <span className="ml-1 font-medium capitalize">{exercise.difficulty}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Category:</span>
-                      <span className="ml-1 font-medium">{exercise.category}</span>
-                    </div>
-                    {exercise.regressions && exercise.regressions.length > 0 && (
-                      <div className="col-span-2">
-                        <span className="text-gray-500">Regression:</span>
-                        <span className="ml-1 font-medium text-green-600">{exercise.regressions[0]}</span>
-                      </div>
-                    )}
-                    {exercise.progressions && exercise.progressions.length > 0 && (
-                      <div className="col-span-2">
-                        <span className="text-gray-500">Progression:</span>
-                        <span className="ml-1 font-medium text-blue-600">{exercise.progressions[0]}</span>
-                      </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="h-4 w-4 text-blue-600" />
+                    <h4 className="font-semibold text-blue-800 text-sm">Target Areas</h4>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {exercise.muscleGroups.slice(0, 4).map((muscle, index) => (
+                      <Badge key={index} variant="outline" className="text-xs bg-white border-blue-200 text-blue-700">
+                        {muscle}
+                      </Badge>
+                    ))}
+                    {exercise.muscleGroups.length > 4 && (
+                      <Badge variant="outline" className="text-xs bg-white border-blue-200 text-blue-700">
+                        +{exercise.muscleGroups.length - 4}
+                      </Badge>
                     )}
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Teaching Focus */}
+            {exercise.teachingFocus && exercise.teachingFocus.length > 0 && (
+              <Card className="border-purple-200/50 bg-purple-50/50">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Zap className="h-4 w-4 text-purple-600" />
+                    <h4 className="font-semibold text-purple-800 text-sm">Teaching Focus</h4>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {exercise.teachingFocus.slice(0, 3).map((focus, index) => (
+                      <Badge key={index} variant="outline" className="text-xs bg-white border-purple-200 text-purple-700">
+                        {focus}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Safety Information */}
+          {exercise.contraindications && exercise.contraindications.length > 0 && (
+            <Card className="border-red-200/50 bg-red-50/50">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                  <h4 className="font-semibold text-red-800 text-sm">Safety Notes</h4>
+                </div>
+                <ul className="text-xs text-red-700 space-y-1">
+                  {exercise.contraindications.slice(0, 3).map((contra, index) => (
+                    <li key={index}>• {contra}</li>
+                  ))}
+                  {exercise.contraindications.length > 3 && (
+                    <li className="text-red-600 font-medium">
+                      +{exercise.contraindications.length - 3} more contraindications
+                    </li>
+                  )}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Teaching Cues */}
+          {exercise.cues && exercise.cues.length > 0 && (
+            <Card className="border-green-200/50 bg-green-50/50">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Shield className="h-4 w-4 text-green-600" />
+                  <h4 className="font-semibold text-green-800 text-sm">Teaching Cues</h4>
+                </div>
+                <div className="space-y-2">
+                  {exercise.cues.slice(0, showAllDetails ? exercise.cues.length : 2).map((cue, index) => (
+                    <div key={index} className="flex gap-2 text-xs">
+                      <div className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center text-[10px] font-bold text-green-700 flex-shrink-0 mt-0.5">
+                        {index + 1}
+                      </div>
+                      <p className="text-green-700 leading-relaxed">{cue}</p>
+                    </div>
+                  ))}
+                  {exercise.cues.length > 2 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAllDetails(!showAllDetails)}
+                      className="text-green-600 h-6 text-xs"
+                    >
+                      {showAllDetails ? 'Show Less' : `Show ${exercise.cues.length - 2} More Cues`}
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Progressions & Regressions */}
+          {((exercise.progressions && exercise.progressions.length > 0) || 
+            (exercise.regressions && exercise.regressions.length > 0)) && (
+            <div className="grid grid-cols-2 gap-3">
+              {exercise.regressions && exercise.regressions.length > 0 && (
+                <Card className="border-green-200/50">
+                  <CardContent className="p-3">
+                    <h4 className="font-semibold text-green-800 text-sm mb-2">Regressions</h4>
+                    <ul className="text-xs text-green-700 space-y-1">
+                      {exercise.regressions.slice(0, 2).map((reg, index) => (
+                        <li key={index}>• {reg}</li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+
+              {exercise.progressions && exercise.progressions.length > 0 && (
+                <Card className="border-blue-200/50">
+                  <CardContent className="p-3">
+                    <h4 className="font-semibold text-blue-800 text-sm mb-2">Progressions</h4>
+                    <ul className="text-xs text-blue-700 space-y-1">
+                      {exercise.progressions.slice(0, 2).map((prog, index) => (
+                        <li key={index}>• {prog}</li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           )}
+
+          {/* Modifications */}
+          {exercise.modifications && exercise.modifications.length > 0 && (
+            <Card className="border-orange-200/50">
+              <CardContent className="p-3">
+                <h4 className="font-semibold text-orange-800 text-sm mb-2">Modifications</h4>
+                <ul className="text-xs text-orange-700 space-y-1">
+                  {exercise.modifications.slice(0, 3).map((mod, index) => (
+                    <li key={index}>• {mod}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Additional Info */}
+          <Card className="border-sage-200/50">
+            <CardContent className="p-3">
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                {exercise.setup && (
+                  <div className="col-span-2">
+                    <span className="text-gray-500 font-medium">Setup:</span>
+                    <p className="text-gray-700 mt-1">{exercise.setup}</p>
+                  </div>
+                )}
+                {exercise.repsOrDuration && (
+                  <div>
+                    <span className="text-gray-500">Reps/Duration:</span>
+                    <span className="ml-1 font-medium">{exercise.repsOrDuration}</span>
+                  </div>
+                )}
+                {exercise.tempo && (
+                  <div>
+                    <span className="text-gray-500">Tempo:</span>
+                    <span className="ml-1 font-medium">{exercise.tempo}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Delete button for custom exercises */}
           {isCustom && (

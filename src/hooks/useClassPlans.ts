@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -145,16 +146,10 @@ export const useClassPlans = () => {
     // Filter real exercises (not callouts)
     const realExercises = classPlan.exercises.filter(ex => ex.category !== 'callout');
     
-    console.log('💾 Starting save process:', {
+    console.log('💾 Starting simplified save process:', {
       name: classPlan.name,
       totalExercises: classPlan.exercises.length,
-      realExercises: realExercises.length,
-      exerciseDetails: realExercises.map(ex => ({ 
-        id: ex.id, 
-        name: ex.name, 
-        isCustom: ex.isCustom,
-        isSystemExercise: ex.isSystemExercise 
-      }))
+      realExercises: realExercises.length
     });
     
     if (realExercises.length === 0) {
@@ -162,82 +157,6 @@ export const useClassPlans = () => {
     }
 
     try {
-      // Improved exercise validation with better error handling
-      console.log('💾 Validating exercises exist in database...');
-      const validationResults = [];
-      
-      for (const exercise of realExercises) {
-        console.log('💾 Checking exercise:', exercise.id, exercise.name);
-        
-        let existsInDB = false;
-        let exerciseType = '';
-        
-        // First try to determine the type based on exercise properties
-        if (exercise.isSystemExercise || (!exercise.isCustom && !exercise.isSystemExercise)) {
-          // Check system exercises first
-          const { data: systemCheck, error: systemError } = await supabase
-            .from('system_exercises')
-            .select('id, name')
-            .eq('id', exercise.id)
-            .maybeSingle();
-          
-          if (systemCheck && !systemError) {
-            existsInDB = true;
-            exerciseType = 'system';
-            console.log('💾 Found in system exercises:', systemCheck.name);
-          }
-        }
-        
-        if (!existsInDB && (exercise.isCustom || !exercise.isSystemExercise)) {
-          // Check user exercises
-          const { data: userCheck, error: userError } = await supabase
-            .from('user_exercises')
-            .select('id, name')
-            .eq('id', exercise.id)
-            .eq('user_id', user.id)
-            .maybeSingle();
-          
-          if (userCheck && !userError) {
-            existsInDB = true;
-            exerciseType = 'user';
-            console.log('💾 Found in user exercises:', userCheck.name);
-          }
-        }
-        
-        // If not found in either, try a broader search
-        if (!existsInDB) {
-          console.log('💾 Exercise not found with direct lookup, trying broader search...');
-          
-          // Try system exercises with name match
-          const { data: systemByName } = await supabase
-            .from('system_exercises')
-            .select('id, name')
-            .ilike('name', exercise.name)
-            .limit(1)
-            .maybeSingle();
-          
-          if (systemByName) {
-            existsInDB = true;
-            exerciseType = 'system';
-            exercise.id = systemByName.id; // Update the ID
-            console.log('💾 Found system exercise by name:', systemByName.name, 'with ID:', systemByName.id);
-          }
-        }
-        
-        if (!existsInDB) {
-          console.error('💾 Exercise not found in database:', exercise.id, exercise.name);
-          throw new Error(`Exercise "${exercise.name}" not found in database. Please try refreshing your exercise library.`);
-        }
-        
-        validationResults.push({
-          exercise,
-          exerciseType,
-          exists: existsInDB
-        });
-      }
-      
-      console.log('💾 All exercises validated successfully');
-
       // Save main class plan first
       const { data: savedClassPlan, error: classPlanError } = await supabase
         .from('class_plans')
@@ -258,15 +177,20 @@ export const useClassPlans = () => {
 
       console.log('💾 Class plan saved successfully:', savedClassPlan.id);
 
-      // Now save exercises using validation results
-      const exerciseInserts = validationResults.map((result, index) => ({
-        class_plan_id: savedClassPlan.id,
-        exercise_id: result.exercise.id,
-        position: index,
-        exercise_type: result.exerciseType,
-        duration_override: result.exercise.duration,
-        notes: result.exercise.notes || null
-      }));
+      // Save exercises with simplified logic
+      const exerciseInserts = realExercises.map((exercise, index) => {
+        // Determine exercise type based on exercise properties
+        const exerciseType = exercise.isCustom ? 'user' : 'system';
+        
+        return {
+          class_plan_id: savedClassPlan.id,
+          exercise_id: exercise.id,
+          position: index,
+          exercise_type: exerciseType,
+          duration_override: exercise.duration,
+          notes: exercise.notes || null
+        };
+      });
 
       console.log('💾 About to insert exercises:', exerciseInserts.length);
 
