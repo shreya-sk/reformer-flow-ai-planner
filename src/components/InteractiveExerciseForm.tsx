@@ -1,389 +1,345 @@
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, ChevronRight, Plus, X, Zap, Shield, Target, BookOpen } from 'lucide-react';
-import { Exercise } from '@/types/reformer';
+import { Card, CardContent } from '@/components/ui/card';
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  Check, 
+  Plus,
+  X,
+  Clock,
+  Target,
+  Shield,
+  Zap
+} from 'lucide-react';
+import { Exercise, ExerciseCategory, MuscleGroup, SpringSetting, DifficultyLevel } from '@/types/reformer';
 
 interface InteractiveExerciseFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (exercise: Exercise) => void;
-  initialExercise?: Exercise;
+  exercise?: Exercise;
 }
 
-const steps = [
-  { id: 1, title: 'Basics', icon: Zap, description: 'Name and category' },
-  { id: 2, title: 'Details', icon: Target, description: 'Duration and difficulty' },
-  { id: 3, title: 'Safety', icon: Shield, description: 'Safety and modifications' },
-  { id: 4, title: 'Teaching', icon: BookOpen, description: 'Cues and setup' }
-];
-
-export const InteractiveExerciseForm = ({ isOpen, onClose, onSave, initialExercise }: InteractiveExerciseFormProps) => {
-  const [currentStep, setCurrentStep] = useState(1);
+export const InteractiveExerciseForm = ({ 
+  isOpen, 
+  onClose, 
+  onSave, 
+  exercise 
+}: InteractiveExerciseFormProps) => {
+  const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Partial<Exercise>>({
-    name: initialExercise?.name || '',
-    category: initialExercise?.category || '',
-    duration: initialExercise?.duration || 3,
-    difficulty: initialExercise?.difficulty || 'beginner',
-    springs: initialExercise?.springs || 'medium',
-    description: initialExercise?.description || '',
-    isPregnancySafe: initialExercise?.isPregnancySafe || false,
-    muscleGroups: initialExercise?.muscleGroups || [],
-    equipment: initialExercise?.equipment || [],
-    cues: initialExercise?.cues || [],
-    setup: initialExercise?.setup || '',
-    modifications: initialExercise?.modifications || [],
-    progressions: initialExercise?.progressions || [],
-    regressions: initialExercise?.regressions || [],
-    contraindications: initialExercise?.contraindications || [],
-    teachingFocus: initialExercise?.teachingFocus || [],
-    breathingCues: initialExercise?.breathingCues || [],
-    targetAreas: initialExercise?.targetAreas || []
+    name: exercise?.name || '',
+    category: exercise?.category || 'movement' as ExerciseCategory,
+    duration: exercise?.duration || 60,
+    springs: exercise?.springs || 'medium' as SpringSetting,
+    difficulty: exercise?.difficulty || 'beginner' as DifficultyLevel,
+    muscleGroups: exercise?.muscleGroups || [],
+    description: exercise?.description || '',
+    cues: exercise?.cues || [],
+    setup: exercise?.setup || '',
+    repsOrDuration: exercise?.repsOrDuration || '',
+    notes: exercise?.notes || '',
+    contraindications: exercise?.contraindications || [],
+    modifications: exercise?.modifications || [],
+    progressions: exercise?.progressions || [],
+    regressions: exercise?.regressions || [],
   });
 
-  const [newCue, setNewCue] = useState('');
-  const [newModification, setNewModification] = useState('');
-  const [newProgression, setNewProgression] = useState('');
-  const [newRegression, setNewRegression] = useState('');
+  const steps = [
+    { title: 'Basic Info', icon: Target, description: 'Name and category' },
+    { title: 'Details', icon: Clock, description: 'Duration and difficulty' },
+    { title: 'Body Focus', icon: Zap, description: 'Muscle groups and setup' },
+    { title: 'Safety & Cues', icon: Shield, description: 'Instructions and safety' },
+    { title: 'Review', icon: Check, description: 'Final check' }
+  ];
 
-  const categories = ['warm-up', 'legs', 'arms', 'core', 'full-body', 'cool-down', 'stretching'];
-  const difficulties = ['beginner', 'intermediate', 'advanced'];
-  const springs = ['light', 'medium', 'heavy', 'extra-heavy', 'mixed'];
-  const muscleGroupOptions = ['Core', 'Legs', 'Arms', 'Back', 'Glutes', 'Shoulders', 'Chest'];
+  const categories: ExerciseCategory[] = ['movement', 'transition', 'stretch', 'callout'];
+  const muscleGroups: MuscleGroup[] = ['core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body'];
+  const springs: SpringSetting[] = ['light', 'medium', 'heavy', 'variable'];
+  const difficulties: DifficultyLevel[] = ['beginner', 'intermediate', 'advanced'];
 
-  if (!isOpen) return null;
+  const toggleMuscleGroup = (group: MuscleGroup) => {
+    setFormData(prev => ({
+      ...prev,
+      muscleGroups: prev.muscleGroups?.includes(group)
+        ? prev.muscleGroups.filter(g => g !== group)
+        : [...(prev.muscleGroups || []), group]
+    }));
+  };
 
-  const progress = (currentStep / steps.length) * 100;
-
-  const addArrayItem = (field: keyof Exercise, value: string, setValue: (val: string) => void) => {
-    if (value.trim()) {
+  const addListItem = (field: 'cues' | 'contraindications' | 'modifications' | 'progressions' | 'regressions', item: string) => {
+    if (item.trim()) {
       setFormData(prev => ({
         ...prev,
-        [field]: [...(prev[field] as string[] || []), value.trim()]
+        [field]: [...(prev[field] || []), item.trim()]
       }));
-      setValue('');
     }
   };
 
-  const removeArrayItem = (field: keyof Exercise, index: number) => {
+  const removeListItem = (field: 'cues' | 'contraindications' | 'modifications' | 'progressions' | 'regressions', index: number) => {
     setFormData(prev => ({
       ...prev,
-      [field]: (prev[field] as string[])?.filter((_, i) => i !== index) || []
+      [field]: prev[field]?.filter((_, i) => i !== index) || []
     }));
   };
 
-  const toggleMuscleGroup = (muscle: string) => {
-    setFormData(prev => ({
-      ...prev,
-      muscleGroups: prev.muscleGroups?.includes(muscle)
-        ? prev.muscleGroups.filter(m => m !== muscle)
-        : [...(prev.muscleGroups || []), muscle]
-    }));
+  const nextStep = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
   };
 
-  const canProceed = () => {
-    switch (currentStep) {
-      case 1:
-        return formData.name && formData.category;
-      case 2:
-        return formData.duration && formData.difficulty && formData.springs;
-      case 3:
-        return true; // Optional step
-      case 4:
-        return true; // Optional step
-      default:
-        return false;
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
   const handleSave = () => {
     const newExercise: Exercise = {
-      id: initialExercise?.id || `custom-${Date.now()}`,
-      name: formData.name!,
-      category: formData.category!,
-      duration: formData.duration!,
-      difficulty: formData.difficulty!,
-      springs: formData.springs!,
-      description: formData.description || '',
-      isPregnancySafe: formData.isPregnancySafe || false,
+      id: exercise?.id || `custom-${Date.now()}`,
+      name: formData.name || 'Untitled Exercise',
+      category: formData.category || 'movement',
+      duration: formData.duration || 60,
+      springs: formData.springs || 'medium',
+      difficulty: formData.difficulty || 'beginner',
+      intensityLevel: 'medium' as const,
       muscleGroups: formData.muscleGroups || [],
-      equipment: formData.equipment || [],
+      equipment: [],
+      description: formData.description || '',
+      image: '',
+      videoUrl: '',
+      notes: formData.notes || '',
       cues: formData.cues || [],
       setup: formData.setup || '',
+      repsOrDuration: formData.repsOrDuration || '',
+      tempo: '',
+      targetAreas: [],
+      breathingCues: [],
+      teachingFocus: [],
       modifications: formData.modifications || [],
       progressions: formData.progressions || [],
       regressions: formData.regressions || [],
-      contraindications: formData.contraindications || [],
-      teachingFocus: formData.teachingFocus || [],
-      breathingCues: formData.breathingCues || [],
-      targetAreas: formData.targetAreas || [],
-      intensityLevel: 'medium',
-      image: '',
-      videoUrl: '',
-      notes: '',
-      repsOrDuration: '',
-      tempo: '',
       transitions: [],
+      contraindications: formData.contraindications || [],
+      isPregnancySafe: false,
       isCustom: true,
-      isSystemExercise: false
+      isSystemExercise: false,
     };
 
     onSave(newExercise);
     onClose();
+    setCurrentStep(0);
+    setFormData({});
   };
 
   const renderStep = () => {
     switch (currentStep) {
-      case 1:
+      case 0: // Basic Info
         return (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Exercise Name</label>
+              <Label htmlFor="name">Exercise Name</Label>
               <Input
-                value={formData.name}
+                id="name"
+                value={formData.name || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="e.g., Single Leg Stretch"
-                className="text-base"
+                placeholder="e.g., Roll Down, Teaser, Single Leg Stretch"
+                className="mt-1"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-2">Category</label>
-              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(cat => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat.charAt(0).toUpperCase() + cat.slice(1).replace('-', ' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Category</Label>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {categories.map((cat) => (
+                  <Button
+                    key={cat}
+                    type="button"
+                    variant={formData.category === cat ? "default" : "outline"}
+                    onClick={() => setFormData(prev => ({ ...prev, category: cat }))}
+                    className="h-12 text-left justify-start"
+                  >
+                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 1: // Details
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="duration">Duration (seconds)</Label>
+              <Input
+                id="duration"
+                type="number"
+                value={formData.duration || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) || 60 }))}
+                className="mt-1"
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">Description (Optional)</label>
+              <Label>Spring Setting</Label>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {springs.map((spring) => (
+                  <Button
+                    key={spring}
+                    type="button"
+                    variant={formData.springs === spring ? "default" : "outline"}
+                    onClick={() => setFormData(prev => ({ ...prev, springs: spring }))}
+                    className="h-12"
+                  >
+                    {spring.charAt(0).toUpperCase() + spring.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label>Difficulty Level</Label>
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {difficulties.map((diff) => (
+                  <Button
+                    key={diff}
+                    type="button"
+                    variant={formData.difficulty === diff ? "default" : "outline"}
+                    onClick={() => setFormData(prev => ({ ...prev, difficulty: diff }))}
+                    className="h-12"
+                  >
+                    {diff.charAt(0).toUpperCase() + diff.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 2: // Body Focus
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Target Muscle Groups</Label>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {muscleGroups.map((group) => (
+                  <Button
+                    key={group}
+                    type="button"
+                    variant={formData.muscleGroups?.includes(group) ? "default" : "outline"}
+                    onClick={() => toggleMuscleGroup(group)}
+                    className="h-12 text-left justify-start"
+                  >
+                    {group.charAt(0).toUpperCase() + group.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="setup">Setup Instructions</Label>
               <Textarea
-                value={formData.description}
+                id="setup"
+                value={formData.setup || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, setup: e.target.value }))}
+                placeholder="Describe how to set up for this exercise..."
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="repsOrDuration">Reps or Duration</Label>
+              <Input
+                id="repsOrDuration"
+                value={formData.repsOrDuration || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, repsOrDuration: e.target.value }))}
+                placeholder="e.g., 8-10 reps, 30 seconds, Hold for 3 breaths"
+                className="mt-1"
+              />
+            </div>
+          </div>
+        );
+
+      case 3: // Safety & Cues
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="description">Exercise Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description || ''}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Brief description of the exercise..."
-                rows={3}
-              />
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Duration (minutes)</label>
-              <Select value={formData.duration?.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, duration: parseInt(value) }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(duration => (
-                    <SelectItem key={duration} value={duration.toString()}>
-                      {duration} minute{duration > 1 ? 's' : ''}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Difficulty Level</label>
-              <Select value={formData.difficulty} onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty: value as any }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {difficulties.map(diff => (
-                    <SelectItem key={diff} value={diff}>
-                      {diff.charAt(0).toUpperCase() + diff.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Spring Setting</label>
-              <Select value={formData.springs} onValueChange={(value) => setFormData(prev => ({ ...prev, springs: value }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {springs.map(spring => (
-                    <SelectItem key={spring} value={spring}>
-                      {spring.charAt(0).toUpperCase() + spring.slice(1).replace('-', ' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Target Muscle Groups</label>
-              <div className="flex flex-wrap gap-2">
-                {muscleGroupOptions.map(muscle => (
-                  <Badge
-                    key={muscle}
-                    variant={formData.muscleGroups?.includes(muscle) ? "default" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => toggleMuscleGroup(muscle)}
-                  >
-                    {muscle}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Pregnancy Safe</label>
-              <Switch
-                checked={formData.isPregnancySafe}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPregnancySafe: checked }))}
+                className="mt-1"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Modifications</label>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  value={newModification}
-                  onChange={(e) => setNewModification(e.target.value)}
-                  placeholder="Add a modification..."
-                  onKeyPress={(e) => e.key === 'Enter' && addArrayItem('modifications', newModification, setNewModification)}
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => addArrayItem('modifications', newModification, setNewModification)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {formData.modifications?.map((mod, index) => (
-                  <Badge key={index} variant="outline" className="flex items-center gap-1">
-                    {mod}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeArrayItem('modifications', index)} />
-                  </Badge>
-                ))}
-              </div>
-            </div>
+            <ListInputSection
+              title="Teaching Cues"
+              items={formData.cues || []}
+              onAdd={(item) => addListItem('cues', item)}
+              onRemove={(index) => removeListItem('cues', index)}
+              placeholder="Add a teaching cue..."
+            />
 
-            <div>
-              <label className="block text-sm font-medium mb-2">Progressions (Harder)</label>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  value={newProgression}
-                  onChange={(e) => setNewProgression(e.target.value)}
-                  placeholder="Add a progression..."
-                  onKeyPress={(e) => e.key === 'Enter' && addArrayItem('progressions', newProgression, setNewProgression)}
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => addArrayItem('progressions', newProgression, setNewProgression)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {formData.progressions?.map((prog, index) => (
-                  <Badge key={index} variant="outline" className="flex items-center gap-1">
-                    {prog}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeArrayItem('progressions', index)} />
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Regressions (Easier)</label>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  value={newRegression}
-                  onChange={(e) => setNewRegression(e.target.value)}
-                  placeholder="Add a regression..."
-                  onKeyPress={(e) => e.key === 'Enter' && addArrayItem('regressions', newRegression, setNewRegression)}
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => addArrayItem('regressions', newRegression, setNewRegression)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {formData.regressions?.map((reg, index) => (
-                  <Badge key={index} variant="outline" className="flex items-center gap-1">
-                    {reg}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeArrayItem('regressions', index)} />
-                  </Badge>
-                ))}
-              </div>
-            </div>
+            <ListInputSection
+              title="Contraindications"
+              items={formData.contraindications || []}
+              onAdd={(item) => addListItem('contraindications', item)}
+              onRemove={(index) => removeListItem('contraindications', index)}
+              placeholder="Add a contraindication..."
+            />
           </div>
         );
 
-      case 4:
+      case 4: // Review
         return (
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Setup Instructions</label>
-              <Textarea
-                value={formData.setup}
-                onChange={(e) => setFormData(prev => ({ ...prev, setup: e.target.value }))}
-                placeholder="How to set up the reformer for this exercise..."
-                rows={3}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Teaching Cues</label>
-              <div className="flex gap-2 mb-2">
-                <Input
-                  value={newCue}
-                  onChange={(e) => setNewCue(e.target.value)}
-                  placeholder="Add a teaching cue..."
-                  onKeyPress={(e) => e.key === 'Enter' && addArrayItem('cues', newCue, setNewCue)}
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => addArrayItem('cues', newCue, setNewCue)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {formData.cues?.map((cue, index) => (
-                  <Badge key={index} variant="outline" className="flex items-center gap-1">
-                    {cue}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeArrayItem('cues', index)} />
-                  </Badge>
-                ))}
-              </div>
-            </div>
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-lg mb-3">{formData.name}</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Category:</span>
+                    <p className="font-medium">{formData.category}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Duration:</span>
+                    <p className="font-medium">{formData.duration}s</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Springs:</span>
+                    <p className="font-medium">{formData.springs}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Difficulty:</span>
+                    <p className="font-medium">{formData.difficulty}</p>
+                  </div>
+                </div>
+                
+                {formData.muscleGroups && formData.muscleGroups.length > 0 && (
+                  <div className="mt-3">
+                    <span className="text-gray-600 text-sm">Muscle Groups:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {formData.muscleGroups.map((group) => (
+                        <Badge key={group} variant="secondary" className="text-xs">
+                          {group}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         );
 
@@ -393,82 +349,131 @@ export const InteractiveExerciseForm = ({ isOpen, onClose, onSave, initialExerci
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-sage-500 to-sage-600 text-white rounded-t-2xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">
-                {initialExercise ? 'Edit Exercise' : 'New Exercise'}
-              </CardTitle>
-              <p className="text-sm text-white/80">
-                Step {currentStep} of {steps.length}: {steps[currentStep - 1].title}
-              </p>
-            </div>
-            <Button variant="ghost" size="sm" onClick={onClose} className="text-white hover:bg-white/20">
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-          
-          <div className="mt-4">
-            <Progress value={progress} className="bg-white/20" />
-          </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <steps[currentStep].icon className="h-5 w-5 text-sage-600" />
+            {steps[currentStep].title}
+          </DialogTitle>
+          <p className="text-sm text-gray-600">{steps[currentStep].description}</p>
+        </DialogHeader>
 
-          <div className="flex items-center justify-center mt-4">
-            {steps.map((step) => {
-              const Icon = step.icon;
-              return (
-                <div key={step.id} className="flex items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                    currentStep >= step.id ? 'bg-white text-sage-600' : 'bg-white/20 text-white/60'
-                  }`}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  {step.id < steps.length && (
-                    <div className={`w-8 h-0.5 transition-all ${
-                      currentStep > step.id ? 'bg-white' : 'bg-white/20'
-                    }`} />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </CardHeader>
-
-        <CardContent className="p-6 overflow-y-auto">
-          {renderStep()}
-        </CardContent>
-
-        <div className="p-4 border-t bg-gray-50 flex gap-3">
-          <Button
-            variant="outline"
-            onClick={() => currentStep > 1 ? setCurrentStep(currentStep - 1) : onClose()}
-            className="flex-1"
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            {currentStep > 1 ? 'Previous' : 'Cancel'}
-          </Button>
-          
-          {currentStep < steps.length ? (
-            <Button
-              onClick={() => setCurrentStep(currentStep + 1)}
-              disabled={!canProceed()}
-              className="flex-1 bg-sage-600 hover:bg-sage-700"
+        {/* Progress Indicator */}
+        <div className="flex justify-between mb-6">
+          {steps.map((step, index) => (
+            <div
+              key={index}
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
+                index === currentStep
+                  ? 'bg-sage-600 text-white'
+                  : index < currentStep
+                  ? 'bg-sage-200 text-sage-800'
+                  : 'bg-gray-200 text-gray-500'
+              }`}
             >
-              Next
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
-          ) : (
+              {index < currentStep ? <Check className="h-4 w-4" /> : index + 1}
+            </div>
+          ))}
+        </div>
+
+        {/* Step Content */}
+        <div className="min-h-[300px] mb-6">
+          {renderStep()}
+        </div>
+
+        {/* Navigation */}
+        <div className="flex justify-between">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={prevStep}
+            disabled={currentStep === 0}
+            className="flex items-center gap-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+
+          {currentStep === steps.length - 1 ? (
             <Button
               onClick={handleSave}
-              disabled={!canProceed()}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="bg-sage-600 hover:bg-sage-700"
+              disabled={!formData.name}
             >
               Save Exercise
             </Button>
+          ) : (
+            <Button
+              onClick={nextStep}
+              className="flex items-center gap-1"
+              disabled={currentStep === 0 && !formData.name}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           )}
         </div>
-      </Card>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Helper component for list inputs
+interface ListInputSectionProps {
+  title: string;
+  items: string[];
+  onAdd: (item: string) => void;
+  onRemove: (index: number) => void;
+  placeholder: string;
+}
+
+const ListInputSection = ({ title, items, onAdd, onRemove, placeholder }: ListInputSectionProps) => {
+  const [inputValue, setInputValue] = useState('');
+
+  const handleAdd = () => {
+    onAdd(inputValue);
+    setInputValue('');
+  };
+
+  return (
+    <div>
+      <Label>{title}</Label>
+      <div className="flex gap-2 mt-1">
+        <Input
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder={placeholder}
+          onKeyPress={(e) => e.key === 'Enter' && handleAdd()}
+        />
+        <Button
+          type="button"
+          size="icon"
+          onClick={handleAdd}
+          disabled={!inputValue.trim()}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      {items.length > 0 && (
+        <div className="mt-2 space-y-1">
+          {items.map((item, index) => (
+            <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded text-sm">
+              <span>{item}</span>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                onClick={() => onRemove(index)}
+                className="h-6 w-6"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
