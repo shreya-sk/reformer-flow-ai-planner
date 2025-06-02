@@ -1,7 +1,7 @@
 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ExerciseLibrary } from '@/components/ExerciseLibrary';
+import { MobileOptimizedExerciseLibrary } from '@/components/MobileOptimizedExerciseLibrary';
 import { Exercise } from '@/types/reformer';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { AuthPage } from '@/components/AuthPage';
@@ -57,7 +57,7 @@ const Library = () => {
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-sage-25 via-white to-sage-50'} pb-20 safe-area-pb`}>
       <div className="min-h-screen flex flex-col">
-        <ExerciseLibrary />
+        <MobileOptimizedExerciseLibrary onExerciseSelect={handleAddExercise} />
       </div>
 
       <BottomNavigation onPlanClass={() => navigate('/plan')} />

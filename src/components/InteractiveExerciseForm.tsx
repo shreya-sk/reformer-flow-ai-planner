@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -210,6 +209,13 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
         return true;
       default:
         return false;
+    }
+  };
+
+  // Handle backdrop click to close
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onCancel();
     }
   };
 
@@ -634,8 +640,11 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl max-h-[90vh] overflow-hidden">
+    <div 
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      onClick={handleBackdropClick}
+    >
+      <Card className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl max-h-[90vh] overflow-hidden animate-scale-in">
         <CardContent className="p-0">
           {/* Header */}
           <div className="bg-gradient-to-r from-sage-500 to-sage-600 text-white p-6">

@@ -12,6 +12,7 @@ import { MobileLibraryHeader } from './mobile/MobileLibraryHeader';
 import { MobileExerciseModal } from './MobileExerciseModal';
 import { MobileFilterPanel } from './MobileFilterPanel';
 import { InteractiveExerciseForm } from './InteractiveExerciseForm';
+import { toast } from '@/hooks/use-toast';
 
 interface MobileOptimizedExerciseLibraryProps {
   onExerciseSelect?: (exercise: Exercise) => void;
@@ -83,17 +84,30 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     try {
       if (onExerciseSelect) {
         onExerciseSelect(exercise);
+        toast({
+          title: "Added to class",
+          description: `"${exercise.name}" has been added to your class plan.`,
+        });
       } else {
         addExercise(exercise);
         console.log('🔵 Exercise added successfully, navigating to plan');
+        toast({
+          title: "Added to class",
+          description: `"${exercise.name}" has been added to your class plan.`,
+        });
         navigate('/plan');
       }
       showFeedback(exercise.id, 'success');
     } catch (error) {
       console.error('🔴 Error adding exercise:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add exercise to class.",
+        variant: "destructive",
+      });
       showFeedback(exercise.id, 'error');
     }
-  }, [onExerciseSelect, addExercise, navigate, showFeedback]);
+  }, [onExerciseSelect, addExercise, navigate, showFeedback, toast]);
 
   const handleExerciseSelect = useCallback((exercise: Exercise) => {
     setSelectedExercise(exercise);
@@ -129,12 +143,21 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     try {
       await createUserExercise(exercise);
       showFeedback(exercise.id, 'success');
+      toast({
+        title: "Exercise saved",
+        description: `"${exercise.name}" has been saved to your library.`,
+      });
     } catch (error) {
       showFeedback(exercise.id, 'error');
+      toast({
+        title: "Error",
+        description: "Failed to save exercise.",
+        variant: "destructive",
+      });
     }
     setIsCreating(false);
     setEditingExercise(null);
-  }, [createUserExercise, showFeedback]);
+  }, [createUserExercise, showFeedback, toast]);
 
   const handleCancelExercise = useCallback(() => {
     setIsCreating(false);
@@ -163,10 +186,19 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     try {
       await duplicateExercise(exercise);
       showFeedback(exercise.id, 'success');
+      toast({
+        title: "Exercise duplicated",
+        description: `"${exercise.name}" has been duplicated.`,
+      });
     } catch (error) {
       showFeedback(exercise.id, 'error');
+      toast({
+        title: "Error",
+        description: "Failed to duplicate exercise.",
+        variant: "destructive",
+      });
     }
-  }, [duplicateExercise, showFeedback]);
+  }, [duplicateExercise, showFeedback, toast]);
 
   const handleDelete = useCallback(async (exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -175,10 +207,19 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     try {
       await deleteUserExercise(exercise.id);
       showFeedback(exercise.id, 'success');
+      toast({
+        title: "Exercise deleted",
+        description: `"${exercise.name}" has been deleted.`,
+      });
     } catch (error) {
       showFeedback(exercise.id, 'error');
+      toast({
+        title: "Error",
+        description: "Failed to delete exercise.",
+        variant: "destructive",
+      });
     }
-  }, [deleteUserExercise, showFeedback]);
+  }, [deleteUserExercise, showFeedback, toast]);
 
   const handleResetToOriginal = useCallback(async (exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -187,10 +228,19 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     try {
       await resetSystemExerciseToOriginal(exercise.id);
       showFeedback(exercise.id, 'success');
+      toast({
+        title: "Exercise reset",
+        description: `"${exercise.name}" has been reset to original.`,
+      });
     } catch (error) {
       showFeedback(exercise.id, 'error');
+      toast({
+        title: "Error",
+        description: "Failed to reset exercise.",
+        variant: "destructive",
+      });
     }
-  }, [resetSystemExerciseToOriginal, showFeedback]);
+  }, [resetSystemExerciseToOriginal, showFeedback, toast]);
 
   const observeImage = useCallback((element: HTMLImageElement, src: string) => {
     const observer = new IntersectionObserver((entries) => {
@@ -288,7 +338,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
         />
       )}
 
-      {/* Interactive Exercise Form */}
+      {/* Interactive Exercise Form Modal */}
       {(isCreating || editingExercise) && (
         <InteractiveExerciseForm
           exercise={editingExercise || undefined}

@@ -35,6 +35,7 @@ export const MobileExerciseCard = ({
   className = ''
 }: MobileExerciseCardProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
@@ -47,6 +48,25 @@ export const MobileExerciseCard = ({
       observeImage(imageRef.current, exercise.image);
     }
   }, [exercise.image, observeImage]);
+
+  // Close details when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showDetails && cardRef.current && !cardRef.current.contains(event.target as Node)) {
+        setShowDetails(false);
+      }
+    };
+
+    if (showDetails) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showDetails]);
 
   const handleAddClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -89,10 +109,17 @@ export const MobileExerciseCard = ({
     setShowDetails(!showDetails);
   };
 
+  const handleCardClick = () => {
+    if (!showDetails) {
+      onSelect(exercise);
+    }
+  };
+
   return (
     <div 
+      ref={cardRef}
       className={`relative group bg-white/90 backdrop-blur-xl rounded-xl overflow-hidden shadow-md border border-white/30 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${isHidden ? 'opacity-60' : ''} ${className}`}
-      onClick={() => onSelect(exercise)}
+      onClick={handleCardClick}
     >
       {/* Compact image container */}
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -139,38 +166,38 @@ export const MobileExerciseCard = ({
         <div className="absolute top-2 right-2 flex flex-col gap-1">
           <button
             onClick={handleFavoriteClick}
-            className={`w-6 h-6 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-200 shadow-sm ${
+            className={`w-7 h-7 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-200 shadow-sm ${
               isFavorite 
                 ? 'bg-red-500/90 text-white scale-110' 
                 : 'bg-white/80 text-gray-600 hover:bg-red-500/90 hover:text-white hover:scale-110'
             }`}
           >
-            <Heart className={`h-2.5 w-2.5 ${isFavorite ? 'fill-current' : ''}`} />
+            <Heart className={`h-3 w-3 ${isFavorite ? 'fill-current' : ''}`} />
           </button>
 
           <button
             onClick={handleEditClick}
-            className="w-6 h-6 rounded-full bg-white/80 backdrop-blur-xl text-gray-600 flex items-center justify-center transition-all duration-200 hover:bg-sage-500/90 hover:text-white hover:scale-110 shadow-sm"
+            className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-xl text-gray-600 flex items-center justify-center transition-all duration-200 hover:bg-sage-500/90 hover:text-white hover:scale-110 shadow-sm"
           >
-            <Edit className="h-2.5 w-2.5" />
+            <Edit className="h-3 w-3" />
           </button>
 
           <button
             onClick={handleDuplicateClick}
-            className="w-6 h-6 rounded-full bg-white/80 backdrop-blur-xl text-gray-600 flex items-center justify-center transition-all duration-200 hover:bg-blue-500/90 hover:text-white hover:scale-110 shadow-sm"
+            className="w-7 h-7 rounded-full bg-white/80 backdrop-blur-xl text-gray-600 flex items-center justify-center transition-all duration-200 hover:bg-blue-500/90 hover:text-white hover:scale-110 shadow-sm"
           >
-            <Copy className="h-2.5 w-2.5" />
+            <Copy className="h-3 w-3" />
           </button>
 
           <button
             onClick={handleHideClick}
-            className={`w-6 h-6 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-200 shadow-sm ${
+            className={`w-7 h-7 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-200 shadow-sm ${
               isHidden 
                 ? 'bg-green-500/90 text-white' 
                 : 'bg-white/80 text-gray-600 hover:bg-gray-500/90 hover:text-white hover:scale-110'
             }`}
           >
-            {isHidden ? <Eye className="h-2.5 w-2.5" /> : <EyeOff className="h-2.5 w-2.5" />}
+            {isHidden ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
           </button>
         </div>
 
@@ -187,16 +214,16 @@ export const MobileExerciseCard = ({
             <button
               onClick={handleAddClick}
               disabled={isAdding}
-              className={`ml-auto w-7 h-7 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-300 shadow-lg ${
+              className={`ml-auto w-8 h-8 rounded-full backdrop-blur-xl flex items-center justify-center transition-all duration-300 shadow-lg ${
                 isAdding
                   ? 'bg-green-500/90 text-white scale-110'
                   : 'bg-sage-600/90 hover:bg-sage-700/90 text-white hover:scale-110'
               }`}
             >
               {isAdding ? (
-                <Check className="h-3 w-3 animate-bounce" />
+                <Check className="h-4 w-4 animate-bounce" />
               ) : (
-                <Plus className="h-3 w-3" />
+                <Plus className="h-4 w-4" />
               )}
             </button>
           </div>
@@ -222,24 +249,24 @@ export const MobileExerciseCard = ({
           {/* Details toggle */}
           <button
             onClick={toggleDetails}
-            className="w-5 h-5 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-sage-100 transition-all duration-200 flex-shrink-0 ml-2"
+            className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-sage-100 transition-all duration-200 flex-shrink-0 ml-2"
           >
-            <ChevronUp className={`h-2.5 w-2.5 transition-transform duration-300 ${showDetails ? 'rotate-180' : ''}`} />
+            <ChevronUp className={`h-3 w-3 transition-transform duration-300 ${showDetails ? 'rotate-180' : ''}`} />
           </button>
         </div>
 
-        {/* Enhanced expandable details section */}
-        <div className={`overflow-hidden transition-all duration-300 ${showDetails ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
-          <div className="pt-2 border-t border-gray-100 space-y-2">
+        {/* Enhanced expandable details section with smooth animation */}
+        <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showDetails ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'}`}>
+          <div className="pt-3 border-t border-gray-100 space-y-3">
             
             {/* Safety & Contraindications */}
             {exercise.contraindications && exercise.contraindications.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-2">
                 <div className="flex items-center gap-1 mb-1">
                   <AlertTriangle className="h-3 w-3 text-red-600" />
-                  <span className="text-[9px] font-semibold text-red-700">Contraindications</span>
+                  <span className="text-[10px] font-semibold text-red-700">Contraindications</span>
                 </div>
-                <p className="text-[8px] text-red-600 leading-tight">
+                <p className="text-[9px] text-red-600 leading-tight">
                   {exercise.contraindications.slice(0, 2).join(', ')}
                   {exercise.contraindications.length > 2 && '...'}
                 </p>
@@ -251,9 +278,9 @@ export const MobileExerciseCard = ({
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
                 <div className="flex items-center gap-1 mb-1">
                   <Target className="h-3 w-3 text-blue-600" />
-                  <span className="text-[9px] font-semibold text-blue-700">Teaching Focus</span>
+                  <span className="text-[10px] font-semibold text-blue-700">Teaching Focus</span>
                 </div>
-                <p className="text-[8px] text-blue-600 leading-tight">
+                <p className="text-[9px] text-blue-600 leading-tight">
                   {exercise.teachingFocus.slice(0, 3).join(', ')}
                 </p>
               </div>
@@ -264,9 +291,9 @@ export const MobileExerciseCard = ({
               <div className="bg-green-50 border border-green-200 rounded-lg p-2">
                 <div className="flex items-center gap-1 mb-1">
                   <Zap className="h-3 w-3 text-green-600" />
-                  <span className="text-[9px] font-semibold text-green-700">Key Cue</span>
+                  <span className="text-[10px] font-semibold text-green-700">Key Cue</span>
                 </div>
-                <p className="text-[8px] text-green-600 leading-tight">
+                <p className="text-[9px] text-green-600 leading-tight">
                   {exercise.cues[0]}
                 </p>
               </div>
@@ -275,14 +302,14 @@ export const MobileExerciseCard = ({
             {/* Progressions & Regressions */}
             <div className="grid grid-cols-2 gap-2">
               {exercise.regressions && exercise.regressions.length > 0 && (
-                <div className="text-[8px]">
-                  <span className="text-gray-500">Regression:</span>
+                <div className="text-[9px]">
+                  <span className="text-gray-500 font-medium">Regression:</span>
                   <p className="text-green-600 font-medium truncate">{exercise.regressions[0]}</p>
                 </div>
               )}
               {exercise.progressions && exercise.progressions.length > 0 && (
-                <div className="text-[8px]">
-                  <span className="text-gray-500">Progression:</span>
+                <div className="text-[9px]">
+                  <span className="text-gray-500 font-medium">Progression:</span>
                   <p className="text-blue-600 font-medium truncate">{exercise.progressions[0]}</p>
                 </div>
               )}
@@ -290,22 +317,27 @@ export const MobileExerciseCard = ({
 
             {/* Modifications */}
             {exercise.modifications && exercise.modifications.length > 0 && (
-              <div className="text-[8px]">
-                <span className="text-gray-500">Modifications:</span>
+              <div className="text-[9px]">
+                <span className="text-gray-500 font-medium">Modifications:</span>
                 <p className="text-orange-600 font-medium truncate">{exercise.modifications[0]}</p>
               </div>
             )}
 
             {/* Muscle Groups */}
             {exercise.muscleGroups && exercise.muscleGroups.length > 0 && (
-              <div className="text-[8px]">
-                <span className="text-gray-500">Target:</span>
+              <div className="text-[9px]">
+                <span className="text-gray-500 font-medium">Target:</span>
                 <p className="text-gray-700 font-medium">
                   {exercise.muscleGroups.slice(0, 3).join(', ')}
                   {exercise.muscleGroups.length > 3 && ` +${exercise.muscleGroups.length - 3}`}
                 </p>
               </div>
             )}
+
+            {/* Tap to close hint */}
+            <div className="text-center pt-2">
+              <p className="text-[8px] text-gray-400">Tap outside to close details</p>
+            </div>
           </div>
         </div>
       </div>
