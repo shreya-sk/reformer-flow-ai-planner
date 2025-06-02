@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { X } from 'lucide-react';
-import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment } from '@/types/reformer';
+import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment, PrimaryMuscle, ExercisePosition } from '@/types/reformer';
 
 interface ExerciseFormProps {
   exercise?: Exercise;
@@ -49,6 +49,8 @@ export const ExerciseForm = ({ exercise, onSave, onCancel }: ExerciseFormProps) 
     const exerciseData: Exercise = {
       ...formData,
       id: exercise?.id || Date.now().toString(),
+      position: exercise?.position || 'supine' as ExercisePosition,
+      primaryMuscle: exercise?.primaryMuscle || 'core' as PrimaryMuscle,
       muscleGroups: selectedMuscleGroups,
       equipment: selectedEquipment,
       isCustom: true,

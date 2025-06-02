@@ -1,245 +1,150 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Exercise, ClassPlan } from '@/types/reformer';
-import { getRandomClassImage } from '@/utils/imageUtils';
-
-const CLASS_PLAN_KEY = 'reformerly_class_plan';
-
-const getInitialClassPlan = (): ClassPlan => ({
-  id: `class-${Date.now()}`,
-  name: 'New Class',
-  duration: 45,
-  exercises: [],
-  totalDuration: 0,
-  classDuration: 45,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  notes: '',
-  image: getRandomClassImage() // Auto-assign random image
-});
-
-// Global state to ensure consistency across components
-let globalClassPlan: ClassPlan | null = null;
-const subscribers = new Set<(classPlan: ClassPlan) => void>();
-
-const notifySubscribers = (classPlan: ClassPlan) => {
-  subscribers.forEach(callback => callback(classPlan));
-};
-
-const saveToStorage = (classPlan: ClassPlan) => {
-  try {
-    localStorage.setItem(CLASS_PLAN_KEY, JSON.stringify(classPlan));
-    console.log('💾 Saved to localStorage:', {
-      name: classPlan.name,
-      exerciseCount: classPlan.exercises.length,
-      realExerciseCount: classPlan.exercises.filter(ex => ex.category !== 'callout').length,
-      totalDuration: classPlan.totalDuration
-    });
-  } catch (error) {
-    console.error('Failed to save class plan:', error);
-  }
-};
-
-const loadFromStorage = (): ClassPlan => {
-  try {
-    const stored = localStorage.getItem(CLASS_PLAN_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      console.log('📂 Loaded from localStorage:', {
-        name: parsed.name,
-        exerciseCount: parsed.exercises?.length || 0,
-        realExerciseCount: parsed.exercises?.filter((ex: Exercise) => ex.category !== 'callout').length || 0,
-        totalDuration: parsed.totalDuration || 0
-      });
-      return {
-        ...parsed,
-        createdAt: new Date(parsed.createdAt),
-        updatedAt: new Date(parsed.updatedAt)
-      };
-    }
-  } catch (error) {
-    console.error('Failed to load class plan:', error);
-  }
-  return getInitialClassPlan();
-};
-
-// Initialize global state if not already done
-if (!globalClassPlan) {
-  globalClassPlan = loadFromStorage();
-}
+import { v4 as uuidv4 } from 'uuid';
 
 export const usePersistedClassPlan = () => {
-  const [currentClass, setCurrentClass] = useState<ClassPlan>(() => {
-    // Always use the global state as source of truth
-    return globalClassPlan || loadFromStorage();
+  const [currentClassPlan, setCurrentClassPlan] = useState<ClassPlan>({
+    id: uuidv4(),
+    name: 'New Class Plan',
+    description: '',
+    duration: 45,
+    exercises: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    tags: [],
+    notes: ''
   });
 
-  // Subscribe to global state changes
+  // Load from localStorage on initialization
   useEffect(() => {
-    const handleGlobalUpdate = (updatedClass: ClassPlan) => {
-      setCurrentClass(updatedClass);
-    };
-
-    subscribers.add(handleGlobalUpdate);
-    
-    // Sync with current global state
-    if (globalClassPlan) {
-      setCurrentClass(globalClassPlan);
+    const saved = localStorage.getItem('currentClassPlan');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setCurrentClassPlan({
+          ...parsed,
+          createdAt: new Date(parsed.createdAt),
+          updatedAt: new Date(parsed.updatedAt)
+        });
+      } catch (error) {
+        console.error('Error parsing saved class plan:', error);
+      }
     }
-
-    return () => {
-      subscribers.delete(handleGlobalUpdate);
-    };
   }, []);
 
-  const updateGlobalState = useCallback((updatedClass: ClassPlan) => {
-    const realExercises = updatedClass.exercises.filter(ex => ex.category !== 'callout');
-    const newClass = {
-      ...updatedClass,
-      updatedAt: new Date(),
-      totalDuration: realExercises.reduce((sum, ex) => sum + (ex.duration || 0), 0)
-    };
+  // Save to localStorage whenever state changes
+  useEffect(() => {
+    localStorage.setItem('currentClassPlan', JSON.stringify(currentClassPlan));
+  }, [currentClassPlan]);
 
-    globalClassPlan = newClass;
-    saveToStorage(newClass);
-    notifySubscribers(newClass);
-
-    console.log('🔄 Global state updated:', {
-      name: newClass.name,
-      exerciseCount: newClass.exercises.length,
-      realExerciseCount: realExercises.length,
-      totalDuration: newClass.totalDuration
-    });
+  const updateClassPlan = useCallback((updates: Partial<ClassPlan>) => {
+    setCurrentClassPlan(prev => ({
+      ...prev,
+      ...updates,
+      updatedAt: new Date()
+    }));
   }, []);
 
   const addExercise = useCallback((exercise: Exercise) => {
-    console.log('➕ Adding exercise:', exercise.name);
-    
-    if (!globalClassPlan) {
-      globalClassPlan = getInitialClassPlan();
-    }
-
-    const exerciseToAdd = {
-      ...exercise,
-      id: exercise.id,
-    };
-    
-    const newExercises = [...globalClassPlan.exercises, exerciseToAdd];
-    const updatedClass = {
-      ...globalClassPlan,
-      exercises: newExercises
-    };
-
-    updateGlobalState(updatedClass);
-  }, [updateGlobalState]);
+    setCurrentClassPlan(prev => ({
+      ...prev,
+      exercises: [...prev.exercises, exercise],
+      updatedAt: new Date()
+    }));
+  }, []);
 
   const removeExercise = useCallback((exerciseId: string) => {
-    console.log('➖ Removing exercise:', exerciseId);
-    
-    if (!globalClassPlan) return;
+    setCurrentClassPlan(prev => ({
+      ...prev,
+      exercises: prev.exercises.filter(ex => ex.id !== exerciseId),
+      updatedAt: new Date()
+    }));
+  }, []);
 
-    const newExercises = globalClassPlan.exercises.filter(ex => ex.id !== exerciseId);
-    const updatedClass = {
-      ...globalClassPlan,
-      exercises: newExercises
-    };
+  const reorderExercises = useCallback((startIndex: number, endIndex: number) => {
+    setCurrentClassPlan(prev => {
+      const result = Array.from(prev.exercises);
+      const [removed] = result.splice(startIndex, 1);
+      result.splice(endIndex, 0, removed);
+      
+      return {
+        ...prev,
+        exercises: result,
+        updatedAt: new Date()
+      };
+    });
+  }, []);
 
-    updateGlobalState(updatedClass);
-  }, [updateGlobalState]);
+  const updateExercise = useCallback((exerciseId: string, updates: Partial<Exercise>) => {
+    setCurrentClassPlan(prev => ({
+      ...prev,
+      exercises: prev.exercises.map(ex => 
+        ex.id === exerciseId ? { ...ex, ...updates } : ex
+      ),
+      updatedAt: new Date()
+    }));
+  }, []);
 
-  const reorderExercises = useCallback((exercises: Exercise[]) => {
-    console.log('🔄 Reordering exercises:', exercises.length);
-    
-    if (!globalClassPlan) return;
+  const duplicateExercise = useCallback((exerciseId: string) => {
+    setCurrentClassPlan(prev => {
+      const exerciseToDuplicate = prev.exercises.find(ex => ex.id === exerciseId);
+      if (!exerciseToDuplicate) return prev;
 
-    const updatedClass = {
-      ...globalClassPlan,
-      exercises: exercises
-    };
+      const duplicatedExercise = {
+        ...exerciseToDuplicate,
+        id: uuidv4(),
+        name: `${exerciseToDuplicate.name} (Copy)`
+      };
 
-    updateGlobalState(updatedClass);
-  }, [updateGlobalState]);
+      const exerciseIndex = prev.exercises.findIndex(ex => ex.id === exerciseId);
+      const newExercises = [...prev.exercises];
+      newExercises.splice(exerciseIndex + 1, 0, duplicatedExercise);
 
-  const updateClassName = useCallback((name: string) => {
-    console.log('📝 Updating class name to:', name);
-    
-    if (!globalClassPlan) return;
-
-    const updatedClass = {
-      ...globalClassPlan,
-      name
-    };
-
-    updateGlobalState(updatedClass);
-  }, [updateGlobalState]);
-
-  const updateClassDuration = useCallback((duration: number) => {
-    console.log('⏱️ Updating class duration to:', duration);
-    
-    if (!globalClassPlan) return;
-
-    const updatedClass = {
-      ...globalClassPlan,
-      classDuration: duration,
-      duration
-    };
-
-    updateGlobalState(updatedClass);
-  }, [updateGlobalState]);
-
-  const updateClassNotes = useCallback((notes: string) => {
-    console.log('📝 Updating class notes');
-    
-    if (!globalClassPlan) return;
-
-    const updatedClass = {
-      ...globalClassPlan,
-      notes
-    };
-
-    updateGlobalState(updatedClass);
-  }, [updateGlobalState]);
-
-  const updateClassImage = useCallback((image: string) => {
-    console.log('🖼️ Updating class image');
-    
-    if (!globalClassPlan) return;
-
-    const updatedClass = {
-      ...globalClassPlan,
-      image
-    };
-
-    updateGlobalState(updatedClass);
-  }, [updateGlobalState]);
+      return {
+        ...prev,
+        exercises: newExercises,
+        updatedAt: new Date()
+      };
+    });
+  }, []);
 
   const clearClassPlan = useCallback(() => {
-    console.log('🗑️ Clearing class plan');
-    const initialPlan = getInitialClassPlan();
-    updateGlobalState(initialPlan);
-  }, [updateGlobalState]);
+    setCurrentClassPlan({
+      id: uuidv4(),
+      name: 'New Class Plan',
+      description: '',
+      duration: 45,
+      exercises: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      tags: [],
+      notes: ''
+    });
+  }, []);
 
-  const addCallout = useCallback((name: string, position: number) => {
-    console.log('📝 Adding callout:', name, 'at position:', position);
-    
-    if (!globalClassPlan) return;
+  const getTotalDuration = useCallback(() => {
+    return currentClassPlan.exercises.reduce((total, exercise) => total + exercise.duration, 0);
+  }, [currentClassPlan.exercises]);
 
-    const calloutExercise: Exercise = {
-      id: `callout-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name,
+  const createCallout = useCallback((text: string, color: string, duration: number = 1) => {
+    const callout: Exercise = {
+      id: uuidv4(),
+      name: text,
       category: 'callout',
+      position: 'other',
+      primaryMuscle: 'core',
       difficulty: 'beginner',
       intensityLevel: 'low',
-      duration: 0,
+      duration,
       muscleGroups: [],
       equipment: [],
       springs: 'none',
       isPregnancySafe: true,
-      description: 'Section divider',
-      calloutColor: 'amber',
-      cues: [],
-      notes: '',
+      description: '',
       image: '',
       videoUrl: '',
+      notes: '',
+      cues: [],
       setup: '',
       repsOrDuration: '',
       tempo: '',
@@ -250,58 +155,26 @@ export const usePersistedClassPlan = () => {
       progressions: [],
       regressions: [],
       transitions: [],
-      contraindications: []
+      contraindications: [],
+      calloutColor: color,
+      isCustom: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
 
-    const newExercises = [...globalClassPlan.exercises];
-    newExercises.splice(position, 0, calloutExercise);
-    
-    const updatedClass = {
-      ...globalClassPlan,
-      exercises: newExercises
-    };
-
-    updateGlobalState(updatedClass);
-  }, [updateGlobalState]);
-
-  const syncExerciseUpdates = useCallback((updatedExercise: Exercise) => {
-    console.log('🔄 Syncing exercise update from library:', updatedExercise.name);
-    
-    if (!globalClassPlan) return;
-
-    const updatedExercises = globalClassPlan.exercises.map(ex => 
-      ex.id === updatedExercise.id ? { ...updatedExercise } : ex
-    );
-    
-    const updatedClass = {
-      ...globalClassPlan,
-      exercises: updatedExercises
-    };
-
-    updateGlobalState(updatedClass);
-  }, [updateGlobalState]);
-
-  const loadClass = useCallback((classPlan: ClassPlan) => {
-    console.log('📂 Loading class:', classPlan.name);
-    updateGlobalState(classPlan);
-  }, [updateGlobalState]);
-
-  // Calculate real exercise count for validation
-  const realExerciseCount = currentClass.exercises.filter(ex => ex.category !== 'callout').length;
+    addExercise(callout);
+  }, [addExercise]);
 
   return {
-    currentClass,
-    realExerciseCount,
+    currentClassPlan,
+    updateClassPlan,
     addExercise,
     removeExercise,
     reorderExercises,
-    updateClassName,
-    updateClassDuration,
-    updateClassNotes,
-    updateClassImage,
+    updateExercise,
+    duplicateExercise,
     clearClassPlan,
-    addCallout,
-    loadClass,
-    syncExerciseUpdates
+    getTotalDuration,
+    createCallout
   };
 };

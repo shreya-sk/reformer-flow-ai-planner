@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { X, Plus, Sparkles, Clock, Target, Settings } from 'lucide-react';
-import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment, TeachingFocus } from '@/types/reformer';
+import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment, TeachingFocus, PrimaryMuscle, ExercisePosition } from '@/types/reformer';
 
 interface ImprovedExerciseFormProps {
   exercise?: Exercise;
@@ -147,6 +146,8 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
       id: exercise?.id || Date.now().toString(),
       name: formData.name,
       category: formData.category,
+      position: exercise?.position || 'supine' as ExercisePosition,
+      primaryMuscle: formData.primaryMuscleGroup as PrimaryMuscle,
       duration: formData.duration,
       springs: formData.springs,
       difficulty: formData.difficulty,

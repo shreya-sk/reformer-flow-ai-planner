@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -297,7 +296,7 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
     }));
   };
 
-  const toggleCategory = (category: ExerciseCategory) => {
+  const toggleCategory = (category: PrimaryMuscle) => {
     setSelectedCategories(prev => 
       prev.includes(category)
         ? prev.filter(c => c !== category)
@@ -497,7 +496,7 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
                 {SPRING_COLORS.map((spring) => (
                   <div key={spring.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                     <div className="flex items-center gap-3">
-                      <div className={`w-4 h-4 rounded-full ${spring.color}`}></div>
+                      <div className={`w-3 h-3 rounded-full ${spring.color}`}></div>
                       <span className="font-medium">{spring.label}</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -830,7 +829,7 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
                     {Object.entries(selectedSprings).map(([color, count]) => (
                       count > 0 && (
                         <div key={color} className="flex items-center gap-1">
-                          <div className={`w-4 h-4 rounded-full ${SPRING_COLORS.find(s => s.id === color)?.color}`}></div>
+                          <div className={`w-3 h-3 rounded-full ${SPRING_COLORS.find(s => s.id === color)?.color}`}></div>
                           <span className="text-sm">×{count}</span>
                         </div>
                       )

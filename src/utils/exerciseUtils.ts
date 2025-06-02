@@ -1,53 +1,63 @@
 
 import { Exercise } from '@/types/reformer';
 
-export const countRealExercises = (exercises: Exercise[]): number => {
-  return exercises.filter(ex => ex.category !== 'callout').length;
+export const createSectionBreak = (text: string, color: string = '#e5e7eb'): Exercise => {
+  return {
+    id: `section-${Date.now()}`,
+    name: text,
+    category: 'callout',
+    position: 'other',
+    primaryMuscle: 'core',
+    difficulty: 'beginner',
+    intensityLevel: 'low',
+    duration: 1,
+    muscleGroups: [],
+    equipment: [],
+    springs: 'none',
+    isPregnancySafe: true,
+    description: '',
+    image: '',
+    videoUrl: '',
+    notes: '',
+    cues: [],
+    setup: '',
+    repsOrDuration: '',
+    tempo: '',
+    targetAreas: [],
+    breathingCues: [],
+    teachingFocus: [],
+    modifications: [],
+    progressions: [],
+    regressions: [],
+    transitions: [],
+    contraindications: [],
+    calloutColor: color,
+    isCustom: true,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
 };
 
-export const calculateTotalDuration = (exercises: Exercise[]): number => {
-  return exercises
-    .filter(ex => ex.category !== 'callout')
-    .reduce((sum, ex) => sum + (ex.duration || 0), 0);
-};
-
-export const validateExerciseForSave = (exercise: Exercise): boolean => {
-  return !!(exercise.id && exercise.name && exercise.category !== 'callout');
-};
-
-export const getExerciseDisplayName = (exercise: Exercise): string => {
-  if (exercise.category === 'callout') {
-    return exercise.name;
+export const formatDuration = (minutes: number): string => {
+  if (minutes < 60) {
+    return `${minutes}m`;
   }
-  return `${exercise.name} (${exercise.duration}min)`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
 };
 
-export const createSectionExercise = (name: string): Exercise => ({
-  id: `section-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-  name: name || 'New Section',
-  category: 'callout',
-  difficulty: 'beginner',
-  intensityLevel: 'low',
-  duration: 0,
-  muscleGroups: [],
-  equipment: [],
-  springs: 'none',
-  isPregnancySafe: true,
-  description: 'Section divider',
-  cues: [],
-  notes: '',
-  image: '',
-  videoUrl: '',
-  setup: '',
-  repsOrDuration: '',
-  tempo: '',
-  targetAreas: [],
-  breathingCues: [],
-  teachingFocus: [],
-  modifications: [],
-  progressions: [],
-  regressions: [],
-  transitions: [],
-  contraindications: [],
-  calloutColor: 'blue'
-});
+export const calculateClassDuration = (exercises: Exercise[]): number => {
+  return exercises.reduce((total, exercise) => total + exercise.duration, 0);
+};
+
+export const groupExercisesByCategory = (exercises: Exercise[]) => {
+  return exercises.reduce((groups, exercise) => {
+    const category = exercise.category;
+    if (!groups[category]) {
+      groups[category] = [];
+    }
+    groups[category].push(exercise);
+    return groups;
+  }, {} as Record<string, Exercise[]>);
+};

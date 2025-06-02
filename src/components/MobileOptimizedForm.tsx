@@ -39,7 +39,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
-import { ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment, TeachingFocus, Exercise } from '@/types/reformer';
+import { ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment, TeachingFocus, Exercise, PrimaryMuscle, ExercisePosition } from '@/types/reformer';
 
 interface MobileOptimizedFormProps {
   onSubmit: (exercise: Exercise) => void;
@@ -126,6 +126,8 @@ export const MobileOptimizedForm = ({ onSubmit, onClose, initialValues }: Mobile
     const exerciseData: Exercise = {
       name: values.name,
       category: values.category,
+      position: initialValues?.position || 'supine' as ExercisePosition,
+      primaryMuscle: initialValues?.primaryMuscle || 'core' as PrimaryMuscle,
       duration: values.duration,
       springs: values.springs,
       difficulty: values.difficulty,

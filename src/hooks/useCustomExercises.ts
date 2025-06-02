@@ -2,64 +2,142 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Exercise } from '@/types/reformer';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useCustomExercises = () => {
-  const [customExercisesData, setCustomExercisesData] = useState<any[] | null>(null);
+  const [customExercises, setCustomExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  const fetchCustomExercises = async () => {
+    if (!user) return;
+    
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('user_exercises')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const exercises = data?.map(exercise => ({
+        id: exercise.id,
+        name: exercise.name,
+        category: exercise.category,
+        position: 'supine' as const, // Default position for existing exercises
+        primaryMuscle: 'core' as const, // Default primary muscle for existing exercises
+        duration: exercise.duration,
+        springs: exercise.springs,
+        difficulty: exercise.difficulty,
+        intensityLevel: 'medium' as const,
+        muscleGroups: exercise.muscle_groups,
+        equipment: exercise.equipment,
+        description: exercise.description,
+        image: exercise.image_url,
+        videoUrl: exercise.video_url,
+        notes: exercise.notes,
+        cues: exercise.cues,
+        setup: exercise.setup,
+        repsOrDuration: exercise.reps_or_duration,
+        tempo: exercise.tempo,
+        targetAreas: exercise.target_areas,
+        breathingCues: exercise.breathing_cues,
+        teachingFocus: exercise.teaching_focus,
+        modifications: exercise.modifications,
+        progressions: exercise.progressions,
+        regressions: exercise.regressions,
+        transitions: exercise.transitions || [],
+        contraindications: exercise.contraindications,
+        isPregnancySafe: exercise.is_pregnancy_safe,
+        isCustom: true,
+        createdAt: new Date(exercise.created_at),
+        updatedAt: new Date(exercise.updated_at)
+      })) || [];
+
+      setCustomExercises(exercises);
+    } catch (err) {
+      console.error('Error fetching custom exercises:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCustomExercises = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('user_exercises')
-          .select('*');
-
-        if (error) {
-          console.error('Error fetching custom exercises:', error);
-        }
-
-        setCustomExercisesData(data);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchCustomExercises();
-  }, []);
+  }, [user]);
 
-  const exercises: Exercise[] = customExercisesData?.map(exercise => ({
-    id: exercise.id,
-    name: exercise.name,
-    category: exercise.category,
-    duration: exercise.duration,
-    springs: exercise.springs,
-    difficulty: exercise.difficulty,
-    intensityLevel: 'medium' as const,
-    muscleGroups: exercise.muscle_groups || [],
-    equipment: exercise.equipment || [],
-    description: exercise.description || '',
-    image: exercise.image_url || '',
-    videoUrl: exercise.video_url || '',
-    notes: exercise.notes || '',
-    cues: exercise.cues || [],
-    setup: exercise.setup || '',
-    repsOrDuration: exercise.reps_or_duration || '',
-    tempo: exercise.tempo || '',
-    targetAreas: exercise.target_areas || [],
-    breathingCues: exercise.breathing_cues || [],
-    teachingFocus: exercise.teaching_focus || [],
-    modifications: exercise.modifications || [],
-    progressions: exercise.progressions || [],
-    regressions: exercise.regressions || [],
-    transitions: [],
-    contraindications: exercise.contraindications || [],
-    isPregnancySafe: exercise.is_pregnancy_safe || false,
-    isCustom: true
-  })) || [];
+  const saveCustomExercise = async (exercise: Exercise) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_exercises')
+        .upsert({
+          id: exercise.id,
+          user_id: user.id,
+          name: exercise.name,
+          category: exercise.category,
+          duration: exercise.duration,
+          springs: exercise.springs,
+          difficulty: exercise.difficulty,
+          muscle_groups: exercise.muscleGroups,
+          equipment: exercise.equipment,
+          description: exercise.description,
+          image_url: exercise.image,
+          video_url: exercise.videoUrl,
+          notes: exercise.notes,
+          cues: exercise.cues,
+          setup: exercise.setup,
+          reps_or_duration: exercise.repsOrDuration,
+          tempo: exercise.tempo,
+          target_areas: exercise.targetAreas,
+          breathing_cues: exercise.breathingCues,
+          teaching_focus: exercise.teachingFocus,
+          modifications: exercise.modifications,
+          progressions: exercise.progressions,
+          regressions: exercise.regressions,
+          contraindications: exercise.contraindications,
+          is_pregnancy_safe: exercise.isPregnancySafe,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      await fetchCustomExercises();
+      return data;
+    } catch (err) {
+      console.error('Error saving custom exercise:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  };
+
+  const deleteCustomExercise = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_exercises')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchCustomExercises();
+    } catch (err) {
+      console.error('Error deleting custom exercise:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  };
 
   return {
-    exercises,
-    loading
+    customExercises,
+    loading,
+    error,
+    saveCustomExercise,
+    deleteCustomExercise,
+    refetch: fetchCustomExercises
   };
 };
