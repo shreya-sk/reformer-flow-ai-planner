@@ -36,7 +36,7 @@ export const InteractiveExerciseForm = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Partial<Exercise>>({
     name: exercise?.name || '',
-    category: exercise?.category || 'movement' as ExerciseCategory,
+    category: exercise?.category || 'supine' as ExerciseCategory,
     duration: exercise?.duration || 60,
     springs: exercise?.springs || 'medium' as SpringSetting,
     difficulty: exercise?.difficulty || 'beginner' as DifficultyLevel,
@@ -60,9 +60,9 @@ export const InteractiveExerciseForm = ({
     { title: 'Review', icon: Check, description: 'Final check' }
   ];
 
-  const categories: ExerciseCategory[] = ['movement', 'transition', 'stretch', 'callout'];
+  const categories: ExerciseCategory[] = ['supine', 'prone', 'sitting', 'side-lying', 'kneeling', 'standing'];
   const muscleGroups: MuscleGroup[] = ['core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body'];
-  const springs: SpringSetting[] = ['light', 'medium', 'heavy', 'variable'];
+  const springs: SpringSetting[] = ['light', 'medium', 'heavy', 'mixed'];
   const difficulties: DifficultyLevel[] = ['beginner', 'intermediate', 'advanced'];
 
   const toggleMuscleGroup = (group: MuscleGroup) => {
@@ -106,7 +106,7 @@ export const InteractiveExerciseForm = ({
     const newExercise: Exercise = {
       id: exercise?.id || `custom-${Date.now()}`,
       name: formData.name || 'Untitled Exercise',
-      category: formData.category || 'movement',
+      category: formData.category || 'supine',
       duration: formData.duration || 60,
       springs: formData.springs || 'medium',
       difficulty: formData.difficulty || 'beginner',
@@ -348,12 +348,15 @@ export const InteractiveExerciseForm = ({
     }
   };
 
+  // Get the current step's icon component
+  const CurrentIcon = steps[currentStep].icon;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <steps[currentStep].icon className="h-5 w-5 text-sage-600" />
+            <CurrentIcon className="h-5 w-5 text-sage-600" />
             {steps[currentStep].title}
           </DialogTitle>
           <p className="text-sm text-gray-600">{steps[currentStep].description}</p>
