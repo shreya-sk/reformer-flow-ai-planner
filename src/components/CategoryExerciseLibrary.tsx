@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -46,7 +45,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   const [showFilters, setShowFilters] = useState(false);
   const [showExerciseForm, setShowExerciseForm] = useState(false);
   const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
-  const { exercises, addExercise, updateExercise } = useExercises();
+  const { exercises, createUserExercise, updateUserExercise } = useExercises();
   const { preferences, toggleFavoriteExercise, togglePregnancySafeOnly } = useUserPreferences();
 
   // Group exercises by category
@@ -147,23 +146,28 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
     setShowExerciseForm(true);
   };
 
-  const handleSaveExercise = (exercise: Exercise) => {
-    if (exerciseToEdit?.id && exerciseToEdit.id !== '') {
-      // Editing existing exercise
-      updateExercise(exercise);
-    } else {
-      // Adding new exercise
-      const newExercise = {
-        ...exercise,
-        id: Date.now().toString(),
-        isCustom: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      addExercise(newExercise);
+  const handleSaveExercise = async (exercise: Exercise) => {
+    try {
+      if (exerciseToEdit?.id && exerciseToEdit.id !== '') {
+        // Editing existing exercise
+        await updateUserExercise(exerciseToEdit.id, exercise);
+      } else {
+        // Adding new exercise
+        const exerciseData = {
+          ...exercise,
+          isCustom: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        // Remove id from exercise data when creating
+        const { id, ...exerciseWithoutId } = exerciseData;
+        await createUserExercise(exerciseWithoutId);
+      }
+      setShowExerciseForm(false);
+      setExerciseToEdit(null);
+    } catch (error) {
+      console.error('Error saving exercise:', error);
     }
-    setShowExerciseForm(false);
-    setExerciseToEdit(null);
   };
 
   if (showExerciseForm) {
