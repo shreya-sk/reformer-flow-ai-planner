@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { v4 as uuidv4 } from 'uuid';
@@ -41,6 +42,14 @@ export const usePersistedClassPlan = () => {
     setCurrentClassPlan(prev => ({
       ...prev,
       ...updates,
+      updatedAt: new Date()
+    }));
+  }, []);
+
+  const updateClassName = useCallback((name: string) => {
+    setCurrentClassPlan(prev => ({
+      ...prev,
+      name,
       updatedAt: new Date()
     }));
   }, []);
@@ -122,6 +131,20 @@ export const usePersistedClassPlan = () => {
     });
   }, []);
 
+  const loadClass = useCallback((classPlan: ClassPlan) => {
+    setCurrentClassPlan(classPlan);
+  }, []);
+
+  const syncExerciseUpdates = useCallback((updatedExercise: Exercise) => {
+    setCurrentClassPlan(prev => ({
+      ...prev,
+      exercises: prev.exercises.map(ex => 
+        ex.id === updatedExercise.id ? updatedExercise : ex
+      ),
+      updatedAt: new Date()
+    }));
+  }, []);
+
   const getTotalDuration = useCallback(() => {
     return currentClassPlan.exercises.reduce((total, exercise) => total + exercise.duration, 0);
   }, [currentClassPlan.exercises]);
@@ -167,13 +190,17 @@ export const usePersistedClassPlan = () => {
 
   return {
     currentClassPlan,
+    currentClass: currentClassPlan, // Alias for backward compatibility
     updateClassPlan,
+    updateClassName,
     addExercise,
     removeExercise,
     reorderExercises,
     updateExercise,
     duplicateExercise,
     clearClassPlan,
+    loadClass,
+    syncExerciseUpdates,
     getTotalDuration,
     createCallout
   };

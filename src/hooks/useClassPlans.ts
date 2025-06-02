@@ -27,9 +27,23 @@ export const useClassPlans = () => {
 
       if (error) throw error;
 
-      const transformedData = data?.map(plan => ({
-        ...plan,
-        exercises: plan.class_plan_exercises?.map((cpe: any) => {
+      const transformedData: ClassPlan[] = data?.map(plan => ({
+        id: plan.id,
+        name: plan.name,
+        description: plan.description,
+        duration: plan.duration_minutes || 45,
+        createdAt: new Date(plan.created_at),
+        updatedAt: new Date(plan.updated_at),
+        tags: plan.tags || [],
+        notes: plan.notes,
+        difficultyLevel: plan.difficulty_level,
+        isPublic: plan.is_public,
+        shareToken: plan.share_token,
+        userId: plan.user_id,
+        viewCount: plan.view_count,
+        copyCount: plan.copy_count,
+        imageUrl: plan.image_url,
+        exercises: plan.class_plan_exercises?.map((cpe: any): Exercise => {
           if (cpe.exercise_type === 'callout') {
             return {
               id: cpe.id,
@@ -60,7 +74,9 @@ export const useClassPlans = () => {
               transitions: [],
               contraindications: [],
               isPregnancySafe: true,
-              isSystemExercise: false
+              isSystemExercise: false,
+              createdAt: new Date(),
+              updatedAt: new Date()
             };
           } else {
             // Handle regular exercises - need to fetch from system_exercises or user_exercises
@@ -93,7 +109,9 @@ export const useClassPlans = () => {
               transitions: [],
               contraindications: [],
               isPregnancySafe: false,
-              isSystemExercise: true
+              isSystemExercise: true,
+              createdAt: new Date(),
+              updatedAt: new Date()
             } as Exercise;
           }
         }) || []
@@ -107,10 +125,6 @@ export const useClassPlans = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchClassPlans();
-  }, [user]);
 
   const saveClassPlan = async (classPlan: ClassPlan) => {
     if (!user) return;
@@ -183,6 +197,10 @@ export const useClassPlans = () => {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
+
+  useEffect(() => {
+    fetchClassPlans();
+  }, [user]);
 
   return {
     classPlans,

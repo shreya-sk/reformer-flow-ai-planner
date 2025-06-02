@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Exercise } from '@/types/reformer';
@@ -23,7 +22,7 @@ export const useCustomExercises = () => {
 
       if (error) throw error;
 
-      const exercises = data?.map(exercise => ({
+      const exercises: Exercise[] = data?.map(exercise => ({
         id: exercise.id,
         name: exercise.name,
         category: exercise.category,
@@ -33,25 +32,25 @@ export const useCustomExercises = () => {
         springs: exercise.springs,
         difficulty: exercise.difficulty,
         intensityLevel: 'medium' as const,
-        muscleGroups: exercise.muscle_groups,
-        equipment: exercise.equipment,
-        description: exercise.description,
-        image: exercise.image_url,
-        videoUrl: exercise.video_url,
-        notes: exercise.notes,
-        cues: exercise.cues,
-        setup: exercise.setup,
-        repsOrDuration: exercise.reps_or_duration,
-        tempo: exercise.tempo,
-        targetAreas: exercise.target_areas,
-        breathingCues: exercise.breathing_cues,
-        teachingFocus: exercise.teaching_focus,
-        modifications: exercise.modifications,
-        progressions: exercise.progressions,
-        regressions: exercise.regressions,
-        transitions: exercise.transitions || [],
-        contraindications: exercise.contraindications,
-        isPregnancySafe: exercise.is_pregnancy_safe,
+        muscleGroups: exercise.muscle_groups || [],
+        equipment: exercise.equipment || [],
+        description: exercise.description || '',
+        image: exercise.image_url || '',
+        videoUrl: exercise.video_url || '',
+        notes: exercise.notes || '',
+        cues: exercise.cues || [],
+        setup: exercise.setup || '',
+        repsOrDuration: exercise.reps_or_duration || '',
+        tempo: exercise.tempo || '',
+        targetAreas: exercise.target_areas || [],
+        breathingCues: exercise.breathing_cues || [],
+        teachingFocus: exercise.teaching_focus || [],
+        modifications: exercise.modifications || [],
+        progressions: exercise.progressions || [],
+        regressions: exercise.regressions || [],
+        transitions: [], // Default empty array since property doesn't exist in DB
+        contraindications: exercise.contraindications || [],
+        isPregnancySafe: exercise.is_pregnancy_safe || false,
         isCustom: true,
         createdAt: new Date(exercise.created_at),
         updatedAt: new Date(exercise.updated_at)

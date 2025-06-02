@@ -114,6 +114,135 @@ export const useExercises = () => {
     }
   };
 
+  const createUserExercise = async (exerciseData: Omit<Exercise, 'id'>) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_exercises')
+        .insert({
+          user_id: user.id,
+          name: exerciseData.name,
+          category: exerciseData.category,
+          duration: exerciseData.duration,
+          springs: exerciseData.springs,
+          difficulty: exerciseData.difficulty,
+          muscle_groups: exerciseData.muscleGroups,
+          equipment: exerciseData.equipment,
+          description: exerciseData.description,
+          image_url: exerciseData.image,
+          video_url: exerciseData.videoUrl,
+          notes: exerciseData.notes,
+          cues: exerciseData.cues,
+          setup: exerciseData.setup,
+          reps_or_duration: exerciseData.repsOrDuration,
+          tempo: exerciseData.tempo,
+          target_areas: exerciseData.targetAreas,
+          breathing_cues: exerciseData.breathingCues,
+          teaching_focus: exerciseData.teachingFocus,
+          modifications: exerciseData.modifications,
+          progressions: exerciseData.progressions,
+          regressions: exerciseData.regressions,
+          contraindications: exerciseData.contraindications,
+          is_pregnancy_safe: exerciseData.isPregnancySafe
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      await fetchExercises();
+      return data;
+    } catch (err) {
+      console.error('Error creating user exercise:', err);
+      throw err;
+    }
+  };
+
+  const updateUserExercise = async (id: string, exerciseData: Partial<Exercise>) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('user_exercises')
+        .update({
+          name: exerciseData.name,
+          category: exerciseData.category,
+          duration: exerciseData.duration,
+          springs: exerciseData.springs,
+          difficulty: exerciseData.difficulty,
+          muscle_groups: exerciseData.muscleGroups,
+          equipment: exerciseData.equipment,
+          description: exerciseData.description,
+          image_url: exerciseData.image,
+          video_url: exerciseData.videoUrl,
+          notes: exerciseData.notes,
+          cues: exerciseData.cues,
+          setup: exerciseData.setup,
+          reps_or_duration: exerciseData.repsOrDuration,
+          tempo: exerciseData.tempo,
+          target_areas: exerciseData.targetAreas,
+          breathing_cues: exerciseData.breathingCues,
+          teaching_focus: exerciseData.teachingFocus,
+          modifications: exerciseData.modifications,
+          progressions: exerciseData.progressions,
+          regressions: exerciseData.regressions,
+          contraindications: exerciseData.contraindications,
+          is_pregnancy_safe: exerciseData.isPregnancySafe,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      await fetchExercises();
+      return data;
+    } catch (err) {
+      console.error('Error updating user exercise:', err);
+      throw err;
+    }
+  };
+
+  const duplicateExercise = async (exercise: Exercise) => {
+    const duplicatedData = {
+      ...exercise,
+      name: `${exercise.name} (Copy)`,
+      isCustom: true
+    };
+    
+    // Remove id and other non-insertable fields
+    const { id, createdAt, updatedAt, isSystemExercise, isCustomized, ...insertData } = duplicatedData;
+    
+    return createUserExercise(insertData);
+  };
+
+  const deleteUserExercise = async (id: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_exercises')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchExercises();
+    } catch (err) {
+      console.error('Error deleting user exercise:', err);
+      throw err;
+    }
+  };
+
+  const customizeSystemExercise = async (exercise: Exercise, customizations: Partial<Exercise>) => {
+    // This would create a customization record for a system exercise
+    return updateUserExercise(exercise.id, customizations);
+  };
+
+  const resetSystemExerciseToOriginal = async (exerciseId: string) => {
+    // This would reset a customized system exercise to its original state
+    await fetchExercises();
+  };
+
   useEffect(() => {
     fetchExercises();
   }, [user]);
@@ -122,6 +251,12 @@ export const useExercises = () => {
     exercises,
     loading,
     error,
-    refetch: fetchExercises
+    refetch: fetchExercises,
+    createUserExercise,
+    updateUserExercise,
+    duplicateExercise,
+    deleteUserExercise,
+    customizeSystemExercise,
+    resetSystemExerciseToOriginal
   };
 };

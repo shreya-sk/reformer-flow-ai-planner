@@ -38,6 +38,10 @@ export const createSectionBreak = (text: string, color: string = '#e5e7eb'): Exe
   };
 };
 
+export const createSectionExercise = (text: string, color: string = '#e5e7eb'): Exercise => {
+  return createSectionBreak(text, color);
+};
+
 export const formatDuration = (minutes: number): string => {
   if (minutes < 60) {
     return `${minutes}m`;
@@ -49,6 +53,14 @@ export const formatDuration = (minutes: number): string => {
 
 export const calculateClassDuration = (exercises: Exercise[]): number => {
   return exercises.reduce((total, exercise) => total + exercise.duration, 0);
+};
+
+export const calculateTotalDuration = (exercises: Exercise[]): number => {
+  return calculateClassDuration(exercises);
+};
+
+export const countRealExercises = (exercises: Exercise[]): number => {
+  return exercises.filter(exercise => exercise.category !== 'callout').length;
 };
 
 export const groupExercisesByCategory = (exercises: Exercise[]) => {

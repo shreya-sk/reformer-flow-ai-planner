@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,7 +23,7 @@ export const ClassPlanContainer = () => {
   
   // Use the persisted class plan hook
   const {
-    currentClass,
+    currentClassPlan,
     addExercise,
     removeExercise,
     reorderExercises,
@@ -54,7 +55,7 @@ export const ClassPlanContainer = () => {
   }, [location.state, navigate, addExercise, loadClass]);
 
   const handleSaveClass = async () => {
-    const realExercises = currentClass.exercises.filter(ex => ex.category !== 'callout');
+    const realExercises = currentClassPlan.exercises.filter(ex => ex.category !== 'callout');
     
     if (realExercises.length === 0) {
       console.error('Cannot save empty class');
@@ -62,8 +63,8 @@ export const ClassPlanContainer = () => {
     }
     
     const classToSave = {
-      ...currentClass,
-      name: currentClass.name || `Class ${Date.now()}`,
+      ...currentClassPlan,
+      name: currentClassPlan.name || `Class ${Date.now()}`,
     };
     
     try {
@@ -113,6 +114,12 @@ export const ClassPlanContainer = () => {
     setEditingExercise(null);
   };
 
+  const handleReorderExercises = (exercises: Exercise[]) => {
+    // Convert the exercises array to individual indices for the reorderExercises function
+    // For now, we'll just update with the new exercise order directly
+    currentClassPlan.exercises = exercises;
+  };
+
   if (!user) {
     navigate('/');
     return null;
@@ -122,7 +129,7 @@ export const ClassPlanContainer = () => {
     return (
       <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-blue-25 via-white to-blue-50'} pb-20 safe-area-pb`}>
         <ClassHeader
-          currentClass={currentClass}
+          currentClass={currentClassPlan}
           onUpdateClassName={updateClassName}
           onSaveClass={handleSaveClass}
           onUndo={() => {}}
@@ -147,7 +154,7 @@ export const ClassPlanContainer = () => {
   return (
     <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-blue-25 via-white to-blue-50'} pb-20 safe-area-pb`}>
       <ClassHeader
-        currentClass={currentClass}
+        currentClass={currentClassPlan}
         onUpdateClassName={updateClassName}
         onSaveClass={handleSaveClass}
         onUndo={() => {}}
@@ -158,10 +165,10 @@ export const ClassPlanContainer = () => {
 
       <div className="px-2 py-4">
         <ImprovedClassBuilder
-          currentClass={currentClass}
+          currentClass={currentClassPlan}
           onUpdateClassName={updateClassName}
           onRemoveExercise={removeExercise}
-          onReorderExercises={reorderExercises}
+          onReorderExercises={handleReorderExercises}
           onUpdateExercise={handleUpdateExercise}
           onSaveClass={handleSaveClass}
           onAddExercise={handleAddExercise}
