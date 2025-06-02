@@ -83,7 +83,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
     
     // Apply pregnancy safe filter
     if (preferences.showPregnancySafeOnly) {
-      categoryExercises = categoryExercises.filter(exercise => exercise.pregnancySafe);
+      categoryExercises = categoryExercises.filter(exercise => exercise.isPregnancySafe);
     }
     
     return categoryExercises;
