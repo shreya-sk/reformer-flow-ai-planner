@@ -4,11 +4,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronRight, Dumbbell, Heart, Clock, Search, Filter, Baby, Plus } from 'lucide-react';
+import { ChevronRight, Dumbbell, Heart, Clock, Search, Filter, Baby, Plus, Copy, Edit } from 'lucide-react';
 import { Exercise, ExerciseCategory } from '@/types/reformer';
 import { useExercises } from '@/hooks/useExercises';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ModernExerciseModal } from './ModernExerciseModal';
+import { ImprovedExerciseForm } from './ImprovedExerciseForm';
 
 interface CategoryExerciseLibraryProps {
   onExerciseSelect?: (exercise: Exercise) => void;
@@ -43,7 +44,9 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const { exercises } = useExercises();
+  const [showExerciseForm, setShowExerciseForm] = useState(false);
+  const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
+  const { exercises, addExercise, updateExercise } = useExercises();
   const { preferences, toggleFavoriteExercise, togglePregnancySafeOnly } = useUserPreferences();
 
   // Group exercises by category
@@ -69,7 +72,25 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
 
   // Filter exercises based on search and preferences
   const filteredExercises = useMemo(() => {
-    if (!selectedCategory) return [];
+    if (!selectedCategory) {
+      // Main library view - filter all exercises
+      let allExercises = exercises;
+      
+      // Apply search filter
+      if (searchTerm) {
+        allExercises = allExercises.filter(exercise =>
+          exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          exercise.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+      
+      // Apply pregnancy safe filter
+      if (preferences.showPregnancySafeOnly) {
+        allExercises = allExercises.filter(exercise => exercise.isPregnancySafe);
+      }
+      
+      return allExercises;
+    }
     
     let categoryExercises = categorizedExercises[selectedCategory] || [];
     
@@ -87,7 +108,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
     }
     
     return categoryExercises;
-  }, [selectedCategory, categorizedExercises, searchTerm, preferences.showPregnancySafeOnly]);
+  }, [selectedCategory, categorizedExercises, exercises, searchTerm, preferences.showPregnancySafeOnly]);
 
   const categoryColors = {
     'Warm-up': 'from-sage-400 to-sage-500',
@@ -105,6 +126,60 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
       setSelectedExercise(exercise);
     }
   };
+
+  const handleAddExercise = () => {
+    setExerciseToEdit(null);
+    setShowExerciseForm(true);
+  };
+
+  const handleDuplicateExercise = (exercise: Exercise) => {
+    setExerciseToEdit({
+      ...exercise,
+      id: '',
+      name: `${exercise.name} (Copy)`,
+      isCustom: true
+    });
+    setShowExerciseForm(true);
+  };
+
+  const handleEditExercise = (exercise: Exercise) => {
+    setExerciseToEdit(exercise);
+    setShowExerciseForm(true);
+  };
+
+  const handleSaveExercise = (exercise: Exercise) => {
+    if (exerciseToEdit?.id && exerciseToEdit.id !== '') {
+      // Editing existing exercise
+      updateExercise(exercise);
+    } else {
+      // Adding new exercise
+      const newExercise = {
+        ...exercise,
+        id: Date.now().toString(),
+        isCustom: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      addExercise(newExercise);
+    }
+    setShowExerciseForm(false);
+    setExerciseToEdit(null);
+  };
+
+  if (showExerciseForm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-4">
+        <ImprovedExerciseForm
+          exercise={exerciseToEdit || undefined}
+          onSave={handleSaveExercise}
+          onCancel={() => {
+            setShowExerciseForm(false);
+            setExerciseToEdit(null);
+          }}
+        />
+      </div>
+    );
+  }
 
   if (selectedCategory) {
     return (
@@ -125,59 +200,6 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
               {filteredExercises.length} exercises
             </Badge>
           </div>
-
-          {/* Search bar with tiny icons */}
-          <div className="flex items-center gap-3">
-            {/* Search bar */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 h-4 w-4" />
-              <Input
-                placeholder="Search exercises..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 border-sage-300 focus:border-sage-500 bg-white rounded-xl"
-              />
-            </div>
-
-            {/* Tiny action icons */}
-            <div className="flex items-center gap-2">
-              {/* Filter */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-                className="p-2 h-8 w-8 rounded-full hover:bg-sage-100"
-              >
-                <Filter className="h-4 w-4 text-sage-600" />
-              </Button>
-
-              {/* Pregnancy Safe */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={togglePregnancySafeOnly}
-                className={`p-2 h-8 w-8 rounded-full hover:bg-sage-100 ${preferences.showPregnancySafeOnly ? 'bg-pink-100' : ''}`}
-              >
-                <Baby className={`h-4 w-4 ${preferences.showPregnancySafeOnly ? 'text-pink-600' : 'text-sage-600'}`} />
-              </Button>
-
-              {/* Add Exercise */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 h-8 w-8 rounded-full hover:bg-sage-100"
-              >
-                <Plus className="h-4 w-4 text-sage-600" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Filters panel (if shown) */}
-          {showFilters && (
-            <div className="p-4 bg-sage-50 rounded-lg border border-sage-200">
-              <p className="text-sm text-sage-600">Additional filters coming soon...</p>
-            </div>
-          )}
         </div>
 
         {/* Exercise Grid */}
@@ -197,22 +219,44 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                   
-                  {/* Favorite button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavoriteExercise(exercise.id);
-                    }}
-                    className="absolute top-2 right-2 p-2 rounded-full bg-black/20 backdrop-blur-sm"
-                  >
-                    <Heart 
-                      className={`h-4 w-4 ${
-                        preferences.favoriteExercises?.includes(exercise.id) 
-                          ? 'fill-red-500 text-red-500' 
-                          : 'text-white'
-                      }`} 
-                    />
-                  </button>
+                  {/* Action buttons */}
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavoriteExercise(exercise.id);
+                      }}
+                      className="p-2 rounded-full bg-black/20 backdrop-blur-sm"
+                    >
+                      <Heart 
+                        className={`h-4 w-4 ${
+                          preferences.favoriteExercises?.includes(exercise.id) 
+                            ? 'fill-red-500 text-red-500' 
+                            : 'text-white'
+                        }`} 
+                      />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDuplicateExercise(exercise);
+                      }}
+                      className="p-2 rounded-full bg-black/20 backdrop-blur-sm"
+                    >
+                      <Copy className="h-4 w-4 text-white" />
+                    </button>
+                    {exercise.isCustom && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditExercise(exercise);
+                        }}
+                        className="p-2 rounded-full bg-black/20 backdrop-blur-sm"
+                      >
+                        <Edit className="h-4 w-4 text-white" />
+                      </button>
+                    )}
+                  </div>
 
                   {/* Exercise info */}
                   <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -248,6 +292,63 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-sage-800 mb-2">Exercise Library</h1>
         <p className="text-sage-600">Choose a category to explore exercises</p>
+      </div>
+
+      {/* Search and Filter Bar */}
+      <div className="space-y-4 mb-6">
+        {/* Search bar with tiny icons */}
+        <div className="flex items-center gap-3">
+          {/* Search bar */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 h-4 w-4" />
+            <Input
+              placeholder="Search exercises..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 border-sage-300 focus:border-sage-500 bg-white rounded-xl"
+            />
+          </div>
+
+          {/* Tiny action icons */}
+          <div className="flex items-center gap-2">
+            {/* Filter */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="p-2 h-8 w-8 rounded-full hover:bg-sage-100"
+            >
+              <Filter className="h-4 w-4 text-sage-600" />
+            </Button>
+
+            {/* Pregnancy Safe */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={togglePregnancySafeOnly}
+              className={`p-2 h-8 w-8 rounded-full hover:bg-sage-100 ${preferences.showPregnancySafeOnly ? 'bg-pink-100' : ''}`}
+            >
+              <Baby className={`h-4 w-4 ${preferences.showPregnancySafeOnly ? 'text-pink-600' : 'text-sage-600'}`} />
+            </Button>
+
+            {/* Add Exercise */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleAddExercise}
+              className="p-2 h-8 w-8 rounded-full hover:bg-sage-100"
+            >
+              <Plus className="h-4 w-4 text-sage-600" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Filters panel (if shown) */}
+        {showFilters && (
+          <div className="p-4 bg-sage-50 rounded-lg border border-sage-200">
+            <p className="text-sm text-sage-600">Additional filters coming soon...</p>
+          </div>
+        )}
       </div>
 
       {/* Category Cards */}

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,8 +11,6 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { X, Plus, Sparkles, Clock, Target, Settings } from 'lucide-react';
 import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, IntensityLevel, MuscleGroup, Equipment, TeachingFocus } from '@/types/reformer';
-import { z } from 'zod';
-import { exerciseSchema } from '@/schemas/exercise';
 
 interface ImprovedExerciseFormProps {
   exercise?: Exercise;
@@ -20,14 +19,31 @@ interface ImprovedExerciseFormProps {
 }
 
 export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExerciseFormProps) => {
+  // Determine primary muscle group from existing exercise
+  const getPrimaryMuscleGroup = (ex?: Exercise): MuscleGroup => {
+    if (!ex?.muscleGroups?.length) return 'core';
+    
+    // Priority order for primary muscle groups
+    const primaryOrder: MuscleGroup[] = ['core', 'legs', 'arms', 'back', 'glutes', 'shoulders'];
+    
+    for (const primary of primaryOrder) {
+      if (ex.muscleGroups.includes(primary)) {
+        return primary;
+      }
+    }
+    
+    return ex.muscleGroups[0] || 'core';
+  };
+
   const [formData, setFormData] = useState({
     name: exercise?.name || '',
+    primaryMuscleGroup: getPrimaryMuscleGroup(exercise) as MuscleGroup,
     category: exercise?.category || 'supine' as ExerciseCategory,
     duration: exercise?.duration || 3,
     springs: exercise?.springs || 'medium' as SpringSetting,
     difficulty: exercise?.difficulty || 'beginner' as DifficultyLevel,
     intensityLevel: exercise?.intensityLevel || 'medium' as IntensityLevel,
-    muscleGroups: exercise?.muscleGroups || [] as MuscleGroup[],
+    targetMuscleGroups: exercise?.muscleGroups || [] as MuscleGroup[],
     equipment: exercise?.equipment || [] as Equipment[],
     description: exercise?.description || '',
     image: exercise?.image || '',
@@ -51,15 +67,20 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
   const [newCue, setNewCue] = useState('');
   const [isGeneratingCues, setIsGeneratingCues] = useState(false);
 
-  const muscleGroupOptions: MuscleGroup[] = ['core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body'];
+  const primaryMuscleGroupOptions: MuscleGroup[] = ['core', 'legs', 'arms', 'back', 'glutes', 'shoulders'];
+  const targetMuscleGroupOptions: MuscleGroup[] = [
+    'core', 'legs', 'arms', 'back', 'glutes', 'shoulders', 'full-body',
+    'quadriceps', 'hamstrings', 'calves', 'lower-abs', 'upper-abs', 'obliques',
+    'biceps', 'triceps', 'lats', 'chest', 'rhomboids'
+  ];
   const equipmentOptions: Equipment[] = ['straps', 'weights', 'magic-circle', 'theraband', 'none'];
 
-  const toggleMuscleGroup = (group: MuscleGroup) => {
+  const toggleTargetMuscleGroup = (group: MuscleGroup) => {
     setFormData(prev => ({
       ...prev,
-      muscleGroups: prev.muscleGroups.includes(group)
-        ? prev.muscleGroups.filter(g => g !== group)
-        : [...prev.muscleGroups, group]
+      targetMuscleGroups: prev.targetMuscleGroups.includes(group)
+        ? prev.targetMuscleGroups.filter(g => g !== group)
+        : [...prev.targetMuscleGroups, group]
     }));
   };
 
@@ -94,7 +115,6 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
     
     setIsGeneratingCues(true);
     try {
-      // Simulate AI cue generation - in real app, this would call an AI service
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const aiCues = [
@@ -118,6 +138,11 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Ensure primary muscle group is included in target muscle groups
+    const finalTargetMuscleGroups = formData.targetMuscleGroups.includes(formData.primaryMuscleGroup)
+      ? formData.targetMuscleGroups
+      : [formData.primaryMuscleGroup, ...formData.targetMuscleGroups];
+    
     const exerciseData: Exercise = {
       id: exercise?.id || Date.now().toString(),
       name: formData.name,
@@ -126,7 +151,7 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
       springs: formData.springs,
       difficulty: formData.difficulty,
       intensityLevel: formData.intensityLevel,
-      muscleGroups: formData.muscleGroups,
+      muscleGroups: finalTargetMuscleGroups,
       equipment: formData.equipment,
       description: formData.description,
       image: formData.image,
@@ -197,6 +222,28 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
                   className="border-sage-300 focus:border-sage-500"
                   required
                 />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-sage-700 mb-2 block">
+                  Primary Muscle Group * (for categorization)
+                </Label>
+                <Select 
+                  value={formData.primaryMuscleGroup} 
+                  onValueChange={(value: MuscleGroup) => setFormData(prev => ({ ...prev, primaryMuscleGroup: value }))}
+                >
+                  <SelectTrigger className="border-sage-300">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {primaryMuscleGroupOptions.map(group => (
+                      <SelectItem key={group} value={group}>
+                        {group.charAt(0).toUpperCase() + group.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-sage-500 mt-1">This determines which category the exercise appears in</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -298,16 +345,16 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
             <TabsContent value="details" className="space-y-4 mt-6">
               <div>
                 <Label className="text-sm font-medium text-sage-700 mb-2 block">
-                  Muscle Groups *
+                  Target Muscle Groups (detailed targeting)
                 </Label>
-                <div className="flex flex-wrap gap-2">
-                  {muscleGroupOptions.map(group => (
+                <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto p-2 border border-sage-200 rounded-lg">
+                  {targetMuscleGroupOptions.map(group => (
                     <Button
                       key={group}
                       type="button"
-                      variant={formData.muscleGroups.includes(group) ? "default" : "outline"}
+                      variant={formData.targetMuscleGroups.includes(group) ? "default" : "outline"}
                       size="sm"
-                      onClick={() => toggleMuscleGroup(group)}
+                      onClick={() => toggleTargetMuscleGroup(group)}
                       className="text-xs h-8"
                     >
                       {group}
@@ -441,7 +488,7 @@ export const ImprovedExerciseForm = ({ exercise, onSave, onCancel }: ImprovedExe
             <Button 
               type="submit" 
               className="flex-1 bg-sage-600 hover:bg-sage-700 text-white"
-              disabled={!formData.name.trim() || formData.muscleGroups.length === 0}
+              disabled={!formData.name.trim() || formData.targetMuscleGroups.length === 0}
             >
               {exercise ? 'Update Exercise' : 'Create Exercise'}
             </Button>
