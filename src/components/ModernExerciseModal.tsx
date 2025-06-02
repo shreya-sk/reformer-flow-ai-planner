@@ -7,47 +7,29 @@ import { X, Heart, Edit, Plus, Play, Baby } from 'lucide-react';
 import { Exercise } from '@/types/reformer';
 import { SpringVisual } from './SpringVisual';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { toast } from '@/hooks/use-toast';
 
 interface ModernExerciseModalProps {
   exercise: Exercise;
   isOpen: boolean;
   onClose: () => void;
+  onAddToCart?: () => void;
 }
 
-export const ModernExerciseModal = ({ exercise, isOpen, onClose }: ModernExerciseModalProps) => {
+export const ModernExerciseModal = ({ exercise, isOpen, onClose, onAddToCart }: ModernExerciseModalProps) => {
   const { preferences, toggleFavoriteExercise } = useUserPreferences();
-  const { addExercise } = usePersistedClassPlan();
   const isFavorite = preferences.favoriteExercises?.includes(exercise.id) || false;
 
   if (!isOpen) return null;
 
   const handleAddToClass = () => {
-    try {
-      const timestamp = Date.now();
-      const randomId = Math.random().toString(36).substr(2, 9);
-      const uniqueId = `${exercise.id}-${timestamp}-${randomId}`;
-      
-      const exerciseToAdd = {
-        ...exercise,
-        id: uniqueId,
-      };
-      
-      addExercise(exerciseToAdd);
-      
+    if (onAddToCart) {
+      onAddToCart();
       toast({
         title: "Added to class",
         description: `"${exercise.name}" has been added to your class plan.`,
       });
-      
       onClose();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add exercise to class.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -138,12 +120,15 @@ export const ModernExerciseModal = ({ exercise, isOpen, onClose }: ModernExercis
 
             {/* Action buttons */}
             <div className="space-y-3">
-              <Button
-                onClick={handleAddToClass}
-                className="w-full h-12 bg-sage-700 hover:bg-sage-800 text-white rounded-2xl font-semibold"
-              >
-                Add to Class
-              </Button>
+              {onAddToCart && (
+                <Button
+                  onClick={handleAddToClass}
+                  className="w-full h-12 bg-sage-700 hover:bg-sage-800 text-white rounded-2xl font-semibold"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Add to Class
+                </Button>
+              )}
               
               <div className="flex gap-3">
                 <Button

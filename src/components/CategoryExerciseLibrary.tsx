@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +9,7 @@ import { Exercise, ExerciseCategory } from '@/types/reformer';
 import { useExercises } from '@/hooks/useExercises';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ModernExerciseModal } from './ModernExerciseModal';
-import { ImprovedExerciseForm } from './ImprovedExerciseForm';
+import { InteractiveExerciseForm } from './InteractiveExerciseForm';
 
 interface CategoryExerciseLibraryProps {
   onExerciseSelect?: (exercise: Exercise) => void;
@@ -119,10 +120,18 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   };
 
   const handleExerciseClick = (exercise: Exercise) => {
+    // Always open detail modal when clicking exercise
+    setSelectedExercise(exercise);
+  };
+
+  const handleAddToCart = (exercise: Exercise, event?: React.MouseEvent) => {
+    // Stop propagation to prevent opening modal when clicking + button
+    if (event) {
+      event.stopPropagation();
+    }
+    
     if (onExerciseSelect) {
       onExerciseSelect(exercise);
-    } else {
-      setSelectedExercise(exercise);
     }
   };
 
@@ -173,7 +182,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   if (showExerciseForm) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-4">
-        <ImprovedExerciseForm
+        <InteractiveExerciseForm
           exercise={exerciseToEdit || undefined}
           onSave={handleSaveExercise}
           onCancel={() => {
@@ -223,7 +232,17 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                   
-                  {/* Action buttons */}
+                  {/* Quick Add Button - Top Left */}
+                  {onExerciseSelect && (
+                    <button
+                      onClick={(e) => handleAddToCart(exercise, e)}
+                      className="absolute top-2 left-2 p-2 rounded-full bg-sage-600 hover:bg-sage-700 backdrop-blur-sm transition-colors z-10"
+                    >
+                      <Plus className="h-4 w-4 text-white" />
+                    </button>
+                  )}
+                  
+                  {/* Action buttons - Top Right */}
                   <div className="absolute top-2 right-2 flex gap-1">
                     <button
                       onClick={(e) => {
@@ -284,6 +303,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
             exercise={selectedExercise}
             isOpen={!!selectedExercise}
             onClose={() => setSelectedExercise(null)}
+            onAddToCart={onExerciseSelect ? () => handleAddToCart(selectedExercise) : undefined}
           />
         )}
       </div>
