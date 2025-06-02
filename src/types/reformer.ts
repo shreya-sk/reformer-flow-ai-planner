@@ -1,4 +1,3 @@
-
 export type ExerciseCategory =
   | 'supine'
   | 'prone'
@@ -99,10 +98,16 @@ export type TeachingFocus =
   | 'strength'
   | 'coordination';
 
+export type PrimaryMuscle = 'core' | 'arms' | 'legs' | 'back' | 'warm-up' | 'cool-down';
+
+export type ExercisePosition = 'supine' | 'prone' | 'sitting' | 'side-lying' | 'kneeling' | 'standing' | 'other';
+
 export interface Exercise {
   id: string;
   name: string;
   category: ExerciseCategory;
+  position: ExercisePosition;
+  primaryMuscle: PrimaryMuscle;
   duration: number;
   springs: SpringSetting;
   difficulty: DifficultyLevel;

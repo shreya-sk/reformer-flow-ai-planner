@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,9 +17,11 @@ import {
   Target,
   Settings,
   Shield,
-  Eye
+  Eye,
+  Upload,
+  Camera
 } from 'lucide-react';
-import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, TeachingFocus } from '@/types/reformer';
+import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, TeachingFocus, PrimaryMuscle, ExercisePosition } from '@/types/reformer';
 
 interface InteractiveExerciseFormProps {
   exercise?: Exercise;
@@ -34,9 +37,16 @@ const STEPS = [
   { id: 5, title: 'Review', icon: Eye, description: 'Final review' }
 ];
 
-const CATEGORIES: { value: ExerciseCategory; label: string }[] = [
+const CATEGORIES: { value: PrimaryMuscle; label: string }[] = [
+  { value: 'core', label: 'Core' },
+  { value: 'arms', label: 'Arms' },
+  { value: 'legs', label: 'Legs' },
+  { value: 'back', label: 'Back' },
   { value: 'warm-up', label: 'Warm-up' },
-  { value: 'cool-down', label: 'Cool-down' },
+  { value: 'cool-down', label: 'Cool-down' }
+];
+
+const POSITIONS: { value: ExercisePosition; label: string }[] = [
   { value: 'supine', label: 'Supine (lying down)' },
   { value: 'prone', label: 'Prone (face down)' },
   { value: 'sitting', label: 'Sitting' },
@@ -140,6 +150,8 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
   const [formData, setFormData] = useState<Partial<Exercise>>({
     name: exercise?.name || '',
     category: exercise?.category || 'supine',
+    position: exercise?.position || 'supine',
+    primaryMuscle: exercise?.primaryMuscle || 'core',
     duration: exercise?.duration || 3,
     springs: exercise?.springs || 'medium',
     difficulty: exercise?.difficulty || 'beginner',
@@ -156,12 +168,14 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
     regressions: exercise?.regressions || [],
     contraindications: exercise?.contraindications || [],
     isPregnancySafe: exercise?.isPregnancySafe || false,
+    image: exercise?.image || '',
+    videoUrl: exercise?.videoUrl || '',
     ...exercise
   });
 
   // State for selected categories (multi-select)
-  const [selectedCategories, setSelectedCategories] = useState<ExerciseCategory[]>(
-    exercise?.category ? [exercise.category] : ['supine']
+  const [selectedCategories, setSelectedCategories] = useState<PrimaryMuscle[]>(
+    exercise?.primaryMuscle ? [exercise.primaryMuscle] : ['core']
   );
 
   // State for selected springs
@@ -177,6 +191,8 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
   const [newProgression, setNewProgression] = useState('');
   const [newRegression, setNewRegression] = useState('');
   const [newContraindication, setNewContraindication] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
 
   const progressPercentage = (currentStep / STEPS.length) * 100;
 
@@ -192,11 +208,47 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
     }
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingImage(true);
+    try {
+      // Here you would implement the actual upload to Supabase storage
+      // For now, we'll create a mock URL
+      const mockUrl = URL.createObjectURL(file);
+      setFormData(prev => ({ ...prev, image: mockUrl }));
+    } catch (error) {
+      console.error('Error uploading image:', error);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadingVideo(true);
+    try {
+      // Here you would implement the actual upload to Supabase storage
+      // For now, we'll create a mock URL
+      const mockUrl = URL.createObjectURL(file);
+      setFormData(prev => ({ ...prev, videoUrl: mockUrl }));
+    } catch (error) {
+      console.error('Error uploading video:', error);
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
   const handleSave = () => {
     const exerciseData: Exercise = {
       id: exercise?.id || Date.now().toString(),
       name: formData.name!,
-      category: selectedCategories[0] || 'supine', // Use first selected category as primary
+      category: formData.category!,
+      position: formData.position!,
+      primaryMuscle: selectedCategories[0] || 'core',
       duration: formData.duration!,
       springs: formData.springs!,
       difficulty: formData.difficulty!,
@@ -334,7 +386,7 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
             </div>
 
             <div>
-              <Label className="text-base font-semibold mb-3 block">Categories (Multi-select for organization)</Label>
+              <Label className="text-base font-semibold mb-3 block">Categories for Organization (Multi-select)</Label>
               <div className="grid grid-cols-2 gap-3">
                 {CATEGORIES.map((cat) => (
                   <button
@@ -358,6 +410,81 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
                 ))}
               </div>
             </div>
+
+            <div>
+              <Label className="text-base font-semibold mb-3 block">Position</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {POSITIONS.map((pos) => (
+                  <button
+                    key={pos.value}
+                    onClick={() => setFormData(prev => ({ ...prev, position: pos.value }))}
+                    className={`p-3 rounded-xl border-2 text-left transition-all ${
+                      formData.position === pos.value
+                        ? 'border-sage-500 bg-sage-50'
+                        : 'border-gray-200 hover:border-sage-300'
+                    }`}
+                  >
+                    <div className="font-medium">{pos.label}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-base font-semibold mb-3 block">Upload Image</Label>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-sage-400 transition-colors"
+                  >
+                    {uploadingImage ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sage-600"></div>
+                    ) : (
+                      <Camera className="h-4 w-4" />
+                    )}
+                    <span className="text-sm">Upload Image</span>
+                  </label>
+                  {formData.image && (
+                    <div className="text-xs text-green-600">✓ Image uploaded</div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-base font-semibold mb-3 block">Upload Video</Label>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="video/*"
+                    onChange={handleVideoUpload}
+                    className="hidden"
+                    id="video-upload"
+                  />
+                  <label
+                    htmlFor="video-upload"
+                    className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-sage-400 transition-colors"
+                  >
+                    {uploadingVideo ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sage-600"></div>
+                    ) : (
+                      <Upload className="h-4 w-4" />
+                    )}
+                    <span className="text-sm">Upload Video</span>
+                  </label>
+                  {formData.videoUrl && (
+                    <div className="text-xs text-green-600">✓ Video uploaded</div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         );
 
@@ -370,7 +497,7 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
                 {SPRING_COLORS.map((spring) => (
                   <div key={spring.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
                     <div className="flex items-center gap-3">
-                      <div className={`w-6 h-6 rounded-full ${spring.color}`}></div>
+                      <div className={`w-4 h-4 rounded-full ${spring.color}`}></div>
                       <span className="font-medium">{spring.label}</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -380,18 +507,18 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
                         size="sm"
                         onClick={() => updateSpringSelection(spring.id, false)}
                         disabled={selectedSprings[spring.id] === 0}
-                        className="w-8 h-8 p-0"
+                        className="w-6 h-6 p-0 text-xs"
                       >
                         -
                       </Button>
-                      <span className="w-8 text-center font-bold">{selectedSprings[spring.id]}</span>
+                      <span className="w-6 text-center font-bold text-sm">{selectedSprings[spring.id]}</span>
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => updateSpringSelection(spring.id, true)}
                         disabled={selectedSprings[spring.id] >= spring.available}
-                        className="w-8 h-8 p-0"
+                        className="w-6 h-6 p-0 text-xs"
                       >
                         +
                       </Button>
