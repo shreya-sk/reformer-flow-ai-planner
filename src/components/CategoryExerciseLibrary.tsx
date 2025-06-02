@@ -3,11 +3,16 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, Dumbbell, Heart, Clock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { ChevronRight, Dumbbell, Heart, Clock, Search, Filter, Baby, Plus } from 'lucide-react';
 import { Exercise, ExerciseCategory } from '@/types/reformer';
 import { useExercises } from '@/hooks/useExercises';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ModernExerciseModal } from './ModernExerciseModal';
+
+interface CategoryExerciseLibraryProps {
+  onExerciseSelect?: (exercise: Exercise) => void;
+}
 
 // Category mapping to group exercises
 const categoryMapping = {
@@ -33,11 +38,13 @@ const getCategoryForExercise = (exercise: Exercise): string => {
   return 'Core'; // Default
 };
 
-export const CategoryExerciseLibrary = () => {
+export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLibraryProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const { exercises } = useExercises();
-  const { preferences, toggleFavoriteExercise } = useUserPreferences();
+  const { preferences, toggleFavoriteExercise, togglePregnancySafeOnly } = useUserPreferences();
 
   // Group exercises by category
   const categorizedExercises = useMemo(() => {
@@ -60,6 +67,28 @@ export const CategoryExerciseLibrary = () => {
     return grouped;
   }, [exercises]);
 
+  // Filter exercises based on search and preferences
+  const filteredExercises = useMemo(() => {
+    if (!selectedCategory) return [];
+    
+    let categoryExercises = categorizedExercises[selectedCategory] || [];
+    
+    // Apply search filter
+    if (searchTerm) {
+      categoryExercises = categoryExercises.filter(exercise =>
+        exercise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        exercise.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Apply pregnancy safe filter
+    if (preferences.showPregnancySafeOnly) {
+      categoryExercises = categoryExercises.filter(exercise => exercise.pregnancySafe);
+    }
+    
+    return categoryExercises;
+  }, [selectedCategory, categorizedExercises, searchTerm, preferences.showPregnancySafeOnly]);
+
   const categoryColors = {
     'Warm-up': 'from-sage-400 to-sage-500',
     'Arms': 'from-sage-500 to-sage-600', 
@@ -69,31 +98,95 @@ export const CategoryExerciseLibrary = () => {
     'Cool-down': 'from-sage-300 to-sage-400'
   };
 
+  const handleExerciseClick = (exercise: Exercise) => {
+    if (onExerciseSelect) {
+      onExerciseSelect(exercise);
+    } else {
+      setSelectedExercise(exercise);
+    }
+  };
+
   if (selectedCategory) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-4">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => setSelectedCategory(null)}
-            className="p-2 rounded-full hover:bg-sage-100"
-          >
-            <ChevronRight className="h-5 w-5 rotate-180" />
-          </Button>
-          <h2 className="text-2xl font-bold text-sage-800">{selectedCategory}</h2>
-          <Badge className="bg-sage-100 text-sage-700">
-            {categorizedExercises[selectedCategory]?.length || 0} exercises
-          </Badge>
+        {/* Enhanced Header with Search and Icons */}
+        <div className="space-y-4 mb-6">
+          {/* Top row with back button and category name */}
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              onClick={() => setSelectedCategory(null)}
+              className="p-2 rounded-full hover:bg-sage-100"
+            >
+              <ChevronRight className="h-5 w-5 rotate-180" />
+            </Button>
+            <h2 className="text-2xl font-bold text-sage-800">{selectedCategory}</h2>
+            <Badge className="bg-sage-100 text-sage-700">
+              {filteredExercises.length} exercises
+            </Badge>
+          </div>
+
+          {/* Search bar with tiny icons */}
+          <div className="flex items-center gap-3">
+            {/* Search bar */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-sage-400 h-4 w-4" />
+              <Input
+                placeholder="Search exercises..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 border-sage-300 focus:border-sage-500 bg-white rounded-xl"
+              />
+            </div>
+
+            {/* Tiny action icons */}
+            <div className="flex items-center gap-2">
+              {/* Filter */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="p-2 h-8 w-8 rounded-full hover:bg-sage-100"
+              >
+                <Filter className="h-4 w-4 text-sage-600" />
+              </Button>
+
+              {/* Pregnancy Safe */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={togglePregnancySafeOnly}
+                className={`p-2 h-8 w-8 rounded-full hover:bg-sage-100 ${preferences.showPregnancySafeOnly ? 'bg-pink-100' : ''}`}
+              >
+                <Baby className={`h-4 w-4 ${preferences.showPregnancySafeOnly ? 'text-pink-600' : 'text-sage-600'}`} />
+              </Button>
+
+              {/* Add Exercise */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 h-8 w-8 rounded-full hover:bg-sage-100"
+              >
+                <Plus className="h-4 w-4 text-sage-600" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Filters panel (if shown) */}
+          {showFilters && (
+            <div className="p-4 bg-sage-50 rounded-lg border border-sage-200">
+              <p className="text-sm text-sage-600">Additional filters coming soon...</p>
+            </div>
+          )}
         </div>
 
         {/* Exercise Grid */}
         <div className="grid grid-cols-2 gap-3">
-          {categorizedExercises[selectedCategory]?.map((exercise) => (
+          {filteredExercises.map((exercise) => (
             <Card 
               key={exercise.id}
               className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm border-0 rounded-2xl overflow-hidden"
-              onClick={() => setSelectedExercise(exercise)}
+              onClick={() => handleExerciseClick(exercise)}
             >
               <CardContent className="p-0">
                 <div className="relative aspect-square">
