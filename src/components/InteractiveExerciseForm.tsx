@@ -18,7 +18,7 @@ import {
   Shield,
   Eye
 } from 'lucide-react';
-import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment, TeachingFocus } from '@/types/reformer';
+import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, TeachingFocus } from '@/types/reformer';
 
 interface InteractiveExerciseFormProps {
   exercise?: Exercise;
@@ -27,31 +27,30 @@ interface InteractiveExerciseFormProps {
 }
 
 const STEPS = [
-  { id: 1, title: 'Basic Info', icon: Info, description: 'Name and category' },
-  { id: 2, title: 'Physical Details', icon: Settings, description: 'Duration, springs, difficulty' },
-  { id: 3, title: 'Body Focus', icon: Target, description: 'Muscle groups and setup' },
-  { id: 4, title: 'Safety & Teaching', icon: Shield, description: 'Cues and safety notes' },
+  { id: 1, title: 'Basic Info', icon: Info, description: 'Name, description, categories and position' },
+  { id: 2, title: 'Physical Setup', icon: Settings, description: 'Springs, duration and difficulty' },
+  { id: 3, title: 'Body Focus', icon: Target, description: 'Muscle groups, focus and safety' },
+  { id: 4, title: 'Teaching Details', icon: Shield, description: 'Cues, progressions and modifications' },
   { id: 5, title: 'Review', icon: Eye, description: 'Final review' }
 ];
 
 const CATEGORIES: { value: ExerciseCategory; label: string }[] = [
+  { value: 'warm-up', label: 'Warm-up' },
+  { value: 'cool-down', label: 'Cool-down' },
   { value: 'supine', label: 'Supine (lying down)' },
   { value: 'prone', label: 'Prone (face down)' },
   { value: 'sitting', label: 'Sitting' },
   { value: 'side-lying', label: 'Side-lying' },
   { value: 'kneeling', label: 'Kneeling' },
   { value: 'standing', label: 'Standing' },
-  { value: 'warm-up', label: 'Warm-up' },
-  { value: 'cool-down', label: 'Cool-down' },
   { value: 'other', label: 'Other' }
 ];
 
-const SPRING_SETTINGS: { value: SpringSetting; label: string; color: string }[] = [
-  { value: 'light', label: 'Light', color: 'bg-green-100 text-green-700' },
-  { value: 'medium', label: 'Medium', color: 'bg-yellow-100 text-yellow-700' },
-  { value: 'heavy', label: 'Heavy', color: 'bg-red-100 text-red-700' },
-  { value: 'mixed', label: 'Mixed', color: 'bg-purple-100 text-purple-700' },
-  { value: 'none', label: 'None', color: 'bg-gray-100 text-gray-700' }
+const SPRING_COLORS = [
+  { id: 'red', color: 'bg-red-500', label: 'Red (Heavy)', available: 2 },
+  { id: 'yellow', color: 'bg-yellow-500', label: 'Yellow (Medium)', available: 1 },
+  { id: 'blue', color: 'bg-blue-500', label: 'Blue (Light)', available: 1 },
+  { id: 'green', color: 'bg-green-500', label: 'Green (Extra Light)', available: 1 }
 ];
 
 const DIFFICULTY_LEVELS: { value: DifficultyLevel; label: string; color: string }[] = [
@@ -60,15 +59,66 @@ const DIFFICULTY_LEVELS: { value: DifficultyLevel; label: string; color: string 
   { value: 'advanced', label: 'Advanced', color: 'bg-red-100 text-red-700' }
 ];
 
-const MUSCLE_GROUPS: { value: MuscleGroup; label: string }[] = [
-  { value: 'core', label: 'Core' },
-  { value: 'legs', label: 'Legs' },
-  { value: 'arms', label: 'Arms' },
-  { value: 'back', label: 'Back' },
-  { value: 'glutes', label: 'Glutes' },
-  { value: 'shoulders', label: 'Shoulders' },
-  { value: 'chest', label: 'Chest' },
-  { value: 'full-body', label: 'Full Body' }
+const MUSCLE_GROUPS: { value: MuscleGroup; label: string; category: string }[] = [
+  // Core
+  { value: 'core', label: 'Core', category: 'Core' },
+  { value: 'lower-abs', label: 'Lower Abs', category: 'Core' },
+  { value: 'upper-abs', label: 'Upper Abs', category: 'Core' },
+  { value: 'obliques', label: 'Obliques', category: 'Core' },
+  { value: 'transverse-abdominis', label: 'Deep Core', category: 'Core' },
+  { value: 'pelvic-floor', label: 'Pelvic Floor', category: 'Core' },
+  { value: 'diaphragm', label: 'Diaphragm', category: 'Core' },
+  
+  // Legs
+  { value: 'legs', label: 'Legs', category: 'Legs' },
+  { value: 'quadriceps', label: 'Quadriceps', category: 'Legs' },
+  { value: 'hamstrings', label: 'Hamstrings', category: 'Legs' },
+  { value: 'calves', label: 'Calves', category: 'Legs' },
+  { value: 'hip-flexors', label: 'Hip Flexors', category: 'Legs' },
+  { value: 'hip-adductors', label: 'Inner Thighs', category: 'Legs' },
+  { value: 'hip-abductors', label: 'Outer Thighs', category: 'Legs' },
+  { value: 'ankles', label: 'Ankles', category: 'Legs' },
+  { value: 'feet', label: 'Feet', category: 'Legs' },
+  
+  // Glutes
+  { value: 'glutes', label: 'Glutes', category: 'Glutes' },
+  
+  // Arms
+  { value: 'arms', label: 'Arms', category: 'Arms' },
+  { value: 'biceps', label: 'Biceps', category: 'Arms' },
+  { value: 'triceps', label: 'Triceps', category: 'Arms' },
+  { value: 'forearms', label: 'Forearms', category: 'Arms' },
+  { value: 'wrists', label: 'Wrists', category: 'Arms' },
+  
+  // Back
+  { value: 'back', label: 'Back', category: 'Back' },
+  { value: 'lats', label: 'Lats', category: 'Back' },
+  { value: 'rhomboids', label: 'Rhomboids', category: 'Back' },
+  { value: 'erector-spinae', label: 'Erector Spinae', category: 'Back' },
+  { value: 'traps', label: 'Trapezius', category: 'Back' },
+  { value: 'thoracic-spine', label: 'Thoracic Spine', category: 'Back' },
+  { value: 'lumbar-spine', label: 'Lumbar Spine', category: 'Back' },
+  
+  // Shoulders
+  { value: 'shoulders', label: 'Shoulders', category: 'Shoulders' },
+  { value: 'deltoids', label: 'Deltoids', category: 'Shoulders' },
+  { value: 'rotator-cuff', label: 'Rotator Cuff', category: 'Shoulders' },
+  
+  // Chest
+  { value: 'chest', label: 'Chest', category: 'Chest' },
+  { value: 'serratus-anterior', label: 'Serratus', category: 'Chest' },
+  { value: 'intercostals', label: 'Intercostals', category: 'Chest' },
+  
+  // Neck
+  { value: 'neck', label: 'Neck', category: 'Neck' },
+  { value: 'cervical-spine', label: 'Cervical Spine', category: 'Neck' },
+  
+  // Other
+  { value: 'deep-stabilizers', label: 'Deep Stabilizers', category: 'Other' },
+  { value: 'spinal-extensors', label: 'Spinal Extensors', category: 'Other' },
+  { value: 'psoas', label: 'Psoas', category: 'Other' },
+  { value: 'iliotibial-band', label: 'IT Band', category: 'Other' },
+  { value: 'full-body', label: 'Full Body', category: 'Other' }
 ];
 
 const TEACHING_FOCUS_OPTIONS: { value: TeachingFocus; label: string }[] = [
@@ -79,7 +129,10 @@ const TEACHING_FOCUS_OPTIONS: { value: TeachingFocus; label: string }[] = [
   { value: 'control', label: 'Control' },
   { value: 'flow', label: 'Flow' },
   { value: 'stability', label: 'Stability' },
-  { value: 'mobility', label: 'Mobility' }
+  { value: 'mobility', label: 'Mobility' },
+  { value: 'balance', label: 'Balance' },
+  { value: 'strength', label: 'Strength' },
+  { value: 'coordination', label: 'Coordination' }
 ];
 
 export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: InteractiveExerciseFormProps) => {
@@ -106,6 +159,19 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
     ...exercise
   });
 
+  // State for selected categories (multi-select)
+  const [selectedCategories, setSelectedCategories] = useState<ExerciseCategory[]>(
+    exercise?.category ? [exercise.category] : ['supine']
+  );
+
+  // State for selected springs
+  const [selectedSprings, setSelectedSprings] = useState<{[key: string]: number}>({
+    red: 0,
+    yellow: 0,
+    blue: 0,
+    green: 0
+  });
+
   const [newCue, setNewCue] = useState('');
   const [newModification, setNewModification] = useState('');
   const [newProgression, setNewProgression] = useState('');
@@ -130,7 +196,7 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
     const exerciseData: Exercise = {
       id: exercise?.id || Date.now().toString(),
       name: formData.name!,
-      category: formData.category!,
+      category: selectedCategories[0] || 'supine', // Use first selected category as primary
       duration: formData.duration!,
       springs: formData.springs!,
       difficulty: formData.difficulty!,
@@ -179,6 +245,14 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
     }));
   };
 
+  const toggleCategory = (category: ExerciseCategory) => {
+    setSelectedCategories(prev => 
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
+
   const toggleMuscleGroup = (muscleGroup: MuscleGroup) => {
     const current = formData.muscleGroups || [];
     const updated = current.includes(muscleGroup)
@@ -195,10 +269,24 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
     setFormData(prev => ({ ...prev, teachingFocus: updated }));
   };
 
+  const updateSpringSelection = (springId: string, increment: boolean) => {
+    const spring = SPRING_COLORS.find(s => s.id === springId);
+    if (!spring) return;
+
+    setSelectedSprings(prev => {
+      const current = prev[springId] || 0;
+      const newValue = increment 
+        ? Math.min(current + 1, spring.available)
+        : Math.max(current - 1, 0);
+      
+      return { ...prev, [springId]: newValue };
+    });
+  };
+
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return formData.name && formData.category;
+        return formData.name && selectedCategories.length > 0;
       case 2:
         return formData.duration && formData.springs && formData.difficulty;
       case 3:
@@ -212,7 +300,6 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
     }
   };
 
-  // Handle backdrop click to close
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onCancel();
@@ -236,25 +323,6 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
             </div>
 
             <div>
-              <Label className="text-base font-semibold mb-3 block">Category</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat.value}
-                    onClick={() => setFormData(prev => ({ ...prev, category: cat.value }))}
-                    className={`p-3 rounded-xl border-2 text-left transition-all ${
-                      formData.category === cat.value
-                        ? 'border-sage-500 bg-sage-50'
-                        : 'border-gray-200 hover:border-sage-300'
-                    }`}
-                  >
-                    <div className="font-medium">{cat.label}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
               <Label htmlFor="description" className="text-base font-semibold mb-3 block">Description (Optional)</Label>
               <Textarea
                 id="description"
@@ -264,12 +332,75 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
                 className="min-h-20 rounded-xl"
               />
             </div>
+
+            <div>
+              <Label className="text-base font-semibold mb-3 block">Categories (Multi-select for organization)</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat.value}
+                    onClick={() => toggleCategory(cat.value)}
+                    className={`p-3 rounded-xl border-2 text-left transition-all ${
+                      selectedCategories.includes(cat.value)
+                        ? 'border-sage-500 bg-sage-50'
+                        : 'border-gray-200 hover:border-sage-300'
+                    }`}
+                  >
+                    <div className="font-medium">{cat.label}</div>
+                  </button>
+                ))}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {selectedCategories.map(cat => (
+                  <Badge key={cat} variant="secondary" className="text-xs">
+                    {CATEGORIES.find(c => c.value === cat)?.label}
+                  </Badge>
+                ))}
+              </div>
+            </div>
           </div>
         );
 
       case 2:
         return (
           <div className="space-y-6">
+            <div>
+              <Label className="text-base font-semibold mb-3 block">Spring Selection (Colored Dots)</Label>
+              <div className="space-y-4">
+                {SPRING_COLORS.map((spring) => (
+                  <div key={spring.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-full ${spring.color}`}></div>
+                      <span className="font-medium">{spring.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateSpringSelection(spring.id, false)}
+                        disabled={selectedSprings[spring.id] === 0}
+                        className="w-8 h-8 p-0"
+                      >
+                        -
+                      </Button>
+                      <span className="w-8 text-center font-bold">{selectedSprings[spring.id]}</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => updateSpringSelection(spring.id, true)}
+                        disabled={selectedSprings[spring.id] >= spring.available}
+                        className="w-8 h-8 p-0"
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div>
               <Label htmlFor="duration" className="text-base font-semibold mb-3 block">Duration (minutes)</Label>
               <Input
@@ -281,25 +412,6 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
                 max="30"
                 className="text-lg p-4 rounded-xl"
               />
-            </div>
-
-            <div>
-              <Label className="text-base font-semibold mb-3 block">Spring Setting</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {SPRING_SETTINGS.map((spring) => (
-                  <button
-                    key={spring.value}
-                    onClick={() => setFormData(prev => ({ ...prev, springs: spring.value }))}
-                    className={`p-3 rounded-xl border-2 transition-all ${
-                      formData.springs === spring.value
-                        ? 'border-sage-500 bg-sage-50'
-                        : 'border-gray-200 hover:border-sage-300'
-                    }`}
-                  >
-                    <Badge className={spring.color}>{spring.label}</Badge>
-                  </button>
-                ))}
-              </div>
             </div>
 
             <div>
@@ -338,59 +450,39 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
         return (
           <div className="space-y-6">
             <div>
-              <Label className="text-base font-semibold mb-3 block">Target Muscle Groups</Label>
-              <div className="grid grid-cols-2 gap-3">
-                {MUSCLE_GROUPS.map((muscle) => (
-                  <button
-                    key={muscle.value}
-                    onClick={() => toggleMuscleGroup(muscle.value)}
-                    className={`p-3 rounded-xl border-2 transition-all ${
-                      formData.muscleGroups?.includes(muscle.value)
-                        ? 'border-sage-500 bg-sage-50'
-                        : 'border-gray-200 hover:border-sage-300'
-                    }`}
-                  >
-                    {muscle.label}
-                  </button>
+              <Label className="text-base font-semibold mb-3 block">Target Muscle Groups (Multi-select)</Label>
+              <div className="max-h-48 overflow-y-auto space-y-3">
+                {['Core', 'Legs', 'Glutes', 'Arms', 'Back', 'Shoulders', 'Chest', 'Neck', 'Other'].map(category => (
+                  <div key={category}>
+                    <h4 className="text-sm font-medium text-gray-600 mb-2">{category}</h4>
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {MUSCLE_GROUPS.filter(m => m.category === category).map((muscle) => (
+                        <button
+                          key={muscle.value}
+                          onClick={() => toggleMuscleGroup(muscle.value)}
+                          className={`px-2 py-1 text-xs rounded-full border transition-all ${
+                            formData.muscleGroups?.includes(muscle.value)
+                              ? 'border-sage-500 bg-sage-50 text-sage-700'
+                              : 'border-gray-200 hover:border-sage-300 text-gray-600'
+                          }`}
+                        >
+                          {muscle.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
 
             <div>
-              <Label htmlFor="setup" className="text-base font-semibold mb-3 block">Setup Instructions (Optional)</Label>
-              <Textarea
-                id="setup"
-                value={formData.setup}
-                onChange={(e) => setFormData(prev => ({ ...prev, setup: e.target.value }))}
-                placeholder="How to set up for this exercise..."
-                className="min-h-20 rounded-xl"
-              />
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-xl">
-              <div>
-                <Label className="text-base font-semibold">Pregnancy Safe</Label>
-                <p className="text-sm text-gray-600">Is this exercise safe during pregnancy?</p>
-              </div>
-              <Switch
-                checked={formData.isPregnancySafe}
-                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPregnancySafe: checked }))}
-              />
-            </div>
-
-            <div>
               <Label className="text-base font-semibold mb-3 block">Teaching Focus</Label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 {TEACHING_FOCUS_OPTIONS.map((focus) => (
                   <button
                     key={focus.value}
                     onClick={() => toggleTeachingFocus(focus.value)}
-                    className={`p-3 rounded-xl border-2 transition-all ${
+                    className={`p-2 rounded-xl border-2 transition-all text-sm ${
                       formData.teachingFocus?.includes(focus.value)
                         ? 'border-sage-500 bg-sage-50'
                         : 'border-gray-200 hover:border-sage-300'
@@ -398,37 +490,6 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
                   >
                     {focus.label}
                   </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-base font-semibold mb-3 block">Teaching Cues</Label>
-              <div className="flex gap-2 mb-3">
-                <Input
-                  value={newCue}
-                  onChange={(e) => setNewCue(e.target.value)}
-                  placeholder="Add a teaching cue..."
-                  className="rounded-xl"
-                />
-                <Button
-                  type="button"
-                  onClick={() => addArrayItem('cues', newCue, setNewCue)}
-                  className="rounded-xl"
-                >
-                  Add
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {formData.cues?.map((cue, index) => (
-                  <Badge
-                    key={index}
-                    variant="secondary"
-                    className="cursor-pointer"
-                    onClick={() => removeArrayItem('cues', index)}
-                  >
-                    {cue} <X className="h-3 w-3 ml-1" />
-                  </Badge>
                 ))}
               </div>
             </div>
@@ -459,6 +520,53 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
                     onClick={() => removeArrayItem('contraindications', index)}
                   >
                     {contra} <X className="h-3 w-3 ml-1" />
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-xl">
+              <div>
+                <Label className="text-base font-semibold">Pregnancy Safe</Label>
+                <p className="text-sm text-gray-600">Is this exercise safe during pregnancy?</p>
+              </div>
+              <Switch
+                checked={formData.isPregnancySafe}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isPregnancySafe: checked }))}
+              />
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div>
+              <Label className="text-base font-semibold mb-3 block">Teaching Cues</Label>
+              <div className="flex gap-2 mb-3">
+                <Input
+                  value={newCue}
+                  onChange={(e) => setNewCue(e.target.value)}
+                  placeholder="Add a teaching cue..."
+                  className="rounded-xl"
+                />
+                <Button
+                  type="button"
+                  onClick={() => addArrayItem('cues', newCue, setNewCue)}
+                  className="rounded-xl"
+                >
+                  Add
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formData.cues?.map((cue, index) => (
+                  <Badge
+                    key={index}
+                    variant="secondary"
+                    className="cursor-pointer"
+                    onClick={() => removeArrayItem('cues', index)}
+                  >
+                    {cue} <X className="h-3 w-3 ml-1" />
                   </Badge>
                 ))}
               </div>
@@ -574,10 +682,11 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
                 <div>
                   <h4 className="font-semibold text-lg">{formData.name}</h4>
                   <div className="flex gap-2 mt-2">
-                    <Badge>{formData.category}</Badge>
+                    {selectedCategories.map(cat => (
+                      <Badge key={cat}>{CATEGORIES.find(c => c.value === cat)?.label}</Badge>
+                    ))}
                     <Badge variant="outline">{formData.difficulty}</Badge>
                     <Badge variant="outline">{formData.duration} min</Badge>
-                    <Badge variant="outline">{formData.springs} springs</Badge>
                   </div>
                 </div>
 
@@ -589,11 +698,25 @@ export const InteractiveExerciseForm = ({ exercise, onSave, onCancel }: Interact
                 )}
 
                 <div>
+                  <h5 className="font-medium mb-1">Selected Springs</h5>
+                  <div className="flex gap-2">
+                    {Object.entries(selectedSprings).map(([color, count]) => (
+                      count > 0 && (
+                        <div key={color} className="flex items-center gap-1">
+                          <div className={`w-4 h-4 rounded-full ${SPRING_COLORS.find(s => s.id === color)?.color}`}></div>
+                          <span className="text-sm">×{count}</span>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </div>
+
+                <div>
                   <h5 className="font-medium mb-1">Target Muscle Groups</h5>
                   <div className="flex flex-wrap gap-1">
                     {formData.muscleGroups?.map((muscle) => (
                       <Badge key={muscle} variant="secondary" className="text-xs">
-                        {muscle}
+                        {MUSCLE_GROUPS.find(m => m.value === muscle)?.label}
                       </Badge>
                     ))}
                   </div>
