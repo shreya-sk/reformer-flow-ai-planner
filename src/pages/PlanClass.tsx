@@ -13,23 +13,24 @@ import { AuthPage } from '@/components/AuthPage';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ClassTeachingMode } from '@/components/ClassTeachingMode';
 import { ClassBuilder } from '@/components/ClassBuilder';
+import { Exercise } from '@/types/reformer';
 
 const PlanClass = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { saveClassPlan, savedClasses } = useClassPlans();
+  const { saveClassPlan, classPlans } = useClassPlans();
   const { preferences, toggleFavoriteExercise } = useUserPreferences();
   const { exercises, updateUserExercise, customizeSystemExercise } = useExercises();
   const {
     currentClass,
-    realExerciseCount,
+    getRealExerciseCount,
     addExercise,
     removeExercise,
     updateClassName,
     updateClassDuration,
     updateClassNotes,
     updateClassImage,
-    addCallout,
+    createCallout,
     clearClassPlan,
     reorderExercises,
     syncExerciseUpdates
@@ -40,6 +41,7 @@ const PlanClass = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  const realExerciseCount = getRealExerciseCount();
   const shortlistedExercises = exercises.filter(ex => 
     preferences.favoriteExercises?.includes(ex.id)
   );
@@ -129,7 +131,7 @@ const PlanClass = () => {
 
   const handleAddCallout = (name: string, position: number) => {
     console.log('PlanClass handleAddCallout called with name:', name, 'position:', position);
-    addCallout(name, position);
+    createCallout(name, '#e5e7eb');
   };
 
   const handleUpdateCallout = (calloutId: string, newName: string) => {
@@ -150,7 +152,7 @@ const PlanClass = () => {
     reorderExercises(updatedExercises);
   };
 
-  const addToShortlist = (exercise: any) => {
+  const addToShortlist = (exercise: Exercise) => {
     toggleFavoriteExercise(exercise.id);
   };
 
@@ -158,30 +160,30 @@ const PlanClass = () => {
     toggleFavoriteExercise(exerciseId);
   };
 
-  const addShortlistedToClass = (exercise: any) => {
+  const addShortlistedToClass = (exercise: Exercise) => {
     console.log('Adding shortlisted exercise to class:', exercise);
     addExercise(exercise);
   };
 
   // Improved exercise update handler that persists changes correctly and syncs
-  const handleUpdateExercise = async (updatedExercise: any) => {
+  const handleUpdateExercise = async (updatedExercise: Exercise) => {
     try {
       // Save to database based on exercise type
       if (updatedExercise.isSystemExercise) {
-        await customizeSystemExercise(updatedExercise.id, {
-          custom_name: updatedExercise.name,
-          custom_duration: updatedExercise.duration,
-          custom_springs: updatedExercise.springs,
-          custom_cues: updatedExercise.cues,
-          custom_notes: updatedExercise.notes,
-          custom_difficulty: updatedExercise.difficulty,
-          custom_setup: updatedExercise.setup,
-          custom_reps_or_duration: updatedExercise.repsOrDuration,
-          custom_tempo: updatedExercise.tempo,
-          custom_target_areas: updatedExercise.targetAreas,
-          custom_breathing_cues: updatedExercise.breathingCues,
-          custom_teaching_focus: updatedExercise.teachingFocus,
-          custom_modifications: updatedExercise.modifications,
+        await customizeSystemExercise(updatedExercise, {
+          name: updatedExercise.name,
+          duration: updatedExercise.duration,
+          springs: updatedExercise.springs,
+          cues: updatedExercise.cues,
+          notes: updatedExercise.notes,
+          difficulty: updatedExercise.difficulty,
+          setup: updatedExercise.setup,
+          repsOrDuration: updatedExercise.repsOrDuration,
+          tempo: updatedExercise.tempo,
+          targetAreas: updatedExercise.targetAreas,
+          breathingCues: updatedExercise.breathingCues,
+          teachingFocus: updatedExercise.teachingFocus,
+          modifications: updatedExercise.modifications,
         });
       } else {
         await updateUserExercise(updatedExercise.id, updatedExercise);
@@ -202,6 +204,10 @@ const PlanClass = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleReorderExercises = (exercises: Exercise[]) => {
+    reorderExercises(exercises);
   };
 
   return (
@@ -267,7 +273,7 @@ const PlanClass = () => {
             <ClassBuilder
               currentClass={currentClass}
               onRemoveExercise={removeExercise}
-              onReorderExercises={reorderExercises}
+              onReorderExercises={handleReorderExercises}
               onUpdateExercise={handleUpdateExercise}
               onAddExercise={handleAddExercise}
               onAddCallout={handleAddCallout}

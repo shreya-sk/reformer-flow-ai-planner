@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { ClassPlan, Exercise } from '@/types/reformer';
+import { ClassPlan, Exercise, DifficultyLevel } from '@/types/reformer';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useClassPlans = () => {
@@ -34,7 +35,7 @@ export const useClassPlans = () => {
         updatedAt: new Date(plan.updated_at),
         tags: plan.tags || [],
         notes: plan.notes || '',
-        difficultyLevel: plan.difficulty_level as any, // Type assertion for database string
+        difficultyLevel: (plan.difficulty_level as DifficultyLevel) || 'beginner',
         isPublic: plan.is_public || false,
         shareToken: plan.share_token,
         userId: plan.user_id,
@@ -125,7 +126,7 @@ export const useClassPlans = () => {
           exercise_type: exercise.category === 'callout' ? 'section_divider' : 'exercise',
           duration_override: exercise.duration,
           reps_override: exercise.repsOrDuration,
-          order: index,
+          position: index, // Changed from 'order' to 'position'
           notes: exercise.notes
         }));
 

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Exercise } from '@/types/reformer';
+import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment } from '@/types/reformer';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useExercises = () => {
@@ -25,15 +25,15 @@ export const useExercises = () => {
       const systemExercises = systemData?.map(exercise => ({
         id: exercise.id,
         name: exercise.name,
-        category: exercise.category as any,
+        category: exercise.category as ExerciseCategory,
         position: 'supine' as const,
         primaryMuscle: 'core' as const,
         duration: exercise.duration,
-        springs: exercise.springs as any,
-        difficulty: exercise.difficulty as any,
+        springs: exercise.springs as SpringSetting,
+        difficulty: exercise.difficulty as DifficultyLevel,
         intensityLevel: 'medium' as const,
-        muscleGroups: exercise.muscle_groups || [],
-        equipment: exercise.equipment || [],
+        muscleGroups: (exercise.muscle_groups || []) as MuscleGroup[],
+        equipment: (exercise.equipment || []) as Equipment[],
         description: exercise.description || '',
         image: exercise.image_url || '',
         videoUrl: exercise.video_url || '',
@@ -71,15 +71,15 @@ export const useExercises = () => {
         userExercises = userData?.map(exercise => ({
           id: exercise.id,
           name: exercise.name,
-          category: exercise.category as any,
+          category: exercise.category as ExerciseCategory,
           position: 'supine' as const,
           primaryMuscle: 'core' as const,
           duration: exercise.duration,
-          springs: exercise.springs as any,
-          difficulty: exercise.difficulty as any,
+          springs: exercise.springs as SpringSetting,
+          difficulty: exercise.difficulty as DifficultyLevel,
           intensityLevel: 'medium' as const,
-          muscleGroups: exercise.muscle_groups || [],
-          equipment: exercise.equipment || [],
+          muscleGroups: (exercise.muscle_groups || []) as MuscleGroup[],
+          equipment: (exercise.equipment || []) as Equipment[],
           description: exercise.description || '',
           image: exercise.image_url || '',
           videoUrl: exercise.video_url || '',
