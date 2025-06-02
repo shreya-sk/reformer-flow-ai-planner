@@ -80,21 +80,7 @@ export const ExerciseDetailModal = ({
       if (isCustomExercise) {
         await updateUserExercise(updatedExercise.id, updatedExercise);
       } else if (isSystemExercise) {
-        await customizeSystemExercise(updatedExercise, {
-          custom_name: updatedExercise.name,
-          custom_duration: updatedExercise.duration,
-          custom_springs: updatedExercise.springs,
-          custom_difficulty: updatedExercise.difficulty,
-          custom_cues: updatedExercise.cues,
-          custom_notes: updatedExercise.notes,
-          custom_setup: updatedExercise.setup,
-          custom_reps_or_duration: updatedExercise.repsOrDuration,
-          custom_tempo: updatedExercise.tempo,
-          custom_target_areas: updatedExercise.targetAreas,
-          custom_breathing_cues: updatedExercise.breathingCues,
-          custom_teaching_focus: updatedExercise.teachingFocus,
-          custom_modifications: updatedExercise.modifications,
-        });
+        await customizeSystemExercise(updatedExercise, updatedExercise);
       }
       
       if (onEditExercise) {
