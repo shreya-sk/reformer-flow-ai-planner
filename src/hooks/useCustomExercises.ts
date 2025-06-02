@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment, TeachingFocus } from '@/types/reformer';
@@ -49,7 +48,7 @@ export const useCustomExercises = () => {
         modifications: exercise.modifications || [],
         progressions: exercise.progressions || [],
         regressions: exercise.regressions || [],
-        transitions: [], // Default empty array since property doesn't exist in DB
+        transitions: [],
         contraindications: exercise.contraindications || [],
         isPregnancySafe: exercise.is_pregnancy_safe || false,
         isCustom: true,

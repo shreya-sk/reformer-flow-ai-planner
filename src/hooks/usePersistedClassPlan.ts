@@ -1,41 +1,47 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { Exercise, ClassPlan } from '@/types/reformer';
+import { ClassPlan, Exercise } from '@/types/reformer';
 import { v4 as uuidv4 } from 'uuid';
 
-export const usePersistedClassPlan = () => {
-  const [currentClassPlan, setCurrentClassPlan] = useState<ClassPlan>({
-    id: uuidv4(),
-    name: 'New Class Plan',
-    description: '',
-    duration: 45,
-    exercises: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    tags: [],
-    notes: ''
-  });
+const CLASS_PLAN_STORAGE_KEY = 'currentClassPlan';
 
-  // Load from localStorage on initialization
-  useEffect(() => {
-    const saved = localStorage.getItem('currentClassPlan');
-    if (saved) {
+export const usePersistedClassPlan = () => {
+  const [currentClassPlan, setCurrentClassPlan] = useState<ClassPlan>(() => {
+    const stored = localStorage.getItem(CLASS_PLAN_STORAGE_KEY);
+    if (stored) {
       try {
-        const parsed = JSON.parse(saved);
-        setCurrentClassPlan({
+        const parsed = JSON.parse(stored);
+        return {
           ...parsed,
           createdAt: new Date(parsed.createdAt),
           updatedAt: new Date(parsed.updatedAt)
-        });
+        };
       } catch (error) {
-        console.error('Error parsing saved class plan:', error);
+        console.error('Error parsing stored class plan:', error);
       }
     }
-  }, []);
+    
+    return {
+      id: uuidv4(),
+      name: '',
+      description: '',
+      duration: 45,
+      exercises: [],
+      tags: [],
+      notes: '',
+      difficultyLevel: 'beginner' as const,
+      isPublic: false,
+      userId: '',
+      viewCount: 0,
+      copyCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  });
 
-  // Save to localStorage whenever state changes
+  // Sync with localStorage whenever the class plan changes
   useEffect(() => {
-    localStorage.setItem('currentClassPlan', JSON.stringify(currentClassPlan));
+    localStorage.setItem(CLASS_PLAN_STORAGE_KEY, JSON.stringify(currentClassPlan));
   }, [currentClassPlan]);
 
   const updateClassPlan = useCallback((updates: Partial<ClassPlan>) => {
@@ -47,36 +53,20 @@ export const usePersistedClassPlan = () => {
   }, []);
 
   const updateClassName = useCallback((name: string) => {
-    setCurrentClassPlan(prev => ({
-      ...prev,
-      name,
-      updatedAt: new Date()
-    }));
-  }, []);
+    updateClassPlan({ name });
+  }, [updateClassPlan]);
 
   const updateClassDuration = useCallback((duration: number) => {
-    setCurrentClassPlan(prev => ({
-      ...prev,
-      duration,
-      updatedAt: new Date()
-    }));
-  }, []);
+    updateClassPlan({ duration });
+  }, [updateClassPlan]);
 
   const updateClassNotes = useCallback((notes: string) => {
-    setCurrentClassPlan(prev => ({
-      ...prev,
-      notes,
-      updatedAt: new Date()
-    }));
-  }, []);
+    updateClassPlan({ notes });
+  }, [updateClassPlan]);
 
   const updateClassImage = useCallback((imageUrl: string) => {
-    setCurrentClassPlan(prev => ({
-      ...prev,
-      imageUrl,
-      updatedAt: new Date()
-    }));
-  }, []);
+    updateClassPlan({ imageUrl });
+  }, [updateClassPlan]);
 
   const addExercise = useCallback((exercise: Exercise) => {
     setCurrentClassPlan(prev => ({
@@ -94,18 +84,12 @@ export const usePersistedClassPlan = () => {
     }));
   }, []);
 
-  const reorderExercises = useCallback((startIndex: number, endIndex: number) => {
-    setCurrentClassPlan(prev => {
-      const result = Array.from(prev.exercises);
-      const [removed] = result.splice(startIndex, 1);
-      result.splice(endIndex, 0, removed);
-      
-      return {
-        ...prev,
-        exercises: result,
-        updatedAt: new Date()
-      };
-    });
+  const reorderExercises = useCallback((exercises: Exercise[]) => {
+    setCurrentClassPlan(prev => ({
+      ...prev,
+      exercises,
+      updatedAt: new Date()
+    }));
   }, []);
 
   const updateExercise = useCallback((exerciseId: string, updates: Partial<Exercise>) => {
@@ -118,45 +102,33 @@ export const usePersistedClassPlan = () => {
     }));
   }, []);
 
-  const duplicateExercise = useCallback((exerciseId: string) => {
-    setCurrentClassPlan(prev => {
-      const exerciseToDuplicate = prev.exercises.find(ex => ex.id === exerciseId);
-      if (!exerciseToDuplicate) return prev;
-
-      const duplicatedExercise = {
-        ...exerciseToDuplicate,
-        id: uuidv4(),
-        name: `${exerciseToDuplicate.name} (Copy)`
-      };
-
-      const exerciseIndex = prev.exercises.findIndex(ex => ex.id === exerciseId);
-      const newExercises = [...prev.exercises];
-      newExercises.splice(exerciseIndex + 1, 0, duplicatedExercise);
-
-      return {
-        ...prev,
-        exercises: newExercises,
-        updatedAt: new Date()
-      };
-    });
-  }, []);
-
   const clearClassPlan = useCallback(() => {
-    setCurrentClassPlan({
+    const newPlan = {
       id: uuidv4(),
-      name: 'New Class Plan',
+      name: '',
       description: '',
       duration: 45,
       exercises: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
       tags: [],
-      notes: ''
-    });
+      notes: '',
+      difficultyLevel: 'beginner' as const,
+      isPublic: false,
+      userId: '',
+      viewCount: 0,
+      copyCount: 0,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    setCurrentClassPlan(newPlan);
+    localStorage.removeItem(CLASS_PLAN_STORAGE_KEY);
   }, []);
 
   const loadClass = useCallback((classPlan: ClassPlan) => {
-    setCurrentClassPlan(classPlan);
+    setCurrentClassPlan({
+      ...classPlan,
+      createdAt: new Date(classPlan.createdAt),
+      updatedAt: new Date(classPlan.updatedAt)
+    });
   }, []);
 
   const syncExerciseUpdates = useCallback((updatedExercise: Exercise) => {
@@ -169,28 +141,19 @@ export const usePersistedClassPlan = () => {
     }));
   }, []);
 
-  const getTotalDuration = useCallback(() => {
-    return currentClassPlan.exercises.reduce((total, exercise) => total + exercise.duration, 0);
-  }, [currentClassPlan.exercises]);
-
-  const getRealExerciseCount = useCallback(() => {
-    return currentClassPlan.exercises.filter(exercise => exercise.category !== 'callout').length;
-  }, [currentClassPlan.exercises]);
-
-  const createCallout = useCallback((text: string, color: string, duration: number = 1) => {
-    const callout: Exercise = {
+  const createCallout = useCallback((text: string, color: string, duration: number = 0) => {
+    const calloutExercise: Exercise = {
       id: uuidv4(),
       name: text,
       category: 'callout',
       position: 'other',
       primaryMuscle: 'core',
+      duration: duration,
+      springs: 'none',
       difficulty: 'beginner',
       intensityLevel: 'low',
-      duration,
       muscleGroups: [],
       equipment: [],
-      springs: 'none',
-      isPregnancySafe: true,
       description: '',
       image: '',
       videoUrl: '',
@@ -207,22 +170,71 @@ export const usePersistedClassPlan = () => {
       regressions: [],
       transitions: [],
       contraindications: [],
-      calloutColor: color,
+      isPregnancySafe: true,
+      isCustom: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    addExercise(calloutExercise);
+  }, [addExercise]);
+
+  const addCallout = useCallback((name: string, position: number) => {
+    const calloutExercise: Exercise = {
+      id: uuidv4(),
+      name: name,
+      category: 'callout',
+      position: 'other',
+      primaryMuscle: 'core',
+      duration: 0,
+      springs: 'none',
+      difficulty: 'beginner',
+      intensityLevel: 'low',
+      muscleGroups: [],
+      equipment: [],
+      description: '',
+      image: '',
+      videoUrl: '',
+      notes: '',
+      cues: [],
+      setup: '',
+      repsOrDuration: '',
+      tempo: '',
+      targetAreas: [],
+      breathingCues: [],
+      teachingFocus: [],
+      modifications: [],
+      progressions: [],
+      regressions: [],
+      transitions: [],
+      contraindications: [],
+      isPregnancySafe: true,
       isCustom: true,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
-    addExercise(callout);
-  }, [addExercise]);
+    setCurrentClassPlan(prev => {
+      const exercises = [...prev.exercises];
+      exercises.splice(position, 0, calloutExercise);
+      return {
+        ...prev,
+        exercises,
+        updatedAt: new Date()
+      };
+    });
+  }, []);
 
-  const addCallout = useCallback((name: string, position: number) => {
-    createCallout(name, '#e5e7eb');
-  }, [createCallout]);
+  const getRealExerciseCount = useCallback(() => {
+    return currentClassPlan.exercises.filter(ex => ex.category !== 'callout').length;
+  }, [currentClassPlan.exercises]);
+
+  // Alias for backward compatibility
+  const currentClass = currentClassPlan;
 
   return {
     currentClassPlan,
-    currentClass: currentClassPlan, // Alias for backward compatibility
+    currentClass,
     updateClassPlan,
     updateClassName,
     updateClassDuration,
@@ -232,13 +244,11 @@ export const usePersistedClassPlan = () => {
     removeExercise,
     reorderExercises,
     updateExercise,
-    duplicateExercise,
     clearClassPlan,
     loadClass,
     syncExerciseUpdates,
-    getTotalDuration,
-    realExerciseCount: getRealExerciseCount(),
     createCallout,
-    addCallout
+    addCallout,
+    getRealExerciseCount
   };
 };

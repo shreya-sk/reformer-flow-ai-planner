@@ -27,13 +27,9 @@ const PlanClass = () => {
     addExercise,
     removeExercise,
     updateClassName,
-    updateClassDuration,
-    updateClassNotes,
-    updateClassImage,
-    createCallout,
-    clearClassPlan,
     reorderExercises,
-    syncExerciseUpdates
+    syncExerciseUpdates,
+    clearClassPlan
   } = usePersistedClassPlan();
   
   const [activeTab, setActiveTab] = useState('builder');
@@ -104,7 +100,6 @@ const PlanClass = () => {
         description: `"${classToSave.name}" has been saved with ${realExerciseCount} exercises.`,
       });
       
-      // Clear the class plan after successful save
       setTimeout(() => {
         clearClassPlan();
         navigate('/');
@@ -131,6 +126,7 @@ const PlanClass = () => {
 
   const handleAddCallout = (name: string, position: number) => {
     console.log('PlanClass handleAddCallout called with name:', name, 'position:', position);
+    const { createCallout } = usePersistedClassPlan();
     createCallout(name, '#e5e7eb');
   };
 
@@ -165,10 +161,8 @@ const PlanClass = () => {
     addExercise(exercise);
   };
 
-  // Improved exercise update handler that persists changes correctly and syncs
   const handleUpdateExercise = async (updatedExercise: Exercise) => {
     try {
-      // Save to database based on exercise type
       if (updatedExercise.isSystemExercise) {
         await customizeSystemExercise(updatedExercise, {
           name: updatedExercise.name,
@@ -189,7 +183,6 @@ const PlanClass = () => {
         await updateUserExercise(updatedExercise.id, updatedExercise);
       }
 
-      // Update local class state using the sync function
       syncExerciseUpdates(updatedExercise);
 
       toast({
@@ -250,7 +243,6 @@ const PlanClass = () => {
           </div>
         </div>
         
-        {/* Debug info in development */}
         {process.env.NODE_ENV === 'development' && (
           <div className="mt-2 text-xs text-gray-600 bg-gray-100 p-2 rounded">
             Debug: {currentClass.exercises.length} total, {realExerciseCount} real exercises

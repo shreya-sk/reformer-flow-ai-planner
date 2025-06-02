@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment, TeachingFocus } from '@/types/reformer';
@@ -48,7 +47,7 @@ export const useExercises = () => {
         modifications: exercise.modifications || [],
         progressions: exercise.progressions || [],
         regressions: exercise.regressions || [],
-        transitions: [], // Default empty array since property doesn't exist in DB
+        transitions: [],
         contraindications: exercise.contraindications || [],
         isPregnancySafe: exercise.is_pregnancy_safe || false,
         isSystemExercise: true,
@@ -94,7 +93,7 @@ export const useExercises = () => {
           modifications: exercise.modifications || [],
           progressions: exercise.progressions || [],
           regressions: exercise.regressions || [],
-          transitions: [], // Default empty array since property doesn't exist in DB
+          transitions: [],
           contraindications: exercise.contraindications || [],
           isPregnancySafe: exercise.is_pregnancy_safe || false,
           isCustom: true,
@@ -105,7 +104,7 @@ export const useExercises = () => {
       }
 
       const allExercises = [...systemExercises, ...userExercises];
-      setExercises([...systemExercises, ...userExercises] as Exercise[]);
+      setExercises(allExercises as Exercise[]);
     } catch (err) {
       console.error('Error fetching exercises:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -210,7 +209,6 @@ export const useExercises = () => {
       isCustom: true
     };
     
-    // Remove id and other non-insertable fields
     const { id, createdAt, updatedAt, isSystemExercise, isCustomized, ...insertData } = duplicatedData;
     
     return createUserExercise(insertData);
