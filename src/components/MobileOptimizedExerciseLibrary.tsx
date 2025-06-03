@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,7 +24,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   const navigate = useNavigate();
   const { user } = useAuth();
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
-  const { exercises, loading, duplicateExercise, deleteUserExercise, resetSystemExerciseToOriginal, createUserExercise } = useExercises();
+  const { exercises, loading, duplicateExercise, deleteUserExercise, customizeSystemExercise, createUserExercise } = useExercises();
   const { addExerciseToCurrentPlan, currentExerciseCount } = useClassPlanSync();
   const isMobile = useIsMobile();
   const { observeImage } = useLazyLoading();
@@ -105,7 +106,6 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
 
   const handleAddToClass = useCallback((exercise: Exercise) => {
     console.log('🔵 MobileOptimizedExerciseLibrary: Adding exercise to class:', exercise.name);
-    console.log('🔵 MobileOptimizedExerciseLibrary: Current exercise count:', currentExerciseCount);
     
     // Haptic feedback simulation
     if ('vibrate' in navigator) {
@@ -114,20 +114,21 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     
     try {
       if (onExerciseSelect) {
+        console.log('🔵 Using onExerciseSelect callback');
         onExerciseSelect(exercise);
         toast({
           title: "Added to class",
           description: `"${exercise.name}" has been added to your class plan.`,
         });
       } else {
+        console.log('🔵 Using addExerciseToCurrentPlan');
         const success = addExerciseToCurrentPlan(exercise);
         if (success) {
-          console.log('🔵 MobileOptimizedExerciseLibrary: Exercise added successfully, navigating to plan');
+          console.log('🔵 Exercise added successfully, staying on library page');
           toast({
             title: "Added to class",
             description: `"${exercise.name}" has been added to your class plan.`,
           });
-          navigate('/plan');
         } else {
           throw new Error('Failed to add exercise to plan');
         }
@@ -142,7 +143,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
       });
       showFeedback(exercise.id, 'error');
     }
-  }, [onExerciseSelect, addExerciseToCurrentPlan, navigate, showFeedback, toast, currentExerciseCount]);
+  }, [onExerciseSelect, addExerciseToCurrentPlan, showFeedback, toast]);
 
   const handleExerciseSelect = useCallback((exercise: Exercise) => {
     setSelectedExercise(exercise);
@@ -259,26 +260,26 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     }
   }, [deleteUserExercise, showFeedback, toast]);
 
-  const handleResetToOriginal = useCallback(async (exercise: Exercise, e: React.MouseEvent) => {
+  const handleCustomizeSystemExercise = useCallback(async (exercise: Exercise, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!exercise.isSystemExercise || !exercise.isCustomized) return;
+    if (!exercise.isSystemExercise) return;
     
     try {
-      await resetSystemExerciseToOriginal(exercise.id);
+      await customizeSystemExercise(exercise, {});
       showFeedback(exercise.id, 'success');
       toast({
-        title: "Exercise reset",
-        description: `"${exercise.name}" has been reset to original.`,
+        title: "Exercise customized",
+        description: `"${exercise.name}" has been added to your custom exercises.`,
       });
     } catch (error) {
       showFeedback(exercise.id, 'error');
       toast({
         title: "Error",
-        description: "Failed to reset exercise.",
+        description: "Failed to customize exercise.",
         variant: "destructive",
       });
     }
-  }, [resetSystemExerciseToOriginal, showFeedback, toast]);
+  }, [customizeSystemExercise, showFeedback, toast]);
 
   if (!user) {
     return (
@@ -357,7 +358,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
           onEdit={handleEdit}
           onDuplicate={handleDuplicate}
           onDelete={handleDelete}
-          onResetToOriginal={handleResetToOriginal}
+          onCustomizeSystemExercise={handleCustomizeSystemExercise}
           observeImage={observeImage}
           favoriteExercises={preferences.favoriteExercises || []}
           hiddenExercises={preferences.hiddenExercises || []}

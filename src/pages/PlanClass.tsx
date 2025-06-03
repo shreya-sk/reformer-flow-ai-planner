@@ -6,11 +6,9 @@ import { useClassPlans } from '@/hooks/useClassPlans';
 import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
-import { ClassHeader } from '@/components/plan-class/ClassHeader';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { toast } from '@/hooks/use-toast';
 import { AuthPage } from '@/components/AuthPage';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ClassTeachingMode } from '@/components/ClassTeachingMode';
 import { ClassBuilder } from '@/components/ClassBuilder';
 import { Exercise } from '@/types/reformer';
@@ -18,11 +16,11 @@ import { Exercise } from '@/types/reformer';
 const PlanClass = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { saveClassPlan, classPlans } = useClassPlans();
-  const { preferences, toggleFavoriteExercise } = useUserPreferences();
-  const { exercises, updateUserExercise, customizeSystemExercise } = useExercises();
+  const { saveClassPlan } = useClassPlans();
+  const { preferences } = useUserPreferences();
+  const { updateUserExercise, customizeSystemExercise } = useExercises();
   const {
-    currentClass,
+    currentClassPlan,
     getRealExerciseCount,
     addExercise,
     removeExercise,
@@ -32,15 +30,11 @@ const PlanClass = () => {
     clearClassPlan
   } = usePersistedClassPlan();
   
-  const [activeTab, setActiveTab] = useState('builder');
   const [isTeachingMode, setIsTeachingMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const realExerciseCount = getRealExerciseCount();
-  const shortlistedExercises = exercises.filter(ex => 
-    preferences.favoriteExercises?.includes(ex.id)
-  );
 
   if (!user) {
     return <AuthPage />;
@@ -49,7 +43,7 @@ const PlanClass = () => {
   if (isTeachingMode) {
     return (
       <ClassTeachingMode 
-        classPlan={currentClass}
+        classPlan={currentClassPlan}
         onClose={() => setIsTeachingMode(false)}
       />
     );
@@ -58,10 +52,10 @@ const PlanClass = () => {
   const handleSaveClass = async () => {
     console.log('💾 Save attempt - real exercises:', realExerciseCount);
     console.log('💾 Current class state:', {
-      name: currentClass.name,
-      exerciseCount: currentClass.exercises.length,
+      name: currentClassPlan.name,
+      exerciseCount: currentClassPlan.exercises.length,
       realExerciseCount,
-      exercises: currentClass.exercises.map(ex => ({ 
+      exercises: currentClassPlan.exercises.map(ex => ({ 
         id: ex.id, 
         name: ex.name, 
         category: ex.category,
@@ -84,8 +78,8 @@ const PlanClass = () => {
     
     try {
       const classToSave = {
-        ...currentClass,
-        name: currentClass.name || `Class ${Date.now()}`,
+        ...currentClassPlan,
+        name: currentClassPlan.name || `Class ${Date.now()}`,
       };
       
       console.log('💾 Starting save process for:', classToSave.name, 'with', realExerciseCount, 'real exercises');
@@ -128,37 +122,6 @@ const PlanClass = () => {
     console.log('PlanClass handleAddCallout called with name:', name, 'position:', position);
     const { createCallout } = usePersistedClassPlan();
     createCallout(name, '#e5e7eb');
-  };
-
-  const handleUpdateCallout = (calloutId: string, newName: string) => {
-    console.log('PlanClass handleUpdateCallout called:', calloutId, newName);
-    const updatedExercises = currentClass.exercises.map(exercise => 
-      exercise.id === calloutId && exercise.category === 'callout'
-        ? { ...exercise, name: newName }
-        : exercise
-    );
-    reorderExercises(updatedExercises);
-  };
-
-  const handleDeleteCallout = (calloutId: string) => {
-    console.log('PlanClass handleDeleteCallout called:', calloutId);
-    const updatedExercises = currentClass.exercises.filter(exercise => 
-      !(exercise.id === calloutId && exercise.category === 'callout')
-    );
-    reorderExercises(updatedExercises);
-  };
-
-  const addToShortlist = (exercise: Exercise) => {
-    toggleFavoriteExercise(exercise.id);
-  };
-
-  const removeFromShortlist = (exerciseId: string) => {
-    toggleFavoriteExercise(exerciseId);
-  };
-
-  const addShortlistedToClass = (exercise: Exercise) => {
-    console.log('Adding shortlisted exercise to class:', exercise);
-    addExercise(exercise);
   };
 
   const handleUpdateExercise = async (updatedExercise: Exercise) => {
@@ -245,79 +208,23 @@ const PlanClass = () => {
         
         {process.env.NODE_ENV === 'development' && (
           <div className="mt-2 text-xs text-gray-600 bg-gray-100 p-2 rounded">
-            Debug: {currentClass.exercises.length} total, {realExerciseCount} real exercises
+            Debug: {currentClassPlan.exercises.length} total, {realExerciseCount} real exercises
           </div>
         )}
       </div>
 
-      <div className="px-2 sm:px-3 pt-0">
-        <Tabs defaultValue="builder" value={activeTab} onValueChange={setActiveTab} className="rounded-xl overflow-hidden shadow-md bg-white/80 backdrop-blur-sm">
-          <TabsList className="w-full grid grid-cols-2 bg-sage-50/70 p-1">
-            <TabsTrigger value="builder" className="rounded-lg data-[state=active]:bg-sage-100 data-[state=active]:text-sage-800">
-              Builder ({realExerciseCount})
-            </TabsTrigger>
-            <TabsTrigger value="shortlist" className="rounded-lg data-[state=active]:bg-sage-100 data-[state=active]:text-sage-800">
-              Favorites ({shortlistedExercises.length})
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="builder" className="py-0">
-            <ClassBuilder
-              currentClass={currentClass}
-              onRemoveExercise={removeExercise}
-              onReorderExercises={handleReorderExercises}
-              onUpdateExercise={handleUpdateExercise}
-              onAddExercise={handleAddExercise}
-              onAddCallout={handleAddCallout}
-              onUpdateClassName={updateClassName}
-              onSaveClass={handleSaveClass}
-            />
-          </TabsContent>
-          
-          <TabsContent value="shortlist" className="py-2">
-            <div className="p-3">
-              <h2 className="text-lg font-medium text-sage-800 mb-3">Favorite Exercises</h2>
-              {shortlistedExercises.length === 0 ? (
-                <div className="text-center py-6 bg-sage-50 rounded-xl">
-                  <p className="text-sage-600">No favorite exercises yet.</p>
-                  <p className="text-sm text-sage-500 mt-2">
-                    Add exercises to your favorites from the exercise library.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {shortlistedExercises.map(exercise => (
-                    <div 
-                      key={exercise.id} 
-                      className="flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-sage-100"
-                    >
-                      <div>
-                        <h3 className="font-medium text-sage-800">{exercise.name}</h3>
-                        <p className="text-sm text-sage-600">
-                          {exercise.duration} min • {exercise.category}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => addShortlistedToClass(exercise)}
-                          className="px-3 py-1 bg-sage-100 text-sage-700 rounded-lg hover:bg-sage-200 text-sm"
-                        >
-                          Add
-                        </button>
-                        <button 
-                          onClick={() => removeFromShortlist(exercise.id)}
-                          className="px-3 py-1 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 text-sm"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+      {/* Class Builder Content */}
+      <div className="px-2 sm:px-3 pt-4">
+        <ClassBuilder
+          currentClass={currentClassPlan}
+          onRemoveExercise={removeExercise}
+          onReorderExercises={handleReorderExercises}
+          onUpdateExercise={handleUpdateExercise}
+          onAddExercise={handleAddExercise}
+          onAddCallout={handleAddCallout}
+          onUpdateClassName={updateClassName}
+          onSaveClass={handleSaveClass}
+        />
       </div>
 
       <BottomNavigation onPlanClass={() => navigate('/plan')} />

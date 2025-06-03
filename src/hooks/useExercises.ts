@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment, TeachingFocus } from '@/types/reformer';
@@ -13,13 +14,15 @@ export const useExercises = () => {
     try {
       setLoading(true);
       
-      // Fetch system exercises
+      // Fetch system exercises (only active ones)
       const { data: systemData, error: systemError } = await supabase
         .from('system_exercises')
         .select('*')
         .eq('is_active', true);
 
       if (systemError) throw systemError;
+
+      console.log('📊 System exercises fetched:', systemData?.length || 0);
 
       const systemExercises = systemData?.map(exercise => ({
         id: exercise.id,
@@ -57,6 +60,7 @@ export const useExercises = () => {
       })) || [];
 
       let userExercises: Exercise[] = [];
+      let storeExercises: Exercise[] = [];
       
       // Fetch user exercises if authenticated
       if (user) {
@@ -66,6 +70,8 @@ export const useExercises = () => {
           .eq('user_id', user.id);
 
         if (userError) throw userError;
+
+        console.log('📊 User exercises fetched:', userData?.length || 0);
 
         userExercises = userData?.map(exercise => ({
           id: exercise.id,
@@ -101,9 +107,68 @@ export const useExercises = () => {
           createdAt: new Date(exercise.created_at),
           updatedAt: new Date(exercise.updated_at)
         })) || [];
+
+        // Fetch store exercises that user has added to library
+        const { data: libraryData, error: libraryError } = await supabase
+          .from('user_exercise_library')
+          .select(`
+            store_exercise_id,
+            exercise_store (*)
+          `)
+          .eq('user_id', user.id)
+          .not('store_exercise_id', 'is', null);
+
+        if (libraryError) throw libraryError;
+
+        console.log('📊 Store exercises in library:', libraryData?.length || 0);
+
+        storeExercises = libraryData?.map(item => {
+          const storeExercise = item.exercise_store;
+          return {
+            id: storeExercise.id,
+            name: storeExercise.name,
+            category: storeExercise.category as ExerciseCategory,
+            position: 'supine' as const,
+            primaryMuscle: 'core' as const,
+            duration: storeExercise.duration,
+            springs: storeExercise.springs as SpringSetting,
+            difficulty: storeExercise.difficulty as DifficultyLevel,
+            intensityLevel: 'medium' as const,
+            muscleGroups: (storeExercise.muscle_groups || []) as MuscleGroup[],
+            equipment: (storeExercise.equipment || []) as Equipment[],
+            description: storeExercise.description || '',
+            image: storeExercise.image_url || '',
+            videoUrl: storeExercise.video_url || '',
+            notes: storeExercise.notes || '',
+            cues: storeExercise.cues || [],
+            setup: storeExercise.setup || '',
+            repsOrDuration: storeExercise.reps_or_duration || '',
+            tempo: storeExercise.tempo || '',
+            targetAreas: storeExercise.target_areas || [],
+            breathingCues: storeExercise.breathing_cues || [],
+            teachingFocus: (storeExercise.teaching_focus || []) as TeachingFocus[],
+            modifications: storeExercise.modifications || [],
+            progressions: storeExercise.progressions || [],
+            regressions: storeExercise.regressions || [],
+            transitions: [],
+            contraindications: storeExercise.contraindications || [],
+            isPregnancySafe: storeExercise.is_pregnancy_safe || false,
+            isCustom: false,
+            isSystemExercise: false,
+            isStoreExercise: true,
+            createdAt: new Date(storeExercise.created_at),
+            updatedAt: new Date(storeExercise.updated_at)
+          };
+        }) || [];
       }
 
-      const allExercises = [...systemExercises, ...userExercises];
+      const allExercises = [...systemExercises, ...userExercises, ...storeExercises];
+      console.log('📊 Total exercises loaded:', allExercises.length, {
+        system: systemExercises.length,
+        user: userExercises.length,
+        store: storeExercises.length
+      });
+      
       setExercises(allExercises as Exercise[]);
     } catch (err) {
       console.error('Error fetching exercises:', err);
@@ -231,8 +296,22 @@ export const useExercises = () => {
     }
   };
 
+  // Create a customized copy of a system exercise
   const customizeSystemExercise = async (exercise: Exercise, customizations: Partial<Exercise>) => {
-    return updateUserExercise(exercise.id, customizations);
+    if (!user) return;
+
+    // Create a new user exercise based on the system exercise with customizations
+    const customizedExercise = {
+      ...exercise,
+      ...customizations,
+      name: customizations.name || `${exercise.name} (Custom)`,
+      isCustom: true,
+      isSystemExercise: false
+    };
+
+    const { id, createdAt, updatedAt, isSystemExercise, isCustomized, ...insertData } = customizedExercise;
+    
+    return createUserExercise(insertData);
   };
 
   const resetSystemExerciseToOriginal = async (exerciseId: string) => {
