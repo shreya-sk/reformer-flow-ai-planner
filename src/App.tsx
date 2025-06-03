@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { usePWA } from '@/hooks/usePWA';
 import { backgroundSync, processSyncQueue } from '@/utils/backgroundSync';
+import { AuthPage } from '@/components/AuthPage';
 import Index from './pages/Index';
 import Library from './pages/Library';
 import PlanClass from './pages/PlanClass';
@@ -61,6 +62,7 @@ function AppContent() {
         <Toaster />
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<AuthPage />} />
           <Route path="/library" element={<Library />} />
           <Route path="/plan" element={<PlanClass />} />
           <Route path="/class-plans" element={<ClassPlans />} />

@@ -16,14 +16,14 @@
       "type": "image/x-icon"
     },
     {
-      "src": "/placeholder.svg",
-      "type": "image/svg+xml",
+      "src": "/app-icon-192.png",
+      "type": "image/png",
       "sizes": "192x192",
       "purpose": "any maskable"
     },
     {
-      "src": "/placeholder.svg",
-      "type": "image/svg+xml", 
+      "src": "/app-icon-512.png",
+      "type": "image/png", 
       "sizes": "512x512",
       "purpose": "any maskable"
     }
@@ -31,10 +31,26 @@
   "categories": ["health", "fitness", "productivity"],
   "screenshots": [
     {
-      "src": "/placeholder.svg",
-      "type": "image/svg+xml",
+      "src": "/app-screenshot.png",
+      "type": "image/png",
       "sizes": "540x720",
       "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Plan New Class",
+      "short_name": "Plan Class",
+      "description": "Create a new Pilates class plan",
+      "url": "/plan",
+      "icons": [{ "src": "/app-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Exercise Library",
+      "short_name": "Library",
+      "description": "Browse exercise library",
+      "url": "/library",
+      "icons": [{ "src": "/app-icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

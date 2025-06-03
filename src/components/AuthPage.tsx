@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,12 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sparkles, Mail, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
-
 export const AuthPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
+  const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +34,8 @@ export const AuthPage = () => {
         title: "Welcome back!",
         description: "Successfully signed in.",
       });
+      // Redirect to home page after successful sign in
+      navigate('/');
     }
     
     setLoading(false);
@@ -55,6 +58,8 @@ export const AuthPage = () => {
         title: "Account created!",
         description: "Please check your email to verify your account.",
       });
+      // Optionally redirect to home page or stay on auth page
+      navigate('/');
     }
     
     setLoading(false);

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,17 +5,18 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Dumbbell, Users, Clock, Play, ArrowRight, Store, Plus, Heart } from 'lucide-react';
+import { Dumbbell, Users, Clock, Play, ArrowRight, Store, Plus, Heart, LogIn, Sparkles } from 'lucide-react';
 import { OnboardingFlow } from '@/components/OnboardingFlow';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { useStatistics } from '@/hooks/useStatistics';
 import { useExercises } from '@/hooks/useExercises';
 import { useClassPlans } from '@/hooks/useClassPlans';
 import { ProfileButton } from '@/components/ProfileButton';
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { stats, loading: statsLoading } = useStatistics();
   const { exercises, loading: exercisesLoading } = useExercises();
@@ -45,12 +45,55 @@ const Index = () => {
 
   const classPlanCoverImage = '/lovable-uploads/f986f49e-45f2-4dd4-8758-4be41a199bfd.png';
 
-  if (!user) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 pb-24">
         <div className="flex items-center justify-center h-64 px-4">
           <div className="text-center p-6 bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl">
-            <p className="text-sage-600 text-sm">Please sign in to access the dashboard.</p>
+            <div className="animate-spin w-6 h-6 border-3 border-sage-600 border-t-transparent rounded-full mx-auto mb-3"></div>
+            <p className="text-sage-600 text-sm">Loading...</p>
+          </div>
+        </div>
+        <BottomNavigation />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 pb-24">
+        <PWAInstallPrompt />
+        
+        {/* Enhanced Welcome Screen for Non-Authenticated Users */}
+        <div className="flex flex-col items-center justify-center min-h-screen px-4">
+          <div className="text-center p-8 bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl max-w-md mx-auto">
+            <div className="flex items-center justify-center space-x-2 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-sage-500 to-sage-600 rounded-xl flex items-center justify-center">
+                <Sparkles className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-sage-700 to-sage-900 bg-clip-text text-transparent">
+                Reformer Flow
+              </h1>
+            </div>
+            
+            <h2 className="text-xl font-semibold text-sage-800 mb-3">
+              Welcome to your AI-powered Pilates studio
+            </h2>
+            <p className="text-sage-600 mb-8 leading-relaxed">
+              Create personalized Reformer classes, track your progress, and enhance your teaching with intelligent exercise recommendations.
+            </p>
+            
+            <Button 
+              onClick={() => navigate('/auth')}
+              className="w-full bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-2xl px-8 py-4 font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-lg"
+            >
+              <LogIn className="h-5 w-5 mr-2" />
+              Get Started
+            </Button>
+            
+            <p className="text-xs text-sage-500 mt-4">
+              Sign in to access your personalized dashboard
+            </p>
           </div>
         </div>
         <BottomNavigation />
@@ -86,6 +129,8 @@ const Index = () => {
       )}
       
       <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white via-60% to-sage-200 pb-24 overflow-hidden relative">
+        <PWAInstallPrompt />
+        
         {/* Enhanced Background with More Blur Effects */}
         <div className="absolute inset-0 opacity-12">
           <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-sage-200 to-sage-300 rounded-full blur-3xl"></div>
