@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
-import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
+import { useClassPlanSync } from '@/hooks/useClassPlanSync';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTouchGestures } from '@/hooks/useTouchGestures';
 import { useLazyLoading } from '@/hooks/usePerformanceOptimization';
@@ -24,7 +24,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   const { user } = useAuth();
   const { preferences, toggleFavoriteExercise, toggleHiddenExercise } = useUserPreferences();
   const { exercises, loading, duplicateExercise, deleteUserExercise, resetSystemExerciseToOriginal, createUserExercise } = useExercises();
-  const { addExercise } = usePersistedClassPlan();
+  const { addExerciseToCurrentPlan, currentExerciseCount } = useClassPlanSync();
   const isMobile = useIsMobile();
   const { observeImage } = useLazyLoading();
 
@@ -48,7 +48,6 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     onPullToRefresh: async () => {
       setIsRefreshing(true);
       try {
-        // Trigger refresh of exercises data
         window.location.reload();
       } finally {
         setIsRefreshing(false);
@@ -105,7 +104,8 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   }, [showPregnancySafe, showHidden, selectedCategory, selectedMuscleGroup]);
 
   const handleAddToClass = useCallback((exercise: Exercise) => {
-    console.log('🔵 Adding exercise to class:', exercise.name);
+    console.log('🔵 MobileOptimizedExerciseLibrary: Adding exercise to class:', exercise.name);
+    console.log('🔵 MobileOptimizedExerciseLibrary: Current exercise count:', currentExerciseCount);
     
     // Haptic feedback simulation
     if ('vibrate' in navigator) {
@@ -120,17 +120,21 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
           description: `"${exercise.name}" has been added to your class plan.`,
         });
       } else {
-        addExercise(exercise);
-        console.log('🔵 Exercise added successfully, navigating to plan');
-        toast({
-          title: "Added to class",
-          description: `"${exercise.name}" has been added to your class plan.`,
-        });
-        navigate('/plan');
+        const success = addExerciseToCurrentPlan(exercise);
+        if (success) {
+          console.log('🔵 MobileOptimizedExerciseLibrary: Exercise added successfully, navigating to plan');
+          toast({
+            title: "Added to class",
+            description: `"${exercise.name}" has been added to your class plan.`,
+          });
+          navigate('/plan');
+        } else {
+          throw new Error('Failed to add exercise to plan');
+        }
       }
       showFeedback(exercise.id, 'success');
     } catch (error) {
-      console.error('🔴 Error adding exercise:', error);
+      console.error('🔴 MobileOptimizedExerciseLibrary: Error adding exercise:', error);
       toast({
         title: "Error",
         description: "Failed to add exercise to class.",
@@ -138,7 +142,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
       });
       showFeedback(exercise.id, 'error');
     }
-  }, [onExerciseSelect, addExercise, navigate, showFeedback, toast]);
+  }, [onExerciseSelect, addExerciseToCurrentPlan, navigate, showFeedback, toast, currentExerciseCount]);
 
   const handleExerciseSelect = useCallback((exercise: Exercise) => {
     setSelectedExercise(exercise);

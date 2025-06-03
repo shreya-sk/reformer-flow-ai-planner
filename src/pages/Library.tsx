@@ -7,7 +7,7 @@ import { BottomNavigation } from '@/components/BottomNavigation';
 import { AuthPage } from '@/components/AuthPage';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
-import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
+import { useClassPlanSync } from '@/hooks/useClassPlanSync';
 import { toast } from '@/hooks/use-toast';
 
 const Library = () => {
@@ -15,7 +15,7 @@ const Library = () => {
   const { user, loading } = useAuth();
   const { preferences } = useUserPreferences();
   const { exercises, loading: exercisesLoading, refetch } = useExercises();
-  const { addExercise } = usePersistedClassPlan();
+  const { addExerciseToCurrentPlan, currentExerciseCount } = useClassPlanSync();
 
   if (loading || exercisesLoading) {
     return (
@@ -30,22 +30,26 @@ const Library = () => {
   }
 
   const handleAddExercise = (exercise: Exercise) => {
-    console.log('Library handleAddExercise called with:', exercise);
+    console.log('🔵 Library: handleAddExercise called with:', exercise.name);
+    console.log('🔵 Library: Current exercise count before adding:', currentExerciseCount);
     
     try {
-      console.log('Calling addExercise with original exercise:', exercise);
-      addExercise(exercise);
-      console.log('Exercise added to class plan successfully');
+      const success = addExerciseToCurrentPlan(exercise);
       
-      toast({
-        title: "Added to class",
-        description: `"${exercise.name}" has been added to your class plan.`,
-      });
-      
-      // Navigate to plan page to show the updated class
-      navigate('/plan');
+      if (success) {
+        console.log('🔵 Library: Exercise added successfully, navigating to plan');
+        toast({
+          title: "Added to class",
+          description: `"${exercise.name}" has been added to your class plan.`,
+        });
+        
+        // Navigate to plan page to show the updated class
+        navigate('/plan');
+      } else {
+        throw new Error('Failed to add exercise to plan');
+      }
     } catch (error) {
-      console.error('Error in Library handleAddExercise:', error);
+      console.error('🔴 Library: Error in handleAddExercise:', error);
       toast({
         title: "Error",
         description: "Failed to add exercise to class.",

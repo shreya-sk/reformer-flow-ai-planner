@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -99,14 +98,13 @@ export const useExerciseStore = () => {
     }
   };
 
-  // Add exercise to user library
+  // Simplified addToUserLibrary - this just tracks the relationship
   const addToUserLibrary = async (storeExerciseId: string) => {
     if (!user) {
       throw new Error('User not authenticated');
     }
 
     try {
-      // Check if already in library
       const { data: existing, error: checkError } = await supabase
         .from('user_exercise_library')
         .select('id')
@@ -123,7 +121,6 @@ export const useExerciseStore = () => {
         return;
       }
 
-      // Add to library
       const { error: insertError } = await supabase
         .from('user_exercise_library')
         .insert([{
@@ -133,21 +130,6 @@ export const useExerciseStore = () => {
 
       if (insertError) throw insertError;
 
-      // Update download count
-      const { data: currentData, error: fetchError } = await supabase
-        .from('exercise_store')
-        .select('download_count')
-        .eq('id', storeExerciseId)
-        .single();
-
-      if (!fetchError && currentData) {
-        await supabase
-          .from('exercise_store')
-          .update({ download_count: (currentData.download_count || 0) + 1 })
-          .eq('id', storeExerciseId);
-      }
-
-      // Update local state
       setUserLibrary(prev => [...prev, storeExerciseId]);
       
       console.log('Successfully added exercise to library:', storeExerciseId);
@@ -164,7 +146,6 @@ export const useExerciseStore = () => {
     }
 
     try {
-      // Get all exercises in the bundle
       const { data: bundleExercises, error } = await supabase
         .from('exercise_store')
         .select('id')
@@ -172,7 +153,6 @@ export const useExerciseStore = () => {
 
       if (error) throw error;
 
-      // Add all exercises to user library
       const exerciseIds = bundleExercises?.map(ex => ex.id) || [];
       
       for (const exerciseId of exerciseIds) {
@@ -183,7 +163,6 @@ export const useExerciseStore = () => {
         }
       }
 
-      // Update bundle download count
       const { data: currentData, error: fetchError } = await supabase
         .from('exercise_bundles')
         .select('download_count')

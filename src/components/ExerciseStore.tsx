@@ -1,12 +1,11 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { ExerciseStoreHeader } from './store/ExerciseStoreHeader';
-import { ExerciseStoreBundles } from './store/ExerciseStoreBundles';
-import { ExerciseStoreGrid } from './store/ExerciseStoreGrid';
-import { ExerciseStoreCart } from './store/ExerciseStoreCart';
+import { CleanExerciseStoreHeader } from './store/CleanExerciseStoreHeader';
+import { CleanExerciseStoreGrid } from './store/CleanExerciseStoreGrid';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { useExerciseStore } from '@/hooks/useExerciseStore';
+import { useStoreIntegration } from '@/hooks/useStoreIntegration';
 import { useToast } from '@/hooks/use-toast';
 
 export const ExerciseStore = () => {
@@ -14,79 +13,31 @@ export const ExerciseStore = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [showCart, setShowCart] = useState(false);
-  const [cartItems, setCartItems] = useState<string[]>([]);
 
   const {
     storeExercises,
-    bundles,
     userLibrary,
     loading,
-    addToUserLibrary,
-    addBundleToLibrary,
-    removeFromUserLibrary
+    refetch
   } = useExerciseStore();
 
-  const handleAddToCart = (exerciseId: string) => {
-    setCartItems(prev => [...prev, exerciseId]);
-    toast({
-      title: "Added to cart",
-      description: "Exercise added to your cart successfully.",
-    });
-  };
+  const { addStoreExerciseToLibrary } = useStoreIntegration();
 
-  const handleRemoveFromCart = (exerciseId: string) => {
-    setCartItems(prev => prev.filter(id => id !== exerciseId));
-  };
-
-  const handleAddToLibrary = async (exerciseIds: string[]) => {
+  const handleAddToLibrary = async (exerciseId: string) => {
     try {
-      await Promise.all(exerciseIds.map(id => addToUserLibrary(id)));
-      setCartItems([]);
-      setShowCart(false);
-      toast({
-        title: "Success!",
-        description: `${exerciseIds.length} exercise(s) added to your library.`,
-      });
-    } catch (error) {
-      console.error('Error adding exercises to library:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add exercises to library. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
+      const exercise = storeExercises.find(ex => ex.id === exerciseId);
+      if (!exercise) {
+        throw new Error('Exercise not found');
+      }
 
-  const handleSingleAddToLibrary = async (exerciseId: string) => {
-    try {
-      await addToUserLibrary(exerciseId);
-      toast({
-        title: "Added to library!",
-        description: "Exercise added to your library successfully.",
-      });
+      await addStoreExerciseToLibrary(exercise);
+      await refetch(); // Refresh to show updated library
+      
     } catch (error) {
       console.error('Error adding exercise to library:', error);
       toast({
         title: "Error",
         description: "Failed to add exercise to library. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleAddBundle = async (bundleId: string) => {
-    try {
-      await addBundleToLibrary(bundleId);
-      toast({
-        title: "Bundle added!",
-        description: "All exercises from the bundle have been added to your library.",
-      });
-    } catch (error) {
-      console.error('Error adding bundle to library:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add bundle to library. Please try again.",
         variant: "destructive",
       });
     }
@@ -107,9 +58,9 @@ export const ExerciseStore = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 pb-24">
+      <div className="min-h-screen bg-white pb-24">
         <div className="flex items-center justify-center h-64 px-4">
-          <div className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-3xl shadow-lg">
+          <div className="text-center p-8">
             <div className="animate-spin w-8 h-8 border-4 border-sage-600 border-t-transparent rounded-full mx-auto mb-4"></div>
             <p className="text-sage-600">Loading store...</p>
           </div>
@@ -120,46 +71,23 @@ export const ExerciseStore = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 pb-24">
-      <ExerciseStoreHeader
+    <div className="min-h-screen bg-white pb-24">
+      <CleanExerciseStoreHeader
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
         selectedCategory={selectedCategory}
         onCategoryChange={setSelectedCategory}
-        cartCount={cartItems.length}
-        onCartClick={() => setShowCart(true)}
       />
 
-      <div className="p-4 space-y-6">
-        <ExerciseStoreBundles
-          bundles={bundles}
-          exercises={storeExercises}
-          onAddBundle={handleAddBundle}
-          onAddExercise={handleSingleAddToLibrary}
-          userLibrary={userLibrary}
-        />
-
-        <ExerciseStoreGrid
+      <div className="p-4">
+        <CleanExerciseStoreGrid
           exercises={storeExercises}
           searchTerm={searchTerm}
           selectedCategory={selectedCategory}
-          onAddToCart={handleAddToCart}
-          onAddToLibrary={handleSingleAddToLibrary}
-          cartItems={cartItems}
+          onAddToLibrary={handleAddToLibrary}
           userLibrary={userLibrary}
         />
       </div>
-
-      {showCart && (
-        <ExerciseStoreCart
-          isOpen={showCart}
-          onClose={() => setShowCart(false)}
-          cartItems={cartItems}
-          exercises={storeExercises}
-          onRemoveItem={handleRemoveFromCart}
-          onAddToLibrary={handleAddToLibrary}
-        />
-      )}
 
       <BottomNavigation />
     </div>
