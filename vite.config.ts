@@ -76,19 +76,35 @@ export default defineConfig(({ mode }) => ({
             type: 'image/x-icon'
           },
           {
-            src: '/placeholder.svg',
+            src: '/app-icon-192.svg',
             type: 'image/svg+xml',
             sizes: '192x192',
             purpose: 'any maskable'
           },
           {
-            src: '/placeholder.svg',
+            src: '/app-icon-512.svg',
             type: 'image/svg+xml',
             sizes: '512x512',
             purpose: 'any maskable'
           }
         ],
         categories: ['health', 'fitness', 'productivity'],
+        shortcuts: [
+          {
+            name: 'Plan New Class',
+            short_name: 'Plan Class',
+            description: 'Create a new Pilates class plan',
+            url: '/plan',
+            icons: [{ src: '/app-icon-192.svg', sizes: '192x192', type: 'image/svg+xml' }]
+          },
+          {
+            name: 'Exercise Library',
+            short_name: 'Library', 
+            description: 'Browse exercise library',
+            url: '/library',
+            icons: [{ src: '/app-icon-192.svg', sizes: '192x192', type: 'image/svg+xml' }]
+          }
+        ]
       },
     }),
   ].filter(Boolean),

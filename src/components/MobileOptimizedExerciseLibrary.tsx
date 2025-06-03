@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +5,8 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
 import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useTouchGestures } from '@/hooks/useTouchGestures';
+import { useLazyLoading } from '@/hooks/usePerformanceOptimization';
 import { Exercise, ExerciseCategory, MuscleGroup } from '@/types/reformer';
 import { MobileExerciseGrid } from './mobile/MobileExerciseGrid';
 import { MobileLibraryHeader } from './mobile/MobileLibraryHeader';
@@ -25,6 +26,7 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   const { exercises, loading, duplicateExercise, deleteUserExercise, resetSystemExerciseToOriginal, createUserExercise } = useExercises();
   const { addExercise } = usePersistedClassPlan();
   const isMobile = useIsMobile();
+  const { observeImage } = useLazyLoading();
 
   // State
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,10 +37,34 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   const [isCreating, setIsCreating] = useState(false);
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [feedbackState, setFeedbackState] = useState<{[key: string]: 'success' | 'error' | null}>({});
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState<ExerciseCategory | 'all'>('all');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<MuscleGroup | 'all'>('all');
+
+  // Touch gestures for mobile navigation
+  const { isPulling, pullDistance } = useTouchGestures({
+    onPullToRefresh: async () => {
+      setIsRefreshing(true);
+      try {
+        // Trigger refresh of exercises data
+        window.location.reload();
+      } finally {
+        setIsRefreshing(false);
+      }
+    },
+    onSwipeLeft: () => {
+      if (!showFilters && !selectedExercise) {
+        navigate('/plan');
+      }
+    },
+    onSwipeRight: () => {
+      if (!showFilters && !selectedExercise) {
+        navigate('/');
+      }
+    },
+  });
 
   // Show feedback for actions
   const showFeedback = useCallback((exerciseId: string, type: 'success' | 'error') => {
@@ -80,6 +106,11 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
 
   const handleAddToClass = useCallback((exercise: Exercise) => {
     console.log('🔵 Adding exercise to class:', exercise.name);
+    
+    // Haptic feedback simulation
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50);
+    }
     
     try {
       if (onExerciseSelect) {
@@ -166,6 +197,9 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
 
   const handleToggleFavorite = useCallback((exerciseId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if ('vibrate' in navigator) {
+      navigator.vibrate(30);
+    }
     toggleFavoriteExercise(exerciseId);
     showFeedback(exerciseId, 'success');
   }, [toggleFavoriteExercise, showFeedback]);
@@ -242,20 +276,6 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
     }
   }, [resetSystemExerciseToOriginal, showFeedback, toast]);
 
-  const observeImage = useCallback((element: HTMLImageElement, src: string) => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const img = entry.target as HTMLImageElement;
-          img.src = src;
-          observer.unobserve(img);
-        }
-      });
-    });
-    
-    observer.observe(element);
-  }, []);
-
   if (!user) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -273,7 +293,22 @@ export const MobileOptimizedExerciseLibrary = ({ onExerciseSelect }: MobileOptim
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
+    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 relative overflow-hidden">
+      {/* Pull to Refresh Indicator */}
+      {isPulling && (
+        <div 
+          className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center bg-sage-100 transition-all duration-200"
+          style={{ 
+            height: `${Math.min(pullDistance, 80)}px`,
+            opacity: Math.min(pullDistance / 60, 1)
+          }}
+        >
+          <div className="text-sage-600 text-sm font-medium">
+            {pullDistance > 60 ? 'Release to refresh' : 'Pull to refresh'}
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <MobileLibraryHeader
         searchTerm={searchTerm}

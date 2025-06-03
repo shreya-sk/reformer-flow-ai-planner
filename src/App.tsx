@@ -7,6 +7,8 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { usePWA } from '@/hooks/usePWA';
 import { backgroundSync, processSyncQueue } from '@/utils/backgroundSync';
 import { AuthPage } from '@/components/AuthPage';
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
+import { OfflineIndicator } from '@/components/OfflineIndicator';
 import Index from './pages/Index';
 import Library from './pages/Library';
 import PlanClass from './pages/PlanClass';
@@ -58,6 +60,8 @@ function AppContent() {
 
   return (
     <div className="min-h-screen w-full">
+      <PWAInstallPrompt />
+      <OfflineIndicator />
       <main className="w-full">
         <Toaster />
         <Routes>
