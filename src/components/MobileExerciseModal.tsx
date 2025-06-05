@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,7 +36,7 @@ export const MobileExerciseModal = ({
   const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
   const isCustom = exercise.isCustom || false;
   const isSystemExercise = exercise.isSystemExercise || false;
-  const isCustomized = exercise.isCustomized || false;
+  const isModified = exercise.isModified || false;
 
   const handleAddToClass = async () => {
     if (!onAddToClass || isAdding) return;
@@ -119,7 +118,7 @@ export const MobileExerciseModal = ({
 
   const getExerciseStatus = () => {
     if (isCustom) return { label: 'Custom', color: 'bg-blue-500' };
-    if (isCustomized) return { label: 'Modified', color: 'bg-orange-500' };
+    if (isModified) return { label: 'Modified', color: 'bg-orange-500' };
     if (isSystemExercise) return { label: 'System', color: 'bg-gray-500' };
     return { label: 'Exercise', color: 'bg-gray-500' };
   };

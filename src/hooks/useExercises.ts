@@ -54,7 +54,7 @@ export const useExercises = () => {
         contraindications: exercise.contraindications || [],
         isPregnancySafe: exercise.is_pregnancy_safe || false,
         isSystemExercise: true,
-        isCustomized: false,
+        isModified: false,
         createdAt: new Date(exercise.created_at),
         updatedAt: new Date(exercise.updated_at)
       })) || [];
@@ -154,8 +154,8 @@ export const useExercises = () => {
             contraindications: storeExercise.contraindications || [],
             isPregnancySafe: storeExercise.is_pregnancy_safe || false,
             isCustom: false,
-            isSystemExercise: false,
-            isStoreExercise: true,
+            isSystemExercise: true,
+            isModified: false,
             createdAt: new Date(storeExercise.created_at),
             updatedAt: new Date(storeExercise.updated_at)
           };
@@ -274,7 +274,7 @@ export const useExercises = () => {
       isCustom: true
     };
     
-    const { id, createdAt, updatedAt, isSystemExercise, isCustomized, ...insertData } = duplicatedData;
+    const { id, createdAt, updatedAt, isSystemExercise, isModified, ...insertData } = duplicatedData;
     
     return createUserExercise(insertData);
   };
@@ -309,7 +309,7 @@ export const useExercises = () => {
       isSystemExercise: false
     };
 
-    const { id, createdAt, updatedAt, isSystemExercise, isCustomized, ...insertData } = customizedExercise;
+    const { id, createdAt, updatedAt, isSystemExercise, isModified, ...insertData } = customizedExercise;
     
     return createUserExercise(insertData);
   };

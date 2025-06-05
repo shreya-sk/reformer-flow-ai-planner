@@ -58,7 +58,7 @@ export const ExerciseDetailModal = ({
 
   const isCustomExercise = exercise.isCustom || false;
   const isSystemExercise = exercise.isSystemExercise || false;
-  const isCustomized = exercise.isCustomized || false;
+  const isModified = exercise.isModified || false;
   const isHidden = preferences.hiddenExercises?.includes(exercise.id) || false;
   const isFavorite = preferences.favoriteExercises?.includes(exercise.id) || false;
   const canEdit = isCustomExercise || isSystemExercise;
@@ -211,7 +211,7 @@ export const ExerciseDetailModal = ({
             <div className="flex-1 overflow-y-auto p-4">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-sage-800">Edit Exercise</h2>
-                {isCustomized && isSystemExercise && (
+                {isModified && isSystemExercise && (
                   <Button
                     onClick={handleResetToOriginal}
                     variant="outline"
@@ -240,7 +240,7 @@ export const ExerciseDetailModal = ({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-sage-800">Edit Exercise</h2>
-                {isCustomized && isSystemExercise && (
+                {isModified && isSystemExercise && (
                   <Button
                     onClick={handleResetToOriginal}
                     variant="outline"
@@ -275,7 +275,7 @@ export const ExerciseDetailModal = ({
         isHidden={isHidden}
         isFavorite={isFavorite}
         isCustomExercise={isCustomExercise}
-        isCustomized={isCustomized}
+        isModified={isModified}
         detailPrefs={detailPrefs}
         preferences={preferences}
         onToggleHidden={handleToggleHidden}
@@ -302,7 +302,7 @@ export const ExerciseDetailModal = ({
               isHidden={isHidden}
               isFavorite={isFavorite}
               isCustomExercise={isCustomExercise}
-              isCustomized={isCustomized}
+              isModified={isModified}
               onToggleHidden={handleToggleHidden}
               onToggleFavorite={handleToggleFavorite}
               onDuplicate={handleDuplicate}

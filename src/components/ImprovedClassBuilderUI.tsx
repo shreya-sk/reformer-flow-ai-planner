@@ -99,7 +99,7 @@ export const ImprovedClassBuilderUI = ({
                         Custom
                       </Badge>
                     )}
-                    {exercise.isSystemExercise && exercise.isCustomized && (
+                    {exercise.isSystemExercise && exercise.isModified && (
                       <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
                         Modified
                       </Badge>

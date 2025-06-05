@@ -9,11 +9,11 @@ interface ExerciseStatusBadgeProps {
 export const ExerciseStatusBadge = ({ exercise }: ExerciseStatusBadgeProps) => {
   const isCustomExercise = exercise.isCustom || false;
   const isSystemExercise = exercise.isSystemExercise || false;
-  const isCustomized = exercise.isCustomized || false;
+  const isModified = exercise.isModified || false;
 
   const getExerciseStatus = () => {
     if (isCustomExercise) return { label: 'Custom', color: 'bg-blue-500' };
-    if (isCustomized) return { label: 'Modified', color: 'bg-orange-500' };
+    if (isModified) return { label: 'Modified', color: 'bg-orange-500' };
     if (isSystemExercise) return { label: 'System', color: 'bg-gray-500' };
     return { label: 'Exercise', color: 'bg-gray-500' };
   };

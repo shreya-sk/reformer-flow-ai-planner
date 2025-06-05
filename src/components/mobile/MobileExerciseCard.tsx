@@ -46,7 +46,7 @@ export const MobileExerciseCard = ({
 
   const isCustom = exercise.isCustom || false;
   const isSystemExercise = exercise.isSystemExercise || false;
-  const isCustomized = exercise.isCustomized || false;
+  const isModified = exercise.isModified || false;
 
   useEffect(() => {
     if (imageRef.current && exercise.image) {
@@ -158,7 +158,7 @@ export const MobileExerciseCard = ({
               Hidden
             </Badge>
           )}
-          {isCustomized && isSystemExercise && (
+          {isModified && isSystemExercise && (
             <Badge className="text-[8px] bg-orange-500/90 text-white px-1.5 py-0.5 backdrop-blur-sm">
               Modified
             </Badge>
