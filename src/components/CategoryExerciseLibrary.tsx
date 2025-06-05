@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronRight, Dumbbell, Heart, Clock, Search, Filter, Baby, Plus, Copy, Edit } from 'lucide-react';
+import { ChevronRight, Dumbbell, Heart, Clock, Search, Filter, Baby, Plus, Copy, Edit, Settings } from 'lucide-react';
 import { Exercise, ExerciseCategory } from '@/types/reformer';
 import { useExercises } from '@/hooks/useExercises';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
@@ -46,7 +46,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   const [showFilters, setShowFilters] = useState(false);
   const [showExerciseForm, setShowExerciseForm] = useState(false);
   const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
-  const { exercises, createUserExercise, updateUserExercise } = useExercises();
+  const { exercises, createUserExercise, updateUserExercise, customizeSystemExercise } = useExercises();
   const { preferences, toggleFavoriteExercise, togglePregnancySafeOnly } = useUserPreferences();
 
   // Group exercises by category
@@ -151,8 +151,23 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   };
 
   const handleEditExercise = (exercise: Exercise) => {
-    setExerciseToEdit(exercise);
-    setShowExerciseForm(true);
+    if (exercise.isSystemExercise) {
+      // For system exercises, create a customized version
+      handleCustomizeSystemExercise(exercise);
+    } else {
+      // For custom exercises, edit directly
+      setExerciseToEdit(exercise);
+      setShowExerciseForm(true);
+    }
+  };
+
+  const handleCustomizeSystemExercise = async (exercise: Exercise) => {
+    try {
+      await customizeSystemExercise(exercise, {});
+      // The hook will add "(Custom)" to the name automatically
+    } catch (error) {
+      console.error('Error customizing system exercise:', error);
+    }
   };
 
   const handleSaveExercise = async (exercise: Exercise) => {
@@ -268,21 +283,42 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
                     >
                       <Copy className="h-4 w-4 text-white" />
                     </button>
-                    {exercise.isCustom && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditExercise(exercise);
-                        }}
-                        className="p-2 rounded-full bg-black/20 backdrop-blur-sm"
-                      >
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditExercise(exercise);
+                      }}
+                      className="p-2 rounded-full bg-black/20 backdrop-blur-sm"
+                    >
+                      {exercise.isSystemExercise ? (
+                        <Settings className="h-4 w-4 text-white" />
+                      ) : (
                         <Edit className="h-4 w-4 text-white" />
-                      </button>
-                    )}
+                      )}
+                    </button>
                   </div>
 
-                  {/* Exercise info */}
+                  {/* Exercise tags and info */}
                   <div className="absolute bottom-0 left-0 right-0 p-3">
+                    {/* Exercise type badge */}
+                    <div className="flex gap-1 mb-2">
+                      {exercise.isSystemExercise && (
+                        <Badge className="bg-blue-500/90 text-white text-xs px-2 py-0.5">
+                          System
+                        </Badge>
+                      )}
+                      {exercise.isCustom && (
+                        <Badge className="bg-green-500/90 text-white text-xs px-2 py-0.5">
+                          Custom
+                        </Badge>
+                      )}
+                      {exercise.isStoreExercise && (
+                        <Badge className="bg-purple-500/90 text-white text-xs px-2 py-0.5">
+                          Store
+                        </Badge>
+                      )}
+                    </div>
+                    
                     <h3 className="font-medium text-white text-sm mb-1">{exercise.name}</h3>
                     <div className="flex items-center gap-2 text-white/80 text-xs">
                       <Clock className="h-3 w-3" />
