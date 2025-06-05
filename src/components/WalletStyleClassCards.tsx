@@ -101,36 +101,35 @@ export const WalletStyleClassCards = ({
       >
         {/* Enhanced floating background elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-4 w-32 h-32 bg-gradient-to-br from-sage-200/20 to-sage-300/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-48 right-8 w-24 h-24 bg-gradient-to-br from-sage-100/30 to-sage-200/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute bottom-32 left-12 w-40 h-40 bg-gradient-to-br from-sage-300/15 to-sage-200/25 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '3s' }}></div>
+          <div className="absolute top-20 left-4 w-32 h-32 bg-gradient-to-br from-sage-200/20 to-sage-300/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '0s' }}></div>
+          <div className="absolute top-48 right-8 w-24 h-24 bg-gradient-to-br from-sage-100/30 to-sage-200/20 rounded-full blur-2xl animate-float" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute bottom-32 left-12 w-40 h-40 bg-gradient-to-br from-sage-300/15 to-sage-200/25 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
         </div>
         
-        <div className="relative z-10 pt-6 space-y-4">
+        <div className="relative z-10 pt-6 space-y-3 max-w-sm mx-auto">
           {classPlans.map((plan, index) => {
-            const stackOffset = index * 12;
-            const scale = 1 - (index * 0.025);
-            const opacity = Math.max(0.7, 1 - (index * 0.08));
+            const stackOffset = index * 8;
+            const scale = 1 - (index * 0.02);
+            const opacity = Math.max(0.8, 1 - (index * 0.06));
             const isHovered = hoveredCard === plan.id;
             const isTopCard = index === 0;
             
             return (
               <Card 
                 key={plan.id}
-                className={`relative bg-white/98 backdrop-blur-xl border-0 rounded-3xl shadow-2xl cursor-pointer group overflow-hidden
-                  ${isTopCard ? 'animate-pulse' : ''}`}
+                className={`relative bg-white/98 backdrop-blur-xl border-0 rounded-3xl shadow-2xl cursor-pointer group overflow-hidden transform transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                  ${isTopCard ? 'animate-float' : ''}`}
                 style={{
-                  transform: `translateY(-${stackOffset}px) scale(${scale}) ${isHovered ? 'translateZ(20px)' : ''}`,
+                  transform: `translateY(-${stackOffset}px) scale(${scale}) ${isHovered ? 'translateY(-12px) scale(1.02)' : ''}`,
                   zIndex: 50 - index,
                   opacity: opacity,
-                  filter: isHovered ? 'brightness(1.05)' : 'none',
-                  transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  filter: isHovered ? 'brightness(1.05) drop-shadow(0 20px 25px rgb(0 0 0 / 0.15))' : 'drop-shadow(0 10px 15px rgb(0 0 0 / 0.1))',
                 }}
                 onClick={(e) => handleCardTap(plan, e)}
                 onMouseEnter={() => setHoveredCard(plan.id)}
                 onMouseLeave={() => setHoveredCard(null)}
               >
-                <CardContent className="p-0 relative h-72 overflow-hidden">
+                <CardContent className="p-0 relative h-56 overflow-hidden">
                   {/* Enhanced background image with multiple overlays */}
                   <div className="absolute inset-0">
                     <img 
@@ -138,20 +137,20 @@ export const WalletStyleClassCards = ({
                       alt={plan.name}
                       className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110' : 'scale-100'}`}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                    <div className="absolute inset-0 bg-gradient-to-br from-sage-600/10 via-transparent to-sage-800/5"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-sage-600/5 via-transparent to-sage-800/5"></div>
                     {isHovered && (
-                      <div className="absolute inset-0 bg-gradient-to-t from-sage-900/30 via-transparent to-transparent animate-fade-in"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-sage-900/20 via-transparent to-transparent animate-fade-in"></div>
                     )}
                   </div>
 
                   {/* Enhanced content with better typography */}
-                  <div className="relative z-10 h-full flex flex-col justify-between p-8">
+                  <div className="relative z-10 h-full flex flex-col justify-between p-6">
                     {/* Top Section - Enhanced badge and menu */}
                     <div className="flex items-start justify-between">
-                      <Badge className="bg-white/95 backdrop-blur-xl text-sage-800 border-0 rounded-full px-4 py-2 text-sm font-bold shadow-lg transform hover:scale-105 transition-all duration-300">
-                        <div className="w-2 h-2 bg-sage-500 rounded-full mr-2 animate-pulse"></div>
-                        Reformer Class
+                      <Badge className="bg-white/95 backdrop-blur-xl text-sage-800 border-0 rounded-full px-3 py-1.5 text-xs font-bold shadow-lg transform hover:scale-105 transition-all duration-300">
+                        <div className="w-1.5 h-1.5 bg-sage-500 rounded-full mr-2"></div>
+                        Reformer
                       </Badge>
                       
                       <DropdownMenu>
@@ -159,9 +158,9 @@ export const WalletStyleClassCards = ({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-white/90 hover:text-white hover:bg-white/20 backdrop-blur-sm rounded-full w-10 h-10 shadow-lg transform hover:scale-110 active:scale-95 transition-all duration-300"
+                            className="text-white/90 hover:text-white hover:bg-white/20 backdrop-blur-sm rounded-full w-8 h-8 shadow-lg transform hover:scale-110 active:scale-95 transition-all duration-300"
                           >
-                            <MoreHorizontal className="h-5 w-5" />
+                            <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent className="bg-white/98 backdrop-blur-xl border-0 rounded-2xl shadow-2xl z-[200] p-2">
@@ -201,18 +200,18 @@ export const WalletStyleClassCards = ({
 
                     {/* Bottom Section - Enhanced typography and layout */}
                     <div>
-                      <h3 className="text-2xl font-bold text-white mb-3 leading-tight drop-shadow-lg">
+                      <h3 className="text-xl font-bold text-white mb-2 leading-tight drop-shadow-lg">
                         {plan.name}
                       </h3>
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-6 text-white/95 text-base">
-                          <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5">
-                            <Clock className="h-4 w-4" />
+                        <div className="flex items-center gap-4 text-white/95 text-sm">
+                          <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-1">
+                            <Clock className="h-3 w-3" />
                             <span className="font-bold">{plan.duration || 45}min</span>
                           </div>
-                          <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5">
+                          <div className="bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-1">
                             <span className="font-bold">
-                              {plan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0} exercises
+                              {plan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0} ex
                             </span>
                           </div>
                         </div>
@@ -222,9 +221,9 @@ export const WalletStyleClassCards = ({
                             e.stopPropagation();
                             onTeachPlan(plan);
                           }}
-                          className="w-14 h-14 rounded-full bg-white/98 hover:bg-white text-sage-800 shadow-2xl hover:shadow-3xl transform hover:scale-125 active:scale-95 transition-all duration-300 ease-out p-0 backdrop-blur-sm"
+                          className="w-12 h-12 rounded-full bg-white/98 hover:bg-white text-sage-800 shadow-2xl hover:shadow-3xl transform hover:scale-125 active:scale-95 transition-all duration-300 ease-out p-0 backdrop-blur-sm"
                         >
-                          <Play className="h-6 w-6 ml-0.5" />
+                          <Play className="h-5 w-5 ml-0.5" />
                         </Button>
                       </div>
                     </div>
@@ -232,7 +231,7 @@ export const WalletStyleClassCards = ({
 
                   {/* Subtle glow effect on hover */}
                   {isHovered && (
-                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-sage-500/10 via-transparent to-transparent pointer-events-none animate-fade-in"></div>
+                    <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-sage-500/5 via-transparent to-transparent pointer-events-none animate-fade-in"></div>
                   )}
                 </CardContent>
               </Card>
@@ -241,10 +240,10 @@ export const WalletStyleClassCards = ({
         </div>
       </div>
 
-      {/* Enhanced Modal */}
+      {/* Enhanced Modal with Sage backdrop */}
       {selectedPlan && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-xl z-[100] flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 bg-gradient-to-br from-sage-800/40 via-sage-600/30 to-sage-900/40 backdrop-blur-xl z-[100] flex items-center justify-center p-4 animate-fade-in"
           onClick={handleCloseModal}
         >
           <Card 
@@ -259,7 +258,7 @@ export const WalletStyleClassCards = ({
                   alt={selectedPlan.name}
                   className="w-full h-56 object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-sage-900/60 via-sage-800/20 to-transparent"></div>
                 
                 <Button
                   onClick={handleCloseModal}
@@ -272,7 +271,7 @@ export const WalletStyleClassCards = ({
 
                 <div className="absolute bottom-6 left-6 right-6">
                   <Badge className="bg-white/95 backdrop-blur-xl text-sage-800 border-0 rounded-full px-4 py-2 text-sm font-bold mb-3 shadow-lg">
-                    <div className="w-2 h-2 bg-sage-500 rounded-full mr-2 animate-pulse"></div>
+                    <div className="w-2 h-2 bg-sage-500 rounded-full mr-2"></div>
                     Reformer Class
                   </Badge>
                   <h2 className="text-3xl font-bold text-white leading-tight drop-shadow-lg mb-3">
@@ -351,6 +350,20 @@ export const WalletStyleClassCards = ({
           </Card>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-6px);
+          }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+      `}</style>
     </>
   );
 };
