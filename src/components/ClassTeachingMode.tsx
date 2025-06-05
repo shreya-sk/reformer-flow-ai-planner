@@ -1,11 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, SkipBack, SkipForward, ArrowLeft, RotateCcw, Heart, Share, ChevronUp } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { SpringVisual } from '@/components/SpringVisual';
 import { CircularProgress } from '@/components/CircularProgress';
-import { ExerciseDetailPanel } from '@/components/ExerciseDetailPanel';
 
 interface ClassTeachingModeProps {
   classPlan: ClassPlan;
@@ -185,14 +183,38 @@ export const ClassTeachingMode = ({
           </div>
         )}
 
-        {/* Slide up indicator */}
+        {/* Slide up indicator - simplified without the detail panel */}
         <Button
-          onClick={() => setShowDetailPanel(true)}
+          onClick={() => setShowDetailPanel(!showDetailPanel)}
           variant="ghost"
           className="text-white/60 hover:text-white hover:bg-white/10 rounded-full p-2 mb-4"
         >
           <ChevronUp className="h-5 w-5" />
         </Button>
+
+        {/* Show additional exercise details when expanded */}
+        {showDetailPanel && (
+          <div className="max-w-lg mx-auto mb-8 bg-white/10 backdrop-blur-sm rounded-2xl p-5">
+            <div className="space-y-4 text-white">
+              {currentExercise.setup && (
+                <div>
+                  <h3 className="font-semibold mb-2">Setup</h3>
+                  <p className="text-sm opacity-90">{currentExercise.setup}</p>
+                </div>
+              )}
+              {currentExercise.modifications.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2">Modifications</h3>
+                  <ul className="text-sm opacity-90 space-y-1">
+                    {currentExercise.modifications.map((mod, index) => (
+                      <li key={index}>• {mod}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Compact media controls in shorter translucent pill */}
@@ -244,13 +266,6 @@ export const ClassTeachingMode = ({
           </p>
         </div>
       </div>
-
-      {/* Enhanced Exercise Detail Panel */}
-      <ExerciseDetailPanel 
-        exercise={currentExercise}
-        isOpen={showDetailPanel}
-        onClose={() => setShowDetailPanel(false)}
-      />
     </div>
   );
 }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,8 +6,8 @@ import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ClassHeader } from './ClassHeader';
 import { ImprovedClassBuilder } from './ImprovedClassBuilder';
-import { MobileOptimizedExerciseLibrary } from '@/components/MobileOptimizedExerciseLibrary';
-import { ExerciseDetailModal } from '@/components/ExerciseDetailModal';
+import { CategoryExerciseLibrary } from '@/components/CategoryExerciseLibrary';
+import { ModernExerciseModal } from '@/components/ModernExerciseModal';
 import { Exercise, ClassPlan } from '@/types/reformer';
 
 export const ClassPlanContainer = () => {
@@ -143,7 +142,7 @@ export const ClassPlanContainer = () => {
           }}
         />
         <div className="pt-4">
-          <MobileOptimizedExerciseLibrary 
+          <CategoryExerciseLibrary 
             onExerciseSelect={handleExerciseSelection}
           />
         </div>
@@ -177,16 +176,19 @@ export const ClassPlanContainer = () => {
       </div>
 
       {/* Exercise Edit Modal */}
-      <ExerciseDetailModal
-        exercise={editingExercise}
-        isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setEditingExercise(null);
-        }}
-        onAddToClass={() => {}}
-        onSave={handleUpdateExercise}
-      />
+      {editingExercise && (
+        <ModernExerciseModal
+          exercise={editingExercise}
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingExercise(null);
+          }}
+          onEdit={() => {
+            // Already in edit mode
+          }}
+        />
+      )}
     </div>
   );
 };

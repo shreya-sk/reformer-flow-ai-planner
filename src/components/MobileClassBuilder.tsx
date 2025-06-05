@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Plus, Clock, Edit, ChevronDown, ChevronRight, Trash2, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
-import { ExerciseDetailModal } from '@/components/ExerciseDetailModal';
+import { ModernExerciseModal } from '@/components/ModernExerciseModal';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface MobileClassBuilderProps {
@@ -42,6 +42,7 @@ export const MobileClassBuilder = ({
   const realExercises = currentClass.exercises.filter(ex => ex.category !== 'callout');
   const canSave = realExercises.length > 0;
 
+  // Move exercise up or down
   const moveExercise = (index: number, direction: 'up' | 'down') => {
     const exercises = [...currentClass.exercises];
     const newIndex = direction === 'up' ? index - 1 : index + 1;
@@ -52,6 +53,7 @@ export const MobileClassBuilder = ({
     onReorderExercises(exercises);
   };
 
+  // Toggle card expansion
   const toggleCardExpansion = (exerciseId: string) => {
     const newExpanded = new Set(expandedCards);
     if (newExpanded.has(exerciseId)) {
@@ -62,12 +64,14 @@ export const MobileClassBuilder = ({
     setExpandedCards(newExpanded);
   };
 
+  // Handle exercise edit
   const handleExerciseEdit = (exercise: Exercise) => {
     console.log('📝 Opening exercise for editing:', exercise.name);
     setSelectedExercise(exercise);
     setIsDetailModalOpen(true);
   };
 
+  // Handle exercise update
   const handleUpdateExercise = async (updatedExercise: Exercise) => {
     console.log('💾 Saving exercise updates:', updatedExercise.name);
     onUpdateExercise(updatedExercise);
@@ -78,12 +82,14 @@ export const MobileClassBuilder = ({
     console.log(`✅ Exercise "${updatedExercise.name}" updated successfully`);
   };
 
+  // Handle adding a new callout section
   const handleAddSection = (position: number) => {
     setNewCalloutPosition(position);
     setNewCalloutName('');
     setIsCalloutDialogOpen(true);
   };
 
+  // Handle creating a new callout section
   const handleCreateSection = () => {
     if (newCalloutName.trim() && onAddCallout) {
       onAddCallout(newCalloutName.trim(), newCalloutPosition);
@@ -388,17 +394,20 @@ export const MobileClassBuilder = ({
         </DialogContent>
       </Dialog>
 
-      {/* Exercise Detail Modal */}
-      <ExerciseDetailModal
-        exercise={selectedExercise}
-        isOpen={isDetailModalOpen}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedExercise(null);
-        }}
-        onAddToClass={() => {}}
-        onSave={handleUpdateExercise}
-      />
+      {/* Exercise Detail Modal - Updated to use ModernExerciseModal */}
+      {selectedExercise && (
+        <ModernExerciseModal
+          exercise={selectedExercise}
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedExercise(null);
+          }}
+          onEdit={() => {
+            // Already in edit mode
+          }}
+        />
+      )}
     </div>
   );
 };
