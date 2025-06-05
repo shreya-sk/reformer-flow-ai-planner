@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +7,7 @@ import { ChevronRight, Dumbbell, Heart, Clock, Search, Filter, Baby, Plus, Copy,
 import { Exercise, ExerciseCategory } from '@/types/reformer';
 import { useExercises } from '@/hooks/useExercises';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { ExerciseDetailModal } from './ExerciseDetailModal';
+import { ModernExerciseModal } from './ModernExerciseModal';
 import { InteractiveExerciseForm } from './InteractiveExerciseForm';
 
 interface CategoryExerciseLibraryProps {
@@ -305,14 +304,14 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
           ))}
         </div>
 
-        {/* Exercise Detail Modal */}
+        {/* Modern Exercise Modal */}
         {selectedExercise && (
-          <ExerciseDetailModal
+          <ModernExerciseModal
             exercise={selectedExercise}
             isOpen={!!selectedExercise}
             onClose={() => setSelectedExercise(null)}
-            onAddToClass={onExerciseSelect ? () => handleAddToCart(selectedExercise) : undefined}
-            onEditExercise={() => handleEditExercise(selectedExercise)}
+            onAddToCart={onExerciseSelect ? () => handleAddToCart(selectedExercise) : undefined}
+            onEdit={() => handleEditExercise(selectedExercise)}
           />
         )}
       </div>
