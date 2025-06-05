@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -151,14 +150,9 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   };
 
   const handleEditExercise = (exercise: Exercise) => {
-    if (exercise.isSystemExercise) {
-      // For system exercises, create a customized version
-      handleCustomizeSystemExercise(exercise);
-    } else {
-      // For custom exercises, edit directly
-      setExerciseToEdit(exercise);
-      setShowExerciseForm(true);
-    }
+    setExerciseToEdit(exercise);
+    setShowExerciseForm(true);
+    setSelectedExercise(null);
   };
 
   const handleCustomizeSystemExercise = async (exercise: Exercise) => {
@@ -290,35 +284,12 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
                       }}
                       className="p-2 rounded-full bg-black/20 backdrop-blur-sm"
                     >
-                      {exercise.isSystemExercise ? (
-                        <Settings className="h-4 w-4 text-white" />
-                      ) : (
-                        <Edit className="h-4 w-4 text-white" />
-                      )}
+                      <Edit className="h-4 w-4 text-white" />
                     </button>
                   </div>
 
-                  {/* Exercise tags and info */}
+                  {/* Exercise info */}
                   <div className="absolute bottom-0 left-0 right-0 p-3">
-                    {/* Exercise type badge */}
-                    <div className="flex gap-1 mb-2">
-                      {exercise.isSystemExercise && (
-                        <Badge className="bg-blue-500/90 text-white text-xs px-2 py-0.5">
-                          System
-                        </Badge>
-                      )}
-                      {exercise.isCustom && (
-                        <Badge className="bg-green-500/90 text-white text-xs px-2 py-0.5">
-                          Custom
-                        </Badge>
-                      )}
-                      {exercise.isStoreExercise && (
-                        <Badge className="bg-purple-500/90 text-white text-xs px-2 py-0.5">
-                          Store
-                        </Badge>
-                      )}
-                    </div>
-                    
                     <h3 className="font-medium text-white text-sm mb-1">{exercise.name}</h3>
                     <div className="flex items-center gap-2 text-white/80 text-xs">
                       <Clock className="h-3 w-3" />
@@ -340,6 +311,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
             isOpen={!!selectedExercise}
             onClose={() => setSelectedExercise(null)}
             onAddToCart={onExerciseSelect ? () => handleAddToCart(selectedExercise) : undefined}
+            onEdit={() => handleEditExercise(selectedExercise)}
           />
         )}
       </div>

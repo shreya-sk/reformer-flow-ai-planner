@@ -1,157 +1,190 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, Heart, Edit, Plus, Play, Baby } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  Clock, 
+  Dumbbell, 
+  Target, 
+  Activity, 
+  Heart,
+  Plus,
+  Edit,
+  X
+} from 'lucide-react';
 import { Exercise } from '@/types/reformer';
-import { SpringVisual } from './SpringVisual';
-import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { toast } from '@/hooks/use-toast';
 
 interface ModernExerciseModalProps {
   exercise: Exercise;
   isOpen: boolean;
   onClose: () => void;
   onAddToCart?: () => void;
+  onEdit?: () => void;
 }
 
-export const ModernExerciseModal = ({ exercise, isOpen, onClose, onAddToCart }: ModernExerciseModalProps) => {
-  const { preferences, toggleFavoriteExercise } = useUserPreferences();
-  const isFavorite = preferences.favoriteExercises?.includes(exercise.id) || false;
-
-  if (!isOpen) return null;
-
-  const handleAddToClass = () => {
-    if (onAddToCart) {
-      onAddToCart();
-      toast({
-        title: "Added to class",
-        description: `"${exercise.name}" has been added to your class plan.`,
-      });
-      onClose();
-    }
-  };
-
-  const handleToggleFavorite = () => {
-    toggleFavoriteExercise(exercise.id);
-    toast({
-      title: isFavorite ? "Removed from favorites" : "Added to favorites",
-      description: `"${exercise.name}" ${isFavorite ? 'removed from' : 'added to'} your favorites.`,
-    });
-  };
-
+export const ModernExerciseModal = ({ 
+  exercise, 
+  isOpen, 
+  onClose, 
+  onAddToCart,
+  onEdit
+}: ModernExerciseModalProps) => {
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-md flex items-center justify-center p-4">
-      <Card className="w-full max-w-lg bg-white/95 backdrop-blur-xl border-0 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh]">
-        <CardContent className="p-0">
-          {/* Header with close button */}
-          <div className="absolute top-4 right-4 z-10">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="rounded-full bg-black/20 text-white hover:bg-black/40 backdrop-blur-sm w-10 h-10 p-0"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] p-0 bg-white rounded-3xl overflow-hidden">
+        {/* Header Image */}
+        <div className="relative h-64 overflow-hidden rounded-t-3xl">
+          <img
+            src={exercise.image || '/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png'}
+            alt={exercise.name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-full bg-black/20 backdrop-blur-sm text-white hover:bg-black/40 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
 
-          {/* Main image */}
-          <div className="relative h-80 overflow-hidden">
-            <img
-              src={exercise.image || '/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png'}
-              alt={exercise.name}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            
-            {/* Bottom overlay with key info */}
-            <div className="absolute bottom-0 left-0 right-0 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                {exercise.isPregnancySafe && (
-                  <div className="p-2 bg-green-500 rounded-full">
-                    <Baby className="h-4 w-4 text-white" />
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <span className="text-white/80 text-sm">Springs:</span>
-                  <SpringVisual springs={exercise.springs} />
-                </div>
+          {/* Exercise info overlay */}
+          <div className="absolute bottom-4 left-4 right-4">
+            <h1 className="text-2xl font-bold text-white mb-2">{exercise.name}</h1>
+            <div className="flex items-center gap-4 text-white/90">
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span className="text-sm">{exercise.duration} min</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Dumbbell className="h-4 w-4" />
+                <span className="text-sm capitalize">{exercise.difficulty}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Activity className="h-4 w-4" />
+                <span className="text-sm capitalize">{exercise.springs}</span>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-6">
-            {/* Title and price-like section */}
-            <div>
-              <h2 className="text-2xl font-bold text-sage-800 mb-2">{exercise.name}</h2>
-              <div className="flex items-center gap-3">
-                <Badge className="bg-sage-100 text-sage-700">{exercise.category}</Badge>
-                <span className="text-sage-600">{exercise.duration} min</span>
-                <span className="text-sage-600 capitalize">{exercise.difficulty}</span>
-              </div>
-            </div>
-
+        {/* Content */}
+        <div className="p-6">
+          <ScrollArea className="max-h-96">
             {/* Description */}
             {exercise.description && (
-              <div>
-                <h4 className="font-semibold text-sage-800 mb-2">Description</h4>
-                <p className="text-sage-600 text-sm leading-relaxed">{exercise.description}</p>
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                <p className="text-gray-600 leading-relaxed">{exercise.description}</p>
               </div>
             )}
 
-            {/* Specifications like in product page */}
-            <div className="grid grid-cols-3 gap-4 py-4 border-t border-sage-200">
-              <div className="text-center">
-                <div className="text-sm text-sage-500">Duration</div>
-                <div className="font-semibold text-sage-800">{exercise.duration} min</div>
+            {/* Muscle Groups */}
+            {exercise.muscleGroups.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Target Muscles</h3>
+                <div className="flex flex-wrap gap-2">
+                  {exercise.muscleGroups.map((muscle) => (
+                    <Badge key={muscle} variant="secondary" className="capitalize">
+                      {muscle.replace('-', ' ')}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-              <div className="text-center">
-                <div className="text-sm text-sage-500">Level</div>
-                <div className="font-semibold text-sage-800 capitalize">{exercise.difficulty}</div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm text-sage-500">Category</div>
-                <div className="font-semibold text-sage-800">{exercise.category}</div>
-              </div>
-            </div>
+            )}
 
-            {/* Action buttons */}
-            <div className="space-y-3">
-              {onAddToCart && (
-                <Button
-                  onClick={handleAddToClass}
-                  className="w-full h-12 bg-sage-700 hover:bg-sage-800 text-white rounded-2xl font-semibold"
-                >
-                  <Plus className="h-5 w-5 mr-2" />
-                  Add to Class
-                </Button>
-              )}
-              
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={handleToggleFavorite}
-                  className="flex-1 h-12 rounded-2xl border-sage-200 hover:bg-sage-50"
-                >
-                  <Heart className={`h-5 w-5 mr-2 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-sage-600'}`} />
-                  {isFavorite ? 'Favorited' : 'Favorite'}
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  className="flex-1 h-12 rounded-2xl border-sage-200 hover:bg-sage-50"
-                >
-                  <Edit className="h-5 w-5 mr-2 text-sage-600" />
-                  Edit
-                </Button>
+            {/* Equipment */}
+            {exercise.equipment.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Equipment</h3>
+                <div className="flex flex-wrap gap-2">
+                  {exercise.equipment.map((item) => (
+                    <Badge key={item} variant="outline" className="capitalize">
+                      {item.replace('-', ' ')}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Setup */}
+            {exercise.setup && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Setup</h3>
+                <p className="text-gray-600">{exercise.setup}</p>
+              </div>
+            )}
+
+            {/* Cues */}
+            {exercise.cues.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Teaching Cues</h3>
+                <ul className="space-y-2">
+                  {exercise.cues.map((cue, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <Target className="h-4 w-4 text-sage-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-600">{cue}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Modifications */}
+            {exercise.modifications.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Modifications</h3>
+                <ul className="space-y-2">
+                  {exercise.modifications.map((mod, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <Heart className="h-4 w-4 text-pink-600 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-600">{mod}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Notes */}
+            {exercise.notes && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Notes</h3>
+                <p className="text-gray-600">{exercise.notes}</p>
+              </div>
+            )}
+          </ScrollArea>
+
+          <Separator className="my-6" />
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            {onEdit && (
+              <Button
+                onClick={onEdit}
+                variant="outline"
+                className="flex-1 border-sage-300 text-sage-700 hover:bg-sage-50"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Exercise
+              </Button>
+            )}
+            
+            {onAddToCart && (
+              <Button
+                onClick={onAddToCart}
+                className="flex-1 bg-sage-600 hover:bg-sage-700 text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add to Class
+              </Button>
+            )}
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };

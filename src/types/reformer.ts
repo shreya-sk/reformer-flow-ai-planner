@@ -133,7 +133,8 @@ export interface Exercise {
   isPregnancySafe: boolean;
   isCustom?: boolean;
   isSystemExercise?: boolean;
-  isCustomized?: boolean;
+  isModified?: boolean;
+  originalSystemExerciseId?: string;
   calloutColor?: string;
   createdAt?: Date;
   updatedAt?: Date;
