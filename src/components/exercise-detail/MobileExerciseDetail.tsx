@@ -54,7 +54,7 @@ export const MobileExerciseDetail = ({
       />
       
       {/* Compact Bottom Sheet Modal */}
-      <div className={`fixed inset-x-4 bottom-4 z-50 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-sage-500/10 animate-slide-in-bottom flex flex-col border border-sage-200 transition-all duration-300 ${
+      <div className={`fixed left-6 right-6 bottom-4 z-50 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl shadow-sage-500/10 animate-slide-in-bottom flex flex-col border border-sage-200 transition-all duration-300 ${
         isExpanded ? 'max-h-[60vh]' : 'max-h-[45vh]'
       }`}>
         {/* Header with Image */}
