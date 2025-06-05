@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,13 +11,21 @@ import { AuthPage } from '@/components/AuthPage';
 import { ClassTeachingMode } from '@/components/ClassTeachingMode';
 import { ClassBuilder } from '@/components/ClassBuilder';
 import { Exercise } from '@/types/reformer';
-
 const PlanClass = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { saveClassPlan } = useClassPlans();
-  const { preferences } = useUserPreferences();
-  const { updateUserExercise, customizeSystemExercise } = useExercises();
+  const {
+    user
+  } = useAuth();
+  const {
+    saveClassPlan
+  } = useClassPlans();
+  const {
+    preferences
+  } = useUserPreferences();
+  const {
+    updateUserExercise,
+    customizeSystemExercise
+  } = useExercises();
   const {
     currentClassPlan,
     getRealExerciseCount,
@@ -29,101 +36,79 @@ const PlanClass = () => {
     syncExerciseUpdates,
     clearClassPlan
   } = usePersistedClassPlan();
-  
   const [isTeachingMode, setIsTeachingMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-
   const realExerciseCount = getRealExerciseCount();
-
   if (!user) {
     return <AuthPage />;
   }
-  
   if (isTeachingMode) {
-    return (
-      <ClassTeachingMode 
-        classPlan={currentClassPlan}
-        onClose={() => setIsTeachingMode(false)}
-      />
-    );
+    return <ClassTeachingMode classPlan={currentClassPlan} onClose={() => setIsTeachingMode(false)} />;
   }
-
   const handleSaveClass = async () => {
     console.log('💾 Save attempt - real exercises:', realExerciseCount);
     console.log('💾 Current class state:', {
       name: currentClassPlan.name,
       exerciseCount: currentClassPlan.exercises.length,
       realExerciseCount,
-      exercises: currentClassPlan.exercises.map(ex => ({ 
-        id: ex.id, 
-        name: ex.name, 
+      exercises: currentClassPlan.exercises.map(ex => ({
+        id: ex.id,
+        name: ex.name,
         category: ex.category,
         isCustom: ex.isCustom,
         isSystemExercise: ex.isSystemExercise
       }))
     });
-    
     if (realExerciseCount === 0) {
       toast({
         title: "Cannot save empty class",
         description: "Add some exercises to your class before saving.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-    
     setIsSaving(true);
     setSaveSuccess(false);
-    
     try {
       const classToSave = {
         ...currentClassPlan,
-        name: currentClassPlan.name || `Class ${Date.now()}`,
+        name: currentClassPlan.name || `Class ${Date.now()}`
       };
-      
       console.log('💾 Starting save process for:', classToSave.name, 'with', realExerciseCount, 'real exercises');
-      
       const savedClass = await saveClassPlan(classToSave);
-      
       console.log('💾 Save successful:', savedClass);
-      
       setSaveSuccess(true);
       toast({
         title: "Class saved successfully!",
-        description: `"${classToSave.name}" has been saved with ${realExerciseCount} exercises.`,
+        description: `"${classToSave.name}" has been saved with ${realExerciseCount} exercises.`
       });
-      
       setTimeout(() => {
         clearClassPlan();
         navigate('/');
       }, 2000);
-      
     } catch (error) {
       console.error('💾 Save failed:', error);
       setIsSaving(false);
       setSaveSuccess(false);
-      
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      
       toast({
         title: "Save failed",
         description: `Could not save class: ${errorMessage}`,
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleAddExercise = () => {
     navigate('/library');
   };
-
   const handleAddCallout = (name: string, position: number) => {
     console.log('PlanClass handleAddCallout called with name:', name, 'position:', position);
-    const { createCallout } = usePersistedClassPlan();
+    const {
+      createCallout
+    } = usePersistedClassPlan();
     createCallout(name, '#e5e7eb');
   };
-
   const handleUpdateExercise = async (updatedExercise: Exercise) => {
     try {
       if (updatedExercise.isSystemExercise) {
@@ -140,96 +125,38 @@ const PlanClass = () => {
           targetAreas: updatedExercise.targetAreas,
           breathingCues: updatedExercise.breathingCues,
           teachingFocus: updatedExercise.teachingFocus,
-          modifications: updatedExercise.modifications,
+          modifications: updatedExercise.modifications
         });
       } else {
         await updateUserExercise(updatedExercise.id, updatedExercise);
       }
-
       syncExerciseUpdates(updatedExercise);
-
       toast({
         title: "Exercise updated",
-        description: "Changes have been saved and synced to your class.",
+        description: "Changes have been saved and synced to your class."
       });
     } catch (error) {
       console.error('Error updating exercise:', error);
       toast({
         title: "Update failed",
         description: "Could not save exercise changes.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const handleReorderExercises = (exercises: Exercise[]) => {
     reorderExercises(exercises);
   };
-
-  return (
-    <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-50 via-white to-sage-100'} pb-20`}>
+  return <div className={`min-h-screen ${preferences.darkMode ? 'dark bg-gray-900' : 'bg-gradient-to-br from-sage-50 via-white to-sage-100'} pb-20`}>
       {/* Header */}
-      <div className="bg-white/90 backdrop-blur-sm border-b border-sage-200 p-3 sm:p-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => navigate('/')}
-              className="text-sage-600 hover:text-sage-800 transition-colors"
-            >
-              ← Back
-            </button>
-            <h1 className="text-lg font-semibold text-sage-800">Class Builder</h1>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleSaveClass}
-              disabled={isSaving || realExerciseCount === 0}
-              className={`px-4 py-2 rounded-full text-sm font-medium shadow-lg transition-all duration-300 ${
-                saveSuccess 
-                  ? 'bg-green-500 text-white' 
-                  : isSaving 
-                    ? 'bg-sage-400 text-white' 
-                    : realExerciseCount === 0
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-sage-600 to-sage-700 hover:from-sage-700 hover:to-sage-800 text-white'
-              }`}
-            >
-              {saveSuccess ? (
-                <>✓ Saved!</>
-              ) : isSaving ? (
-                <>⟳ Saving...</>
-              ) : (
-                `Save Class (${realExerciseCount})`
-              )}
-            </button>
-          </div>
-        </div>
-        
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-2 text-xs text-gray-600 bg-gray-100 p-2 rounded">
-            Debug: {currentClassPlan.exercises.length} total, {realExerciseCount} real exercises
-          </div>
-        )}
-      </div>
+      
 
       {/* Class Builder Content */}
       <div className="px-2 sm:px-3 pt-4">
-        <ClassBuilder
-          currentClass={currentClassPlan}
-          onRemoveExercise={removeExercise}
-          onReorderExercises={handleReorderExercises}
-          onUpdateExercise={handleUpdateExercise}
-          onAddExercise={handleAddExercise}
-          onAddCallout={handleAddCallout}
-          onUpdateClassName={updateClassName}
-          onSaveClass={handleSaveClass}
-        />
+        <ClassBuilder currentClass={currentClassPlan} onRemoveExercise={removeExercise} onReorderExercises={handleReorderExercises} onUpdateExercise={handleUpdateExercise} onAddExercise={handleAddExercise} onAddCallout={handleAddCallout} onUpdateClassName={updateClassName} onSaveClass={handleSaveClass} />
       </div>
 
       <BottomNavigation onPlanClass={() => navigate('/plan')} />
-    </div>
-  );
+    </div>;
 };
-
 export default PlanClass;
