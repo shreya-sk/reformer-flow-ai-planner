@@ -13,11 +13,12 @@ interface MobileExerciseCardProps {
   onEdit: (e: React.MouseEvent) => void;
   onDuplicate: (e: React.MouseEvent) => void;
   onDelete: (e: React.MouseEvent) => void;
-  onResetToOriginal: (e: React.MouseEvent) => void;
-  observeImage: (element: HTMLImageElement, src: string) => void;
+  onCustomizeSystemExercise?: (e: React.MouseEvent) => void;
+  observeImage: (element: HTMLElement) => void;
   isFavorite: boolean;
   isHidden: boolean;
   darkMode: boolean;
+  feedbackState?: 'success' | 'error' | null;
   className?: string;
 }
 
@@ -29,9 +30,13 @@ export const MobileExerciseCard = ({
   onToggleHidden,
   onEdit,
   onDuplicate,
+  onDelete,
+  onCustomizeSystemExercise,
   observeImage, 
   isFavorite,
   isHidden,
+  darkMode,
+  feedbackState,
   className = ''
 }: MobileExerciseCardProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
@@ -45,7 +50,7 @@ export const MobileExerciseCard = ({
 
   useEffect(() => {
     if (imageRef.current && exercise.image) {
-      observeImage(imageRef.current, exercise.image);
+      observeImage(imageRef.current);
     }
   }, [exercise.image, observeImage]);
 
@@ -118,7 +123,10 @@ export const MobileExerciseCard = ({
   return (
     <div 
       ref={cardRef}
-      className={`relative group bg-white/90 backdrop-blur-xl rounded-xl overflow-hidden shadow-md border border-white/30 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${isHidden ? 'opacity-60' : ''} ${className}`}
+      className={`relative group bg-white/90 backdrop-blur-xl rounded-xl overflow-hidden shadow-md border border-white/30 cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${isHidden ? 'opacity-60' : ''} ${
+        feedbackState === 'success' ? 'ring-2 ring-green-500' : 
+        feedbackState === 'error' ? 'ring-2 ring-red-500' : ''
+      } ${className}`}
       onClick={handleCardClick}
     >
       {/* Compact image container */}

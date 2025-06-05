@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef, useCallback } from 'react';
 
 // Lazy loading hook for images
@@ -6,7 +5,7 @@ export const useLazyLoading = () => {
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  const observeImage = useCallback((element: HTMLImageElement, src: string) => {
+  const observeImage = useCallback((element: HTMLElement) => {
     if (!observerRef.current) {
       observerRef.current = new IntersectionObserver(
         (entries) => {
@@ -26,7 +25,12 @@ export const useLazyLoading = () => {
       );
     }
 
-    element.dataset.src = src;
+    // Store the src in dataset for lazy loading
+    if (element instanceof HTMLImageElement && element.src) {
+      element.dataset.src = element.src;
+      element.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMSIgaGVpZ2h0PSIxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9InRyYW5zcGFyZW50Ii8+PC9zdmc+';
+    }
+    
     observerRef.current.observe(element);
   }, []);
 
