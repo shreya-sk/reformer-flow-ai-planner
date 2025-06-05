@@ -251,8 +251,8 @@ export const WalletStyleClassCards = ({
             onClick={(e) => e.stopPropagation()}
           >
             <CardContent className="p-0">
-              {/* Enhanced header */}
-              <div className="relative">
+              {/* Enhanced header with proper rounding */}
+              <div className="relative rounded-t-3xl overflow-hidden">
                 <img 
                   src={selectedPlan.image || getRandomImage(selectedPlan.id)}
                   alt={selectedPlan.name}
@@ -291,10 +291,10 @@ export const WalletStyleClassCards = ({
                 </div>
               </div>
 
-              {/* Exercises list - limited height to fit screen */}
+              {/* Exercises list - limited to 4 exercises, no scroll */}
               <div className="p-4">
                 <h3 className="text-lg font-bold text-sage-800 mb-3">Exercises</h3>
-                <div className="space-y-2 max-h-32 overflow-y-auto scrollbar-hide">
+                <div className="space-y-2">
                   {selectedPlan.exercises?.filter((ex: any) => ex.category !== 'callout').slice(0, 4).map((exercise: any, idx: number) => (
                     <div key={idx} className="flex items-center justify-between p-3 bg-gradient-to-r from-sage-50 to-sage-100/80 rounded-xl border border-sage-200/50">
                       <div className="flex-1">

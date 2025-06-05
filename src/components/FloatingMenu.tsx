@@ -76,7 +76,7 @@ export const FloatingMenu = ({ isOpen, onClose }: FloatingMenuProps) => {
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold truncate text-base">
+                <p className="font-semibold truncate text-lg">
                   {user?.email || 'Guest'}
                 </p>
                 <p className="text-sm text-white/80">Reformer Instructor</p>
@@ -91,7 +91,7 @@ export const FloatingMenu = ({ isOpen, onClose }: FloatingMenuProps) => {
                 key={item.title}
                 variant="ghost"
                 onClick={() => handleNavigation(item.url)}
-                className={`w-full justify-start rounded-2xl h-14 transition-all duration-200 text-base ${
+                className={`w-full justify-start rounded-2xl h-16 transition-all duration-200 text-lg ${
                   isActive(item.url) 
                     ? 'bg-sage-100 text-sage-800 shadow-sm' 
                     : 'hover:bg-sage-50 text-sage-700'
@@ -113,7 +113,7 @@ export const FloatingMenu = ({ isOpen, onClose }: FloatingMenuProps) => {
             <Button
               variant="ghost"
               onClick={handleSignOut}
-              className="w-full justify-start rounded-2xl h-14 text-red-600 hover:bg-red-50 text-base"
+              className="w-full justify-start rounded-2xl h-16 text-red-600 hover:bg-red-50 text-lg"
             >
               <div className="p-3 rounded-xl mr-4 bg-red-100 text-red-600">
                 <LogOut className="h-5 w-5" />
