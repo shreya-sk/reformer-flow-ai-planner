@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Play, MoreHorizontal, Copy, Edit, Trash2 } from 'lucide-react';
+import { Clock, Play, MoreHorizontal, Copy, Edit, Trash2, X } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +25,7 @@ export const WalletStyleClassCards = ({
   onDuplicatePlan, 
   onHidePlan 
 }: WalletStyleClassCardsProps) => {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
   const navigate = useNavigate();
 
   // Use reformer images
@@ -43,9 +43,13 @@ export const WalletStyleClassCards = ({
     return reformerImages[index];
   };
 
-  const handleCardTap = (index: number, e: React.MouseEvent) => {
+  const handleCardTap = (plan: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    setExpandedIndex(expandedIndex === index ? null : index);
+    setSelectedPlan(plan);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedPlan(null);
   };
 
   const handleEditPlan = (plan: any) => {
@@ -55,44 +59,6 @@ export const WalletStyleClassCards = ({
   const handleDeletePlan = (planId: string) => {
     if (window.confirm('Are you sure you want to delete this class plan?')) {
       onHidePlan(planId);
-    }
-  };
-
-  const getCardTransform = (index: number) => {
-    const stackOffset = 60;
-    const isExpanded = expandedIndex === index;
-    const isInFront = expandedIndex !== null && index < expandedIndex;
-    const isBehind = expandedIndex !== null && index > expandedIndex;
-    
-    if (isExpanded) {
-      // Expanded card moves to front with full size
-      return {
-        transform: `translateY(0px) scale(1)`,
-        zIndex: 100,
-        opacity: 1,
-      };
-    } else if (isInFront) {
-      // Cards in front get pushed down and become less visible
-      const pushDown = 200 + (index * 20);
-      return {
-        transform: `translateY(${pushDown}px) scale(0.95)`,
-        zIndex: 50 - index,
-        opacity: 0.3,
-      };
-    } else if (isBehind) {
-      // Cards behind stay in original stack position but become less visible
-      return {
-        transform: `translateY(${-index * stackOffset}px) scale(${1 - index * 0.02})`,
-        zIndex: 50 - index,
-        opacity: 0.4,
-      };
-    } else {
-      // Normal stack positioning when no card is expanded
-      return {
-        transform: `translateY(${-index * stackOffset}px) scale(${1 - index * 0.02})`,
-        zIndex: 50 - index,
-        opacity: 1 - index * 0.1,
-      };
     }
   };
 
@@ -122,156 +88,237 @@ export const WalletStyleClassCards = ({
     );
   }
 
-  const containerHeight = Math.max(500, 400 + (classPlans.length - 1) * 40);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 relative">
-      <div className="absolute inset-0 bg-sage-100/10 backdrop-blur-sm"></div>
-      
+    <>
       <div 
-        className="relative z-10 px-4 pb-32" 
-        style={{ height: `${containerHeight}px` }}
-        onClick={() => setExpandedIndex(null)}
+        className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 relative px-4 pb-32"
+        onClick={handleCloseModal}
       >
-        {classPlans.map((plan, index) => {
-          const cardStyle = getCardTransform(index);
-          const isExpanded = expandedIndex === index;
-          
-          return (
-            <Card 
-              key={plan.id}
-              className="absolute w-full bg-white/98 backdrop-blur-sm border-0 rounded-3xl shadow-xl transition-all duration-500 ease-out cursor-pointer overflow-hidden hover:shadow-2xl"
-              style={{
-                ...cardStyle,
-                maxWidth: 'calc(100% - 2rem)',
-                height: isExpanded ? '400px' : '300px',
-                pointerEvents: 'auto',
-              }}
-              onClick={(e) => handleCardTap(index, e)}
-            >
-              <CardContent className="p-0 relative h-full">
-                {/* Header - Always Visible */}
-                <div className="relative z-30 bg-white/98 backdrop-blur-md border-b border-sage-200/50 px-6 py-4 rounded-t-3xl">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-semibold text-sage-900 leading-tight truncate">
+        <div className="absolute inset-0 bg-sage-100/10 backdrop-blur-sm"></div>
+        
+        <div className="relative z-10 pt-4 space-y-4">
+          {classPlans.map((plan, index) => {
+            const stackOffset = index * 8;
+            const scale = 1 - (index * 0.02);
+            const opacity = 1 - (index * 0.15);
+            
+            return (
+              <Card 
+                key={plan.id}
+                className="relative bg-white/95 backdrop-blur-sm border-0 rounded-3xl shadow-lg transition-all duration-300 cursor-pointer hover:shadow-xl"
+                style={{
+                  transform: `translateY(-${stackOffset}px) scale(${scale})`,
+                  zIndex: 50 - index,
+                  opacity: opacity,
+                }}
+                onClick={(e) => handleCardTap(plan, e)}
+              >
+                <CardContent className="p-0 relative h-60 overflow-hidden">
+                  {/* Background Image */}
+                  <div className="absolute inset-0">
+                    <img 
+                      src={plan.image || getRandomImage(plan.id)}
+                      alt={plan.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="relative z-10 h-full flex flex-col justify-between p-6">
+                    {/* Top Section */}
+                    <div className="flex items-start justify-between">
+                      <Badge className="bg-white/90 text-sage-800 border-0 rounded-full px-3 py-1 text-sm font-medium">
+                        Reformer Class
+                      </Badge>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-white hover:bg-white/20 rounded-full w-8 h-8"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="bg-white/98 backdrop-blur-sm border-0 rounded-2xl shadow-xl z-[200]">
+                          <DropdownMenuItem 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditPlan(plan);
+                            }}
+                            className="text-sage-700 hover:bg-sage-100/80 rounded-xl m-1"
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Plan
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDuplicatePlan(plan);
+                            }}
+                            className="text-sage-700 hover:bg-sage-100/80 rounded-xl m-1"
+                          >
+                            <Copy className="h-4 w-4 mr-2" />
+                            Duplicate & Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeletePlan(plan.id);
+                            }}
+                            className="text-red-600 hover:bg-red-100/80 rounded-xl m-1"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Plan
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    {/* Bottom Section */}
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2 leading-tight">
                         {plan.name}
                       </h3>
-                      <div className="flex items-center gap-3 mt-1 text-sage-600 text-sm">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>{plan.duration || 45}min</span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 text-white/90 text-sm">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            <span className="font-medium">{plan.duration || 45}min</span>
+                          </div>
+                          <span className="font-medium">
+                            {plan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0} exercises
+                          </span>
                         </div>
-                        <span>{plan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0} exercises</span>
+                        
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onTeachPlan(plan);
+                          }}
+                          className="w-12 h-12 rounded-full bg-white/95 hover:bg-white text-sage-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 p-0"
+                        >
+                          <Play className="h-5 w-5 ml-0.5" />
+                        </Button>
                       </div>
                     </div>
-                    
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-sage-600 hover:bg-sage-100/80 rounded-full w-8 h-8"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-white/98 backdrop-blur-sm border-0 rounded-2xl shadow-xl z-[200]">
-                        <DropdownMenuItem 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditPlan(plan);
-                          }}
-                          className="text-sage-700 hover:bg-sage-100/80 rounded-xl m-1"
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit Plan
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDuplicatePlan(plan);
-                          }}
-                          className="text-sage-700 hover:bg-sage-100/80 rounded-xl m-1"
-                        >
-                          <Copy className="h-4 w-4 mr-2" />
-                          Duplicate & Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeletePlan(plan.id);
-                          }}
-                          className="text-red-600 hover:bg-red-100/80 rounded-xl m-1"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Plan
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Modal Overlay */}
+      {selectedPlan && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          onClick={handleCloseModal}
+        >
+          <Card 
+            className="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <CardContent className="p-0">
+              {/* Header */}
+              <div className="relative">
+                <img 
+                  src={selectedPlan.image || getRandomImage(selectedPlan.id)}
+                  alt={selectedPlan.name}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                
+                <Button
+                  onClick={handleCloseModal}
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-4 right-4 text-white hover:bg-white/20 rounded-full w-8 h-8"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+
+                <div className="absolute bottom-4 left-6 right-6">
+                  <Badge className="bg-white/90 text-sage-800 border-0 rounded-full px-3 py-1 text-sm font-medium mb-3">
+                    Reformer Class
+                  </Badge>
+                  <h2 className="text-2xl font-bold text-white leading-tight">
+                    {selectedPlan.name}
+                  </h2>
+                  <div className="flex items-center gap-4 text-white/90 text-sm mt-2">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      <span className="font-medium">{selectedPlan.duration || 45}min</span>
+                    </div>
+                    <span className="font-medium">
+                      {selectedPlan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0} exercises
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                {/* Background Image */}
-                <div className="absolute inset-0 overflow-hidden rounded-3xl">
-                  <img 
-                    src={plan.image || getRandomImage(plan.id)}
-                    alt={plan.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-sage-900/60 via-sage-600/20 to-transparent"></div>
-                </div>
-
-                {/* Bottom Content */}
-                <div className="absolute bottom-0 left-0 right-0 z-20 p-6">
-                  <div className="mb-4">
-                    <Badge className="bg-sage-100/95 text-sage-800 border-0 rounded-full px-3 py-1 text-sm backdrop-blur-sm">
-                      Reformer Class
-                    </Badge>
-                  </div>
-
-                  {/* Expanded Content - Exercise List */}
-                  {isExpanded && (
-                    <div className="mb-4 max-h-36 overflow-y-auto bg-white/98 backdrop-blur-sm rounded-2xl p-4 border border-sage-200/30">
-                      <h4 className="font-medium text-sage-800 mb-3 text-sm">Exercises in this class:</h4>
-                      <div className="space-y-2">
-                        {plan.exercises?.filter((ex: any) => ex.category !== 'callout').slice(0, 6).map((exercise: any, idx: number) => (
-                          <div key={idx} className="flex items-center justify-between text-sm text-sage-700 py-1">
-                            <span className="truncate flex-1 font-medium">
-                              {exercise.name && exercise.name !== 'Exercise' ? exercise.name : `Exercise ${idx + 1}`}
-                            </span>
-                            <span className="ml-2 text-sage-600 text-xs">
-                              {exercise.duration || 3}min
-                            </span>
-                          </div>
-                        ))}
-                        {(plan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0) > 6 && (
-                          <div className="text-xs text-sage-600 text-center pt-2 border-t border-sage-200/50">
-                            +{(plan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0) - 6} more exercises
-                          </div>
+              {/* Exercise List */}
+              <div className="p-6 max-h-80 overflow-y-auto">
+                <h3 className="text-lg font-semibold text-sage-800 mb-4">Exercises</h3>
+                <div className="space-y-3">
+                  {selectedPlan.exercises?.filter((ex: any) => ex.category !== 'callout').map((exercise: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-sage-50 rounded-2xl">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-sage-800 text-base">
+                          {exercise.name && exercise.name !== 'Exercise' ? exercise.name : `Exercise ${idx + 1}`}
+                        </h4>
+                        {exercise.targetAreas && exercise.targetAreas.length > 0 && (
+                          <p className="text-sage-600 text-sm mt-1">
+                            {exercise.targetAreas.join(', ')}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right ml-3">
+                        <span className="text-sage-700 font-medium text-sm">
+                          {exercise.duration || 3}min
+                        </span>
+                        {exercise.difficulty && (
+                          <p className="text-sage-500 text-xs mt-1 capitalize">
+                            {exercise.difficulty}
+                          </p>
                         )}
                       </div>
                     </div>
-                  )}
-
-                  {/* Play Button */}
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onTeachPlan(plan);
-                      }}
-                      className="w-14 h-14 rounded-full bg-white/98 hover:bg-white text-sage-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 p-0"
-                    >
-                      <Play className="h-6 w-6 ml-0.5" />
-                    </Button>
-                  </div>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    onClick={() => {
+                      onTeachPlan(selectedPlan);
+                      handleCloseModal();
+                    }}
+                    className="flex-1 bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-2xl py-3 font-medium"
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    Start Teaching
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      handleEditPlan(selectedPlan);
+                      handleCloseModal();
+                    }}
+                    variant="outline"
+                    className="flex-1 border-sage-300 text-sage-700 hover:bg-sage-50 rounded-2xl py-3 font-medium"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Plan
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </>
   );
 };
