@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Play, MoreHorizontal, Copy, EyeOff, Edit, Trash2 } from 'lucide-react';
+import { Clock, Play, MoreHorizontal, Copy, Edit, Trash2 } from 'lucide-react';
 import { useMobileDragDrop } from '@/hooks/useMobileDragDrop';
 import {
   DropdownMenu,
@@ -60,85 +60,79 @@ export const WalletStyleClassCards = ({
 
   const getCardStyle = (index: number) => {
     const isExpanded = expandedIndex === index;
-    const isStacked = expandedIndex !== null && index > expandedIndex;
-    const distanceFromTop = expandedIndex !== null ? index - expandedIndex : index;
+    const stackOffset = 80; // Increased for better visibility of class names
     
-    if (isExpanded) {
-      return {
-        transform: 'translateY(0px) scale(1)',
-        zIndex: 100,
-        opacity: 1,
-      };
-    }
+    // Maintain original wallet hierarchy - don't reorder cards
+    const baseTransform = `translateY(${-index * stackOffset}px) scale(${1 - index * 0.02})`;
+    const baseZIndex = 50 - index;
     
-    if (isStacked) {
-      return {
-        transform: `translateY(${-300 - (distanceFromTop * 20)}px) scale(0.92)`,
-        zIndex: 50 - distanceFromTop,
-        opacity: 0.7,
-      };
-    }
-    
-    // Increased spacing to 80px to show more of the class name header
     return {
-      transform: `translateY(${-index * 80}px) scale(${1 - index * 0.015})`,
-      zIndex: 50 - index,
+      transform: baseTransform,
+      zIndex: baseZIndex,
       opacity: 1 - index * 0.08,
     };
   };
 
   if (classPlans.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
-        <Card className="bg-white/90 backdrop-blur-sm border-0 rounded-3xl shadow-xl mx-4">
-          <CardContent className="p-8 text-center">
-            <div className="p-4 bg-sage-100 rounded-3xl w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <Clock className="h-8 w-8 text-sage-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-sage-800 mb-2">No Class Plans Yet</h3>
-            <p className="text-sage-600 text-sm mb-6">Create your first class plan to get started</p>
-            <Button
-              onClick={() => navigate('/plan')}
-              className="bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-2xl px-6"
-            >
-              Create Class Plan
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 relative">
+        {/* Backdrop blur effect */}
+        <div className="absolute inset-0 bg-sage-100/20 backdrop-blur-sm"></div>
+        
+        <div className="relative z-10">
+          <Card className="bg-white/90 backdrop-blur-sm border-0 rounded-3xl shadow-xl mx-4">
+            <CardContent className="p-8 text-center">
+              <div className="p-4 bg-sage-100 rounded-3xl w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Clock className="h-8 w-8 text-sage-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-sage-800 mb-2">No Class Plans Yet</h3>
+              <p className="text-sage-600 text-sm mb-6">Create your first class plan to get started</p>
+              <Button
+                onClick={() => navigate('/plan')}
+                className="bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-2xl px-6"
+              >
+                Create Class Plan
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
-  // Improved container height calculation for better wallet stacking
+  // Container height calculation
   const containerHeight = Math.max(400, 300 + (classPlans.length - 1) * 80);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
-      <div className="relative px-4 pb-32" style={{ height: `${containerHeight}px` }}>
+    <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 relative">
+      {/* Backdrop blur effect */}
+      <div className="absolute inset-0 bg-sage-100/20 backdrop-blur-sm"></div>
+      
+      <div className="relative z-10 px-4 pb-32" style={{ height: `${containerHeight}px` }}>
         {classPlans.map((plan, index) => (
           <Card 
             key={plan.id}
-            className="absolute w-full bg-white/95 backdrop-blur-sm border-0 rounded-3xl shadow-2xl transition-all duration-500 ease-out cursor-pointer overflow-hidden"
+            className="absolute w-full bg-white/95 backdrop-blur-sm border-0 rounded-3xl shadow-2xl transition-all duration-300 ease-out cursor-pointer overflow-hidden"
             style={{
               top: `${index * 20}px`,
               ...getCardStyle(index),
               maxWidth: 'calc(100% - 2rem)',
-              height: expandedIndex === index ? '320px' : '280px',
+              height: expandedIndex === index ? '380px' : '280px',
             }}
             onClick={() => handleCardTap(index)}
           >
             <CardContent className="p-0 relative h-full">
               {/* Class Name Header - Always Visible at Top */}
-              <div className="relative z-20 bg-white/95 backdrop-blur-md border-b border-sage-200/30 px-6 py-4 rounded-t-3xl">
+              <div className="relative z-20 bg-white/95 backdrop-blur-md border-b border-sage-200/30 px-6 py-5 rounded-t-3xl">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-bold text-sage-900 leading-tight truncate">
+                    <h3 className="text-lg font-medium text-sage-900 leading-tight truncate">
                       {plan.name}
                     </h3>
-                    <div className="flex items-center gap-3 mt-1 text-sage-600 text-sm">
+                    <div className="flex items-center gap-3 mt-2 text-sage-600 text-sm">
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        <span>{plan.totalDuration || 0}min</span>
+                        <span>{plan.duration || 45}min</span>
                       </div>
                       <span>{plan.exercises?.filter(ex => ex.category !== 'callout').length || 0} exercises</span>
                     </div>
@@ -186,16 +180,6 @@ export const WalletStyleClassCards = ({
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete Plan
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onHidePlan(plan.id);
-                        }}
-                        className="text-gray-600 hover:bg-gray-100 rounded-xl m-1"
-                      >
-                        <EyeOff className="h-4 w-4 mr-2" />
-                        Hide Plan
-                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -208,7 +192,7 @@ export const WalletStyleClassCards = ({
                   alt={plan.name}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-sage-900/60 via-sage-600/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-sage-900/70 via-sage-600/30 to-transparent"></div>
               </div>
 
               {/* Bottom Content */}
@@ -216,24 +200,28 @@ export const WalletStyleClassCards = ({
                 {/* Plan Type Badge */}
                 <div className="mb-4">
                   <Badge className="bg-sage-100/90 text-sage-800 border-0 rounded-full px-3 py-1 text-sm backdrop-blur-sm">
-                    Reformer
+                    Reformer Class
                   </Badge>
                 </div>
 
-                {/* Expanded Content - Exercise List */}
+                {/* Expanded Content - Exercise List with actual names */}
                 {expandedIndex === index && (
-                  <div className="mb-4 max-h-32 overflow-y-auto bg-white/90 backdrop-blur-sm rounded-2xl p-4">
-                    <h4 className="font-semibold text-sage-800 mb-2 text-sm">Exercises:</h4>
-                    <div className="space-y-1">
-                      {plan.exercises?.filter(ex => ex.category !== 'callout').slice(0, 4).map((exercise: any, idx: number) => (
-                        <div key={idx} className="flex items-center justify-between text-xs text-sage-700">
-                          <span className="truncate flex-1">{exercise.name}</span>
-                          <span className="ml-2 text-sage-600">{exercise.duration}min</span>
+                  <div className="mb-4 max-h-36 overflow-y-auto bg-white/95 backdrop-blur-sm rounded-2xl p-4">
+                    <h4 className="font-medium text-sage-800 mb-3 text-sm">Exercises in this class:</h4>
+                    <div className="space-y-2">
+                      {plan.exercises?.filter(ex => ex.category !== 'callout').slice(0, 5).map((exercise: any, idx: number) => (
+                        <div key={idx} className="flex items-center justify-between text-sm text-sage-700 py-1">
+                          <span className="truncate flex-1 font-medium">
+                            {exercise.name && exercise.name !== 'Exercise' ? exercise.name : `Exercise ${idx + 1}`}
+                          </span>
+                          <span className="ml-2 text-sage-600 text-xs">
+                            {exercise.duration || 3}min
+                          </span>
                         </div>
                       ))}
-                      {(plan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0) > 4 && (
-                        <div className="text-xs text-sage-600 text-center pt-1">
-                          +{(plan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0) - 4} more exercises
+                      {(plan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0) > 5 && (
+                        <div className="text-xs text-sage-600 text-center pt-2 border-t border-sage-200">
+                          +{(plan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0) - 5} more exercises
                         </div>
                       )}
                     </div>
@@ -247,7 +235,7 @@ export const WalletStyleClassCards = ({
                       e.stopPropagation();
                       onTeachPlan(plan);
                     }}
-                    className="w-14 h-14 rounded-full bg-white/90 hover:bg-white text-sage-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 p-0"
+                    className="w-14 h-14 rounded-full bg-white/95 hover:bg-white text-sage-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 p-0"
                   >
                     <Play className="h-6 w-6 ml-0.5" />
                   </Button>
