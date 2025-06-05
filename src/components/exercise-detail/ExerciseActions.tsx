@@ -9,7 +9,7 @@ interface ExerciseActionsProps {
   isHidden: boolean;
   isFavorite: boolean;
   isCustomExercise: boolean;
-  isCustomized: boolean;
+  isModified: boolean;
   onToggleHidden: () => void;
   onToggleFavorite: () => void;
   onDuplicate: () => void;
@@ -23,7 +23,7 @@ export const ExerciseActions = ({
   isHidden,
   isFavorite,
   isCustomExercise,
-  isCustomized,
+  isModified,
   onToggleHidden,
   onToggleFavorite,
   onDuplicate,
@@ -52,7 +52,7 @@ export const ExerciseActions = ({
           <span>Duplicate</span>
         </Button>
 
-        {(isCustomExercise || isCustomized) && onEdit && (
+        {(isCustomExercise || isModified) && onEdit && (
           <Button
             variant="outline"
             onClick={onEdit}
@@ -133,7 +133,7 @@ export const ExerciseActions = ({
         <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
       </Button>
 
-      {(isCustomExercise || isCustomized) && onEdit && (
+      {(isCustomExercise || isModified) && onEdit && (
         <Button 
           onClick={onEdit}
           size="sm"
