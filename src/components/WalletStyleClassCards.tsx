@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Play, MoreHorizontal, Copy, EyeOff } from 'lucide-react';
+import { Clock, Play, MoreHorizontal, Copy, EyeOff, Edit, Trash2 } from 'lucide-react';
 import { useMobileDragDrop } from '@/hooks/useMobileDragDrop';
 import {
   DropdownMenu,
@@ -48,6 +48,16 @@ export const WalletStyleClassCards = ({
     setExpandedIndex(expandedIndex === index ? null : index);
   };
 
+  const handleEditPlan = (plan: any) => {
+    navigate('/plan', { state: { loadPlan: plan } });
+  };
+
+  const handleDeletePlan = (planId: string) => {
+    if (window.confirm('Are you sure you want to delete this class plan?')) {
+      onHidePlan(planId);
+    }
+  };
+
   const getCardStyle = (index: number) => {
     const isExpanded = expandedIndex === index;
     const isStacked = expandedIndex !== null && index > expandedIndex;
@@ -63,17 +73,17 @@ export const WalletStyleClassCards = ({
     
     if (isStacked) {
       return {
-        transform: `translateY(${-200 - (distanceFromTop * 20)}px) scale(0.92)`,
+        transform: `translateY(${-300 - (distanceFromTop * 20)}px) scale(0.92)`,
         zIndex: 50 - distanceFromTop,
         opacity: 0.7,
       };
     }
     
-    // Increased spacing to show more of each card behind
+    // Increased spacing to 80px to show more of the class name header
     return {
-      transform: `translateY(${-index * 60}px) scale(${1 - index * 0.02})`,
+      transform: `translateY(${-index * 80}px) scale(${1 - index * 0.015})`,
       zIndex: 50 - index,
-      opacity: 1 - index * 0.1,
+      opacity: 1 - index * 0.08,
     };
   };
 
@@ -99,8 +109,8 @@ export const WalletStyleClassCards = ({
     );
   }
 
-  // Improved container height calculation
-  const containerHeight = Math.max(320, 220 + (classPlans.length - 1) * 60);
+  // Improved container height calculation for better wallet stacking
+  const containerHeight = Math.max(400, 300 + (classPlans.length - 1) * 80);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
@@ -113,27 +123,26 @@ export const WalletStyleClassCards = ({
               top: `${index * 20}px`,
               ...getCardStyle(index),
               maxWidth: 'calc(100% - 2rem)',
+              height: expandedIndex === index ? '320px' : '280px',
             }}
             onClick={() => handleCardTap(index)}
           >
-            <CardContent className="p-0 relative h-52">
-              {/* Background Image */}
-              <div className="absolute inset-0 overflow-hidden rounded-3xl">
-                <img 
-                  src={plan.image || getRandomImage(plan.id)}
-                  alt={plan.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-sage-900/60 via-sage-600/20 to-transparent"></div>
-              </div>
-
-              {/* Content */}
-              <div className="relative z-10 h-full flex flex-col justify-between p-6">
-                {/* Top - Plan Type Badge */}
-                <div className="flex justify-between items-start">
-                  <Badge className="bg-sage-100/90 text-sage-800 border-0 rounded-full px-3 py-1 text-sm backdrop-blur-sm">
-                    Reformer
-                  </Badge>
+            <CardContent className="p-0 relative h-full">
+              {/* Class Name Header - Always Visible at Top */}
+              <div className="relative z-20 bg-white/95 backdrop-blur-md border-b border-sage-200/30 px-6 py-4 rounded-t-3xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-xl font-bold text-sage-900 leading-tight truncate">
+                      {plan.name}
+                    </h3>
+                    <div className="flex items-center gap-3 mt-1 text-sage-600 text-sm">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{plan.totalDuration || 0}min</span>
+                      </div>
+                      <span>{plan.exercises?.filter(ex => ex.category !== 'callout').length || 0} exercises</span>
+                    </div>
+                  </div>
                   
                   {/* Options Menu */}
                   <DropdownMenu>
@@ -141,12 +150,22 @@ export const WalletStyleClassCards = ({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-sage-100 hover:bg-white/20 rounded-full w-8 h-8"
+                        className="text-sage-600 hover:bg-sage-100 rounded-full w-8 h-8"
                       >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="bg-white/95 backdrop-blur-sm border-0 rounded-2xl shadow-xl z-[60]">
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditPlan(plan);
+                        }}
+                        className="text-sage-700 hover:bg-sage-100 rounded-xl m-1"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Plan
+                      </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={(e) => {
                           e.stopPropagation();
@@ -160,9 +179,19 @@ export const WalletStyleClassCards = ({
                       <DropdownMenuItem 
                         onClick={(e) => {
                           e.stopPropagation();
-                          onHidePlan(plan.id);
+                          handleDeletePlan(plan.id);
                         }}
                         className="text-red-600 hover:bg-red-100 rounded-xl m-1"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Plan
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onHidePlan(plan.id);
+                        }}
+                        className="text-gray-600 hover:bg-gray-100 rounded-xl m-1"
                       >
                         <EyeOff className="h-4 w-4 mr-2" />
                         Hide Plan
@@ -170,33 +199,58 @@ export const WalletStyleClassCards = ({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
+              </div>
 
-                {/* Bottom - Plan Info */}
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2 leading-tight">
-                    {plan.name}
-                  </h3>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-white/90 text-sm">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{plan.totalDuration || 0}min</span>
-                      </div>
-                      <span>{plan.exercises?.filter(ex => ex.category !== 'callout').length || 0} exercises</span>
+              {/* Background Image with Overlay */}
+              <div className="absolute inset-0 overflow-hidden rounded-3xl">
+                <img 
+                  src={plan.image || getRandomImage(plan.id)}
+                  alt={plan.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-sage-900/60 via-sage-600/20 to-transparent"></div>
+              </div>
+
+              {/* Bottom Content */}
+              <div className="absolute bottom-0 left-0 right-0 z-10 p-6">
+                {/* Plan Type Badge */}
+                <div className="mb-4">
+                  <Badge className="bg-sage-100/90 text-sage-800 border-0 rounded-full px-3 py-1 text-sm backdrop-blur-sm">
+                    Reformer
+                  </Badge>
+                </div>
+
+                {/* Expanded Content - Exercise List */}
+                {expandedIndex === index && (
+                  <div className="mb-4 max-h-32 overflow-y-auto bg-white/90 backdrop-blur-sm rounded-2xl p-4">
+                    <h4 className="font-semibold text-sage-800 mb-2 text-sm">Exercises:</h4>
+                    <div className="space-y-1">
+                      {plan.exercises?.filter(ex => ex.category !== 'callout').slice(0, 4).map((exercise: any, idx: number) => (
+                        <div key={idx} className="flex items-center justify-between text-xs text-sage-700">
+                          <span className="truncate flex-1">{exercise.name}</span>
+                          <span className="ml-2 text-sage-600">{exercise.duration}min</span>
+                        </div>
+                      ))}
+                      {(plan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0) > 4 && (
+                        <div className="text-xs text-sage-600 text-center pt-1">
+                          +{(plan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0) - 4} more exercises
+                        </div>
+                      )}
                     </div>
-                    
-                    {/* Play Button */}
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onTeachPlan(plan);
-                      }}
-                      className="w-12 h-12 rounded-full bg-white/90 hover:bg-white text-sage-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 p-0"
-                    >
-                      <Play className="h-5 w-5 ml-0.5" />
-                    </Button>
                   </div>
+                )}
+
+                {/* Play Button */}
+                <div className="flex justify-end">
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onTeachPlan(plan);
+                    }}
+                    className="w-14 h-14 rounded-full bg-white/90 hover:bg-white text-sage-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 p-0"
+                  >
+                    <Play className="h-6 w-6 ml-0.5" />
+                  </Button>
                 </div>
               </div>
             </CardContent>
