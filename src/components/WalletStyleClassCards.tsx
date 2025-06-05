@@ -106,46 +106,46 @@ export const WalletStyleClassCards = ({
           <div className="absolute bottom-32 left-12 w-40 h-40 bg-gradient-to-br from-sage-300/15 to-sage-200/25 rounded-full blur-3xl animate-float" style={{ animationDelay: '4s' }}></div>
         </div>
         
-        <div className="relative z-10 pt-6 space-y-3 max-w-sm mx-auto">
+        <div className="relative z-10 pt-6 space-y-2 max-w-xs mx-auto">
           {classPlans.map((plan, index) => {
-            const stackOffset = index * 8;
-            const scale = 1 - (index * 0.02);
-            const opacity = Math.max(0.8, 1 - (index * 0.06));
+            const stackOffset = index * 6;
+            const scale = 1 - (index * 0.015);
+            const opacity = Math.max(0.85, 1 - (index * 0.05));
             const isHovered = hoveredCard === plan.id;
             const isTopCard = index === 0;
             
             return (
               <Card 
                 key={plan.id}
-                className={`relative bg-white/98 backdrop-blur-xl border-0 rounded-3xl shadow-2xl cursor-pointer group overflow-hidden transform transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+                className={`relative bg-white/98 backdrop-blur-xl border-0 rounded-3xl shadow-xl cursor-pointer group overflow-hidden transform transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                   ${isTopCard ? 'animate-float' : ''}`}
                 style={{
-                  transform: `translateY(-${stackOffset}px) scale(${scale}) ${isHovered ? 'translateY(-12px) scale(1.02)' : ''}`,
+                  transform: `translateY(-${stackOffset}px) scale(${scale}) ${isHovered ? 'translateY(-8px) scale(1.015)' : ''}`,
                   zIndex: 50 - index,
                   opacity: opacity,
-                  filter: isHovered ? 'brightness(1.05) drop-shadow(0 20px 25px rgb(0 0 0 / 0.15))' : 'drop-shadow(0 10px 15px rgb(0 0 0 / 0.1))',
+                  filter: isHovered ? 'brightness(1.03) drop-shadow(0 15px 20px rgb(0 0 0 / 0.12))' : 'drop-shadow(0 8px 12px rgb(0 0 0 / 0.08))',
                 }}
                 onClick={(e) => handleCardTap(plan, e)}
                 onMouseEnter={() => setHoveredCard(plan.id)}
                 onMouseLeave={() => setHoveredCard(null)}
               >
-                <CardContent className="p-0 relative h-56 overflow-hidden">
+                <CardContent className="p-0 relative h-48 overflow-hidden">
                   {/* Enhanced background image with multiple overlays */}
                   <div className="absolute inset-0">
                     <img 
                       src={plan.image || getRandomImage(plan.id)}
                       alt={plan.name}
-                      className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-110' : 'scale-100'}`}
+                      className={`w-full h-full object-cover transition-all duration-700 ${isHovered ? 'scale-105' : 'scale-100'}`}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent"></div>
                     <div className="absolute inset-0 bg-gradient-to-br from-sage-600/5 via-transparent to-sage-800/5"></div>
                     {isHovered && (
-                      <div className="absolute inset-0 bg-gradient-to-t from-sage-900/20 via-transparent to-transparent animate-fade-in"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-sage-900/15 via-transparent to-transparent animate-fade-in"></div>
                     )}
                   </div>
 
                   {/* Enhanced content with better typography */}
-                  <div className="relative z-10 h-full flex flex-col justify-between p-6">
+                  <div className="relative z-10 h-full flex flex-col justify-between p-5">
                     {/* Top Section - Enhanced badge and menu */}
                     <div className="flex items-start justify-between">
                       <Badge className="bg-white/95 backdrop-blur-xl text-sage-800 border-0 rounded-full px-3 py-1.5 text-xs font-bold shadow-lg transform hover:scale-105 transition-all duration-300">
@@ -200,11 +200,11 @@ export const WalletStyleClassCards = ({
 
                     {/* Bottom Section - Enhanced typography and layout */}
                     <div>
-                      <h3 className="text-xl font-bold text-white mb-2 leading-tight drop-shadow-lg">
+                      <h3 className="text-lg font-bold text-white mb-2 leading-tight drop-shadow-lg">
                         {plan.name}
                       </h3>
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 text-white/95 text-sm">
+                        <div className="flex items-center gap-3 text-white/95 text-sm">
                           <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-1">
                             <Clock className="h-3 w-3" />
                             <span className="font-bold">{plan.duration || 45}min</span>
@@ -221,9 +221,9 @@ export const WalletStyleClassCards = ({
                             e.stopPropagation();
                             onTeachPlan(plan);
                           }}
-                          className="w-12 h-12 rounded-full bg-white/98 hover:bg-white text-sage-800 shadow-2xl hover:shadow-3xl transform hover:scale-125 active:scale-95 transition-all duration-300 ease-out p-0 backdrop-blur-sm"
+                          className="w-11 h-11 rounded-full bg-white/98 hover:bg-white text-sage-800 shadow-2xl hover:shadow-3xl transform hover:scale-125 active:scale-95 transition-all duration-300 ease-out p-0 backdrop-blur-sm"
                         >
-                          <Play className="h-5 w-5 ml-0.5" />
+                          <Play className="h-4 w-4 ml-0.5" />
                         </Button>
                       </div>
                     </div>
@@ -240,14 +240,14 @@ export const WalletStyleClassCards = ({
         </div>
       </div>
 
-      {/* Enhanced Modal with Sage backdrop */}
+      {/* Enhanced Modal with Sage backdrop and no scroll */}
       {selectedPlan && (
         <div 
-          className="fixed inset-0 bg-gradient-to-br from-sage-800/40 via-sage-600/30 to-sage-900/40 backdrop-blur-xl z-[100] flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 bg-gradient-to-br from-sage-600/30 via-sage-500/25 to-sage-700/35 backdrop-blur-xl z-[100] flex items-center justify-center p-4 animate-fade-in"
           onClick={handleCloseModal}
         >
           <Card 
-            className="bg-white/98 backdrop-blur-xl rounded-3xl shadow-2xl max-w-md w-full max-h-[85vh] overflow-hidden transform animate-scale-in"
+            className="bg-white/98 backdrop-blur-xl rounded-3xl shadow-2xl max-w-sm w-full transform animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
             <CardContent className="p-0">
@@ -256,33 +256,33 @@ export const WalletStyleClassCards = ({
                 <img 
                   src={selectedPlan.image || getRandomImage(selectedPlan.id)}
                   alt={selectedPlan.name}
-                  className="w-full h-56 object-cover"
+                  className="w-full h-44 object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-sage-900/60 via-sage-800/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-sage-900/50 via-sage-800/15 to-transparent"></div>
                 
                 <Button
                   onClick={handleCloseModal}
                   variant="ghost"
                   size="icon"
-                  className="absolute top-4 right-4 text-white hover:bg-white/20 backdrop-blur-sm rounded-full w-10 h-10 transform hover:scale-110 active:scale-95 transition-all duration-200"
+                  className="absolute top-3 right-3 text-white hover:bg-white/20 backdrop-blur-sm rounded-full w-9 h-9 transform hover:scale-110 active:scale-95 transition-all duration-200"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-4 w-4" />
                 </Button>
 
-                <div className="absolute bottom-6 left-6 right-6">
-                  <Badge className="bg-white/95 backdrop-blur-xl text-sage-800 border-0 rounded-full px-4 py-2 text-sm font-bold mb-3 shadow-lg">
-                    <div className="w-2 h-2 bg-sage-500 rounded-full mr-2"></div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <Badge className="bg-white/95 backdrop-blur-xl text-sage-800 border-0 rounded-full px-3 py-1.5 text-xs font-bold mb-2 shadow-lg">
+                    <div className="w-1.5 h-1.5 bg-sage-500 rounded-full mr-2"></div>
                     Reformer Class
                   </Badge>
-                  <h2 className="text-3xl font-bold text-white leading-tight drop-shadow-lg mb-3">
+                  <h2 className="text-2xl font-bold text-white leading-tight drop-shadow-lg mb-2">
                     {selectedPlan.name}
                   </h2>
-                  <div className="flex items-center gap-4 text-white/95 text-base">
-                    <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5">
-                      <Clock className="h-4 w-4" />
+                  <div className="flex items-center gap-3 text-white/95 text-sm">
+                    <div className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-1">
+                      <Clock className="h-3 w-3" />
                       <span className="font-bold">{selectedPlan.duration || 45}min</span>
                     </div>
-                    <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5">
+                    <div className="bg-white/20 backdrop-blur-sm rounded-full px-2.5 py-1">
                       <span className="font-bold">
                         {selectedPlan.exercises?.filter((ex: any) => ex.category !== 'callout').length || 0} exercises
                       </span>
@@ -291,46 +291,46 @@ export const WalletStyleClassCards = ({
                 </div>
               </div>
 
-              {/* Enhanced exercise list */}
-              <div className="p-6 max-h-80 overflow-y-auto">
-                <h3 className="text-xl font-bold text-sage-800 mb-5">Exercises</h3>
-                <div className="space-y-3">
-                  {selectedPlan.exercises?.filter((ex: any) => ex.category !== 'callout').map((exercise: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between p-4 bg-gradient-to-r from-sage-50 to-sage-100/80 rounded-2xl border border-sage-200/50 hover:shadow-md transition-all duration-200">
+              {/* Exercises list - limited height to fit screen */}
+              <div className="p-4">
+                <h3 className="text-lg font-bold text-sage-800 mb-3">Exercises</h3>
+                <div className="space-y-2 max-h-32 overflow-y-auto scrollbar-hide">
+                  {selectedPlan.exercises?.filter((ex: any) => ex.category !== 'callout').slice(0, 4).map((exercise: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-gradient-to-r from-sage-50 to-sage-100/80 rounded-xl border border-sage-200/50">
                       <div className="flex-1">
-                        <h4 className="font-bold text-sage-800 text-base mb-1">
+                        <h4 className="font-bold text-sage-800 text-sm">
                           {exercise.name && exercise.name !== 'Exercise' ? exercise.name : `Exercise ${idx + 1}`}
                         </h4>
                         {exercise.targetAreas && exercise.targetAreas.length > 0 && (
-                          <p className="text-sage-600 text-sm">
-                            {exercise.targetAreas.join(', ')}
+                          <p className="text-sage-600 text-xs">
+                            {exercise.targetAreas.slice(0, 2).join(', ')}
                           </p>
                         )}
                       </div>
-                      <div className="text-right ml-4">
-                        <div className="bg-sage-200 text-sage-800 rounded-full px-3 py-1 text-sm font-bold">
+                      <div className="text-right ml-3">
+                        <div className="bg-sage-200 text-sage-800 rounded-full px-2 py-1 text-xs font-bold">
                           {exercise.duration || 3}min
                         </div>
-                        {exercise.difficulty && (
-                          <p className="text-sage-500 text-xs mt-1 capitalize font-medium">
-                            {exercise.difficulty}
-                          </p>
-                        )}
                       </div>
                     </div>
                   ))}
+                  {selectedPlan.exercises?.filter((ex: any) => ex.category !== 'callout').length > 4 && (
+                    <div className="text-center text-sage-500 text-xs py-1">
+                      +{selectedPlan.exercises?.filter((ex: any) => ex.category !== 'callout').length - 4} more exercises
+                    </div>
+                  )}
                 </div>
 
                 {/* Enhanced action buttons */}
-                <div className="flex gap-3 mt-8">
+                <div className="flex gap-2 mt-4">
                   <Button
                     onClick={() => {
                       onTeachPlan(selectedPlan);
                       handleCloseModal();
                     }}
-                    className="flex-1 bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-2xl py-4 font-bold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300"
+                    className="flex-1 bg-gradient-to-r from-sage-500 to-sage-600 hover:from-sage-600 hover:to-sage-700 text-white rounded-xl py-3 font-bold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300"
                   >
-                    <Play className="h-5 w-5 mr-2" />
+                    <Play className="h-4 w-4 mr-2" />
                     Start Teaching
                   </Button>
                   <Button
@@ -339,9 +339,9 @@ export const WalletStyleClassCards = ({
                       handleCloseModal();
                     }}
                     variant="outline"
-                    className="flex-1 border-2 border-sage-300 text-sage-700 hover:bg-sage-50 hover:border-sage-400 rounded-2xl py-4 font-bold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300"
+                    className="flex-1 border-2 border-sage-300 text-sage-700 hover:bg-sage-50 hover:border-sage-400 rounded-xl py-3 font-bold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-300"
                   >
-                    <Edit className="h-5 w-5 mr-2" />
+                    <Edit className="h-4 w-4 mr-2" />
                     Edit Plan
                   </Button>
                 </div>
@@ -351,17 +351,24 @@ export const WalletStyleClassCards = ({
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         @keyframes float {
           0%, 100% {
             transform: translateY(0px);
           }
           50% {
-            transform: translateY(-6px);
+            transform: translateY(-4px);
           }
         }
         .animate-float {
           animation: float 6s ease-in-out infinite;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
         }
       `}</style>
     </>
