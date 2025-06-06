@@ -4,12 +4,12 @@ import { usePWA } from '@/hooks/usePWA';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Download, X, Smartphone, Monitor } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
 
 export const PWAInstallPrompt = () => {
   const { isInstallable, isInstalled, installApp, updateAvailable, updateApp } = usePWA();
   const [showPrompt, setShowPrompt] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     // Show install prompt after 5 seconds if app is installable and not dismissed
@@ -36,18 +36,13 @@ export const PWAInstallPrompt = () => {
     
     const success = await installApp();
     if (success) {
-      toast({
-        title: "App Installed!",
-        description: "Reformer Flow has been added to your device.",
-      });
+      setMessage("App Installed! Reformer Flow has been added to your device.");
       setShowPrompt(false);
     } else {
-      toast({
-        title: "Installation Failed",
-        description: "Please try again or add to home screen manually.",
-        variant: "destructive",
-      });
+      setMessage("Installation Failed. Please try again or add to home screen manually.");
     }
+    
+    setTimeout(() => setMessage(null), 3000);
   };
 
   const handleDismiss = () => {
@@ -58,11 +53,22 @@ export const PWAInstallPrompt = () => {
 
   const handleUpdate = () => {
     updateApp();
-    toast({
-      title: "Updating App",
-      description: "The app will refresh with the latest version.",
-    });
+    setMessage("Updating App. The app will refresh with the latest version.");
+    setTimeout(() => setMessage(null), 3000);
   };
+
+  // Show status message
+  if (message) {
+    return (
+      <div className="fixed top-4 left-4 right-4 z-50 max-w-sm mx-auto">
+        <Card className="bg-blue-50 border-blue-200 shadow-lg animate-fade-in">
+          <CardContent className="p-4">
+            <p className="text-sm text-blue-900">{message}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Show update notification
   if (updateAvailable) {

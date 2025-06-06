@@ -8,7 +8,6 @@ import { AuthPage } from '@/components/AuthPage';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
 import { useClassPlanSync } from '@/hooks/useClassPlanSync';
-import { toast } from '@/hooks/use-toast';
 
 const Library = () => {
   const navigate = useNavigate();
@@ -37,24 +36,14 @@ const Library = () => {
       const success = addExerciseToCurrentPlan(exercise);
       
       if (success) {
-        console.log('🔵 Library: Exercise added successfully, navigating to plan');
-        toast({
-          title: "Added to class",
-          description: `"${exercise.name}" has been added to your class plan.`,
-        });
-        
-        // Navigate to plan page to show the updated class
-        navigate('/plan');
+        console.log('🔵 Library: Exercise added successfully');
+        // Exercise is added, visual feedback is handled by the CategoryExerciseLibrary component
       } else {
         throw new Error('Failed to add exercise to plan');
       }
     } catch (error) {
       console.error('🔴 Library: Error in handleAddExercise:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add exercise to class.",
-        variant: "destructive",
-      });
+      // Error feedback would be handled by the component that shows the error
     }
   };
 

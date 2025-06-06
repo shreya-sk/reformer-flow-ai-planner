@@ -8,32 +8,25 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sparkles, Mail, Lock } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
 
 export const AuthPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     
     const { error } = await signIn(email, password);
     
     if (error) {
-      toast({
-        title: "Sign in failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      setError(error.message);
     } else {
-      toast({
-        title: "Welcome back!",
-        description: "Successfully signed in.",
-      });
       // Redirect to home page after successful sign in
       navigate('/');
     }
@@ -44,20 +37,13 @@ export const AuthPage = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     
     const { error } = await signUp(email, password);
     
     if (error) {
-      toast({
-        title: "Sign up failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      setError(error.message);
     } else {
-      toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account.",
-      });
       // Optionally redirect to home page or stay on auth page
       navigate('/');
     }
@@ -81,6 +67,12 @@ export const AuthPage = () => {
         </CardHeader>
         
         <CardContent>
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+          
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>

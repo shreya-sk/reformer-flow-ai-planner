@@ -13,6 +13,8 @@ interface ClassBuilderProps {
   onAddExercise: () => void;
   onAddCallout?: (name: string, position: number) => void;
   onEditExercise?: (exercise: Exercise) => void;
+  isSaving?: boolean;
+  saveSuccess?: boolean;
 }
 
 export const ClassBuilder = (props: ClassBuilderProps) => {
