@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,7 @@ import { useExercises } from '@/hooks/useExercises';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ModernExerciseModal } from './ModernExerciseModal';
 import { InteractiveExerciseForm } from './InteractiveExerciseForm';
+import { SmartAddButton } from './SmartAddButton';
 
 interface CategoryExerciseLibraryProps {
   onExerciseSelect?: (exercise: Exercise) => void;
@@ -123,17 +125,6 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
     setSelectedExercise(exercise);
   };
 
-  const handleAddToCart = (exercise: Exercise, event?: React.MouseEvent) => {
-    // Stop propagation to prevent opening modal when clicking + button
-    if (event) {
-      event.stopPropagation();
-    }
-    
-    if (onExerciseSelect) {
-      onExerciseSelect(exercise);
-    }
-  };
-
   const handleAddExercise = () => {
     setExerciseToEdit(null);
     setShowExerciseForm(true);
@@ -241,14 +232,15 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                   
-                  {/* Quick Add Button - Top Left */}
+                  {/* Smart Add Button - Top Left */}
                   {onExerciseSelect && (
-                    <button
-                      onClick={(e) => handleAddToCart(exercise, e)}
-                      className="absolute top-2 left-2 p-2 rounded-full bg-sage-600 hover:bg-sage-700 backdrop-blur-sm transition-colors z-10"
-                    >
-                      <Plus className="h-4 w-4 text-white" />
-                    </button>
+                    <div className="absolute top-2 left-2">
+                      <SmartAddButton
+                        exercise={exercise}
+                        size="sm"
+                        className="w-8 h-8 p-0 rounded-full"
+                      />
+                    </div>
                   )}
                   
                   {/* Action buttons - Top Right */}
@@ -310,7 +302,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
             exercise={selectedExercise}
             isOpen={!!selectedExercise}
             onClose={() => setSelectedExercise(null)}
-            onAddToCart={onExerciseSelect ? () => handleAddToCart(selectedExercise) : undefined}
+            onAddToCart={onExerciseSelect ? () => onExerciseSelect(selectedExercise) : undefined}
             onEdit={() => handleEditExercise(selectedExercise)}
           />
         )}
