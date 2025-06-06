@@ -7,7 +7,6 @@ import { usePersistedClassPlan } from '@/hooks/usePersistedClassPlan';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { useExercises } from '@/hooks/useExercises';
 import { BottomNavigation } from '@/components/BottomNavigation';
-import { toast } from '@/hooks/use-toast';
 import { AuthPage } from '@/components/AuthPage';
 import { ClassTeachingMode } from '@/components/ClassTeachingMode';
 import { ClassBuilder } from '@/components/ClassBuilder';
@@ -32,6 +31,7 @@ const PlanClass = () => {
   const [isTeachingMode, setIsTeachingMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const realExerciseCount = getRealExerciseCount();
 
@@ -59,16 +59,14 @@ const PlanClass = () => {
     });
 
     if (realExerciseCount === 0) {
-      toast({
-        title: "Cannot save empty class",
-        description: "Add some exercises to your class before saving.",
-        variant: "destructive"
-      });
+      setSaveError("Add some exercises to your class before saving.");
+      setTimeout(() => setSaveError(null), 3000);
       return;
     }
 
     setIsSaving(true);
     setSaveSuccess(false);
+    setSaveError(null);
 
     try {
       const classToSave = {
@@ -81,11 +79,7 @@ const PlanClass = () => {
       console.log('💾 Save successful:', savedClass);
 
       setSaveSuccess(true);
-      toast({
-        title: "Class saved successfully!",
-        description: `"${classToSave.name}" has been saved with ${realExerciseCount} exercises.`
-      });
-
+      
       setTimeout(() => {
         clearClassPlan();
         navigate('/');
@@ -96,11 +90,8 @@ const PlanClass = () => {
       setSaveSuccess(false);
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      toast({
-        title: "Save failed",
-        description: `Could not save class: ${errorMessage}`,
-        variant: "destructive"
-      });
+      setSaveError(`Could not save class: ${errorMessage}`);
+      setTimeout(() => setSaveError(null), 5000);
     }
   };
 
@@ -137,17 +128,10 @@ const PlanClass = () => {
       }
 
       syncExerciseUpdates(updatedExercise);
-      toast({
-        title: "Exercise updated",
-        description: "Changes have been saved and synced to your class."
-      });
     } catch (error) {
       console.error('Error updating exercise:', error);
-      toast({
-        title: "Update failed",
-        description: "Could not save exercise changes.",
-        variant: "destructive"
-      });
+      setSaveError("Could not save exercise changes.");
+      setTimeout(() => setSaveError(null), 3000);
     }
   };
 
@@ -165,6 +149,19 @@ const PlanClass = () => {
       <div className="absolute top-60 right-20 w-24 h-24 bg-sage-300/15 rounded-full blur-lg"></div>
       <div className="absolute bottom-40 left-1/3 w-40 h-40 bg-sage-100/25 rounded-full blur-2xl"></div>
 
+      {/* Save Status Messages */}
+      {saveError && (
+        <div className="fixed top-4 left-4 right-4 z-50 bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded-lg">
+          {saveError}
+        </div>
+      )}
+      
+      {saveSuccess && (
+        <div className="fixed top-4 left-4 right-4 z-50 bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded-lg">
+          Class saved successfully! Redirecting...
+        </div>
+      )}
+
       {/* Class Builder Content with backdrop blur */}
       <div className="relative z-10 px-2 sm:px-3 pt-4">
         <div className="bg-white/60 backdrop-blur-xl rounded-3xl shadow-lg border border-white/30 p-4 mb-4">
@@ -177,6 +174,8 @@ const PlanClass = () => {
             onAddCallout={handleAddCallout} 
             onUpdateClassName={updateClassName} 
             onSaveClass={handleSaveClass} 
+            isSaving={isSaving}
+            saveSuccess={saveSuccess}
           />
         </div>
       </div>

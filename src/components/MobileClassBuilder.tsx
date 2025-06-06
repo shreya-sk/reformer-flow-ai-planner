@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Plus, GripVertical, Trash2, Clock, Edit, Play, Save } from 'lucide-react';
+import { Plus, GripVertical, Trash2, Clock, Edit, Play, Save, Check } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { ModernExerciseModal } from './ModernExerciseModal';
 
@@ -19,6 +19,8 @@ interface MobileClassBuilderProps {
   onAddExercise: () => void;
   onAddCallout?: (name: string, position: number) => void;
   onEditExercise?: (exercise: Exercise) => void;
+  isSaving?: boolean;
+  saveSuccess?: boolean;
 }
 
 export const MobileClassBuilder = ({
@@ -30,7 +32,9 @@ export const MobileClassBuilder = ({
   onSaveClass,
   onAddExercise,
   onAddCallout,
-  onEditExercise
+  onEditExercise,
+  isSaving = false,
+  saveSuccess = false
 }: MobileClassBuilderProps) => {
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
 
@@ -92,9 +96,22 @@ export const MobileClassBuilder = ({
               <Button
                 onClick={onSaveClass}
                 size="sm"
-                className="bg-emerald-600/90 hover:bg-emerald-700/90 text-white backdrop-blur-sm rounded-xl"
+                disabled={isSaving}
+                className={`backdrop-blur-sm rounded-xl transition-all duration-300 ${
+                  saveSuccess 
+                    ? 'bg-green-500 text-white scale-110' 
+                    : isSaving
+                    ? 'bg-gray-400 text-white'
+                    : 'bg-emerald-600/90 hover:bg-emerald-700/90 text-white'
+                }`}
               >
-                <Save className="h-4 w-4" />
+                {saveSuccess ? (
+                  <Check className="h-4 w-4 animate-bounce" />
+                ) : isSaving ? (
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>

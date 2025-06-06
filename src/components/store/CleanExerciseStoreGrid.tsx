@@ -36,6 +36,7 @@ export const CleanExerciseStoreGrid = ({
   userLibrary
 }: CleanExerciseStoreGridProps) => {
   const [addingExercises, setAddingExercises] = useState<string[]>([]);
+  const [successExercises, setSuccessExercises] = useState<string[]>([]);
 
   const reformerImages = [
     '/lovable-uploads/52923e3d-1669-4ae1-9710-9e1c18d8820d.png',
@@ -69,10 +70,16 @@ export const CleanExerciseStoreGrid = ({
     setAddingExercises(prev => [...prev, exerciseId]);
     try {
       await onAddToLibrary(exerciseId);
+      setSuccessExercises(prev => [...prev, exerciseId]);
+      setTimeout(() => {
+        setSuccessExercises(prev => prev.filter(id => id !== exerciseId));
+      }, 3000);
+    } catch (error) {
+      console.error('Failed to add exercise to library:', error);
     } finally {
       setTimeout(() => {
         setAddingExercises(prev => prev.filter(id => id !== exerciseId));
-      }, 2000);
+      }, 1000);
     }
   };
 
@@ -96,6 +103,7 @@ export const CleanExerciseStoreGrid = ({
       {filteredExercises.map((exercise) => {
         const isInLibrary = userLibrary.includes(exercise.id);
         const isAdding = addingExercises.includes(exercise.id);
+        const showSuccess = successExercises.includes(exercise.id);
 
         return (
           <Card 
@@ -128,6 +136,13 @@ export const CleanExerciseStoreGrid = ({
                 {exercise.video_url && (
                   <div className="absolute top-3 right-3 bg-black/60 text-white p-2 rounded-full backdrop-blur-sm">
                     <Play className="h-3 w-3" />
+                  </div>
+                )}
+
+                {/* Success Message */}
+                {showSuccess && (
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-green-500 text-white px-4 py-2 rounded-lg font-medium text-sm">
+                    Added to Library!
                   </div>
                 )}
 

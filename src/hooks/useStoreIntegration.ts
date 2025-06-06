@@ -1,7 +1,6 @@
 
 import { useExerciseStore } from './useExerciseStore';
 import { useExercises } from './useExercises';
-import { toast } from './use-toast';
 
 export const useStoreIntegration = () => {
   const { addToUserLibrary } = useExerciseStore();
@@ -15,10 +14,7 @@ export const useStoreIntegration = () => {
       // Refresh exercises to include the new store exercise
       await refetch();
       
-      toast({
-        title: "Added to library",
-        description: `"${storeExercise.name}" has been added to your exercise library.`,
-      });
+      console.log(`Added "${storeExercise.name}" to library successfully`);
       
     } catch (error) {
       console.error('Error adding store exercise to library:', error);

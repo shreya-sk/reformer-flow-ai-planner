@@ -2,7 +2,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { usePWA } from '@/hooks/usePWA';
 import { backgroundSync, processSyncQueue } from '@/utils/backgroundSync';
@@ -63,7 +62,6 @@ function AppContent() {
       <PWAInstallPrompt />
       <OfflineIndicator />
       <main className="w-full">
-        <Toaster />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<AuthPage />} />

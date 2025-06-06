@@ -47,6 +47,8 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   const [showFilters, setShowFilters] = useState(false);
   const [showExerciseForm, setShowExerciseForm] = useState(false);
   const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const { exercises, createUserExercise, updateUserExercise, customizeSystemExercise } = useExercises();
   const { preferences, toggleFavoriteExercise, togglePregnancySafeOnly } = useUserPreferences();
 
@@ -149,9 +151,12 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   const handleCustomizeSystemExercise = async (exercise: Exercise) => {
     try {
       await customizeSystemExercise(exercise, {});
-      // The hook will add "(Custom)" to the name automatically
+      setSaveSuccess("Exercise customized successfully!");
+      setTimeout(() => setSaveSuccess(null), 3000);
     } catch (error) {
       console.error('Error customizing system exercise:', error);
+      setSaveError("Failed to customize exercise.");
+      setTimeout(() => setSaveError(null), 3000);
     }
   };
 
@@ -160,6 +165,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
       if (exerciseToEdit?.id && exerciseToEdit.id !== '') {
         // Editing existing exercise
         await updateUserExercise(exerciseToEdit.id, exercise);
+        setSaveSuccess("Exercise updated successfully!");
       } else {
         // Adding new exercise
         const exerciseData = {
@@ -171,17 +177,34 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
         // Remove id from exercise data when creating
         const { id, ...exerciseWithoutId } = exerciseData;
         await createUserExercise(exerciseWithoutId);
+        setSaveSuccess("Exercise created successfully!");
       }
       setShowExerciseForm(false);
       setExerciseToEdit(null);
+      setTimeout(() => setSaveSuccess(null), 3000);
     } catch (error) {
       console.error('Error saving exercise:', error);
+      setSaveError("Failed to save exercise.");
+      setTimeout(() => setSaveError(null), 3000);
     }
   };
 
   if (showExerciseForm) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-4">
+        {/* Status Messages */}
+        {saveError && (
+          <div className="fixed top-4 left-4 right-4 z-50 bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded-lg">
+            {saveError}
+          </div>
+        )}
+        
+        {saveSuccess && (
+          <div className="fixed top-4 left-4 right-4 z-50 bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded-lg">
+            {saveSuccess}
+          </div>
+        )}
+        
         <InteractiveExerciseForm
           exercise={exerciseToEdit || undefined}
           onSave={handleSaveExercise}
@@ -197,6 +220,19 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   if (selectedCategory) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-4">
+        {/* Status Messages */}
+        {saveError && (
+          <div className="fixed top-4 left-4 right-4 z-50 bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded-lg">
+            {saveError}
+          </div>
+        )}
+        
+        {saveSuccess && (
+          <div className="fixed top-4 left-4 right-4 z-50 bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded-lg">
+            {saveSuccess}
+          </div>
+        )}
+
         {/* Enhanced Header with Search and Icons */}
         <div className="space-y-4 mb-6">
           {/* Top row with back button and category name */}
@@ -312,6 +348,19 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-4">
+      {/* Status Messages */}
+      {saveError && (
+        <div className="fixed top-4 left-4 right-4 z-50 bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded-lg">
+          {saveError}
+        </div>
+      )}
+      
+      {saveSuccess && (
+        <div className="fixed top-4 left-4 right-4 z-50 bg-green-100 border border-green-300 text-green-800 px-4 py-3 rounded-lg">
+          {saveSuccess}
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-sage-800 mb-2">Exercise Library</h1>
