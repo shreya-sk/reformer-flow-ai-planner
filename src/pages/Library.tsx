@@ -38,6 +38,7 @@ const Library = () => {
       if (success) {
         console.log('🔵 Library: Exercise added successfully');
         // Exercise is added, visual feedback is handled by the CategoryExerciseLibrary component
+        // NO NAVIGATION - user stays on library page to add more exercises
       } else {
         throw new Error('Failed to add exercise to plan');
       }
