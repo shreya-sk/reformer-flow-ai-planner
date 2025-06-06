@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { ClassPlan } from '@/types/reformer';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
-import { toast } from '@/hooks/use-toast';
 
 interface ClassPlanListProps {
   classes: ClassPlan[];

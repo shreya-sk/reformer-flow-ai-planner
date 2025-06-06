@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { CleanExerciseStoreHeader } from './store/CleanExerciseStoreHeader';
@@ -6,11 +5,9 @@ import { CleanExerciseStoreGrid } from './store/CleanExerciseStoreGrid';
 import { BottomNavigation } from '@/components/BottomNavigation';
 import { useExerciseStore } from '@/hooks/useExerciseStore';
 import { useStoreIntegration } from '@/hooks/useStoreIntegration';
-import { useToast } from '@/hooks/use-toast';
 
 export const ExerciseStore = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -35,11 +32,6 @@ export const ExerciseStore = () => {
       
     } catch (error) {
       console.error('Error adding exercise to library:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add exercise to library. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 

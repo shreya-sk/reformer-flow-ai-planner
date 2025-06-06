@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Save, Clock, Users, FolderOpen, Sparkles } from 'lucide-react';
 import { ClassPlan } from '@/types/reformer';
-import { toast } from '@/hooks/use-toast';
 import { ProfileButton } from '@/components/ProfileButton';
 
 interface HeaderProps {
