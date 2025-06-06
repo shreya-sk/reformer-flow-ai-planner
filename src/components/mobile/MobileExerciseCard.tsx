@@ -254,97 +254,101 @@ export const MobileExerciseCard = ({
             </div>
           </div>
           
-          {/* Details toggle */}
-          <button
-            onClick={toggleDetails}
-            className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-sage-100 transition-all duration-200 flex-shrink-0 ml-2"
-          >
-            <ChevronUp className={`h-3 w-3 transition-transform duration-300 ${showDetails ? 'rotate-180' : ''}`} />
-          </button>
+          {/* Centered details toggle */}
+          <div className="flex justify-center flex-shrink-0 ml-2">
+            <button
+              onClick={toggleDetails}
+              className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-sage-100 transition-all duration-200"
+            >
+              <ChevronUp className={`h-3 w-3 transition-transform duration-300 ${showDetails ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
         </div>
 
-        {/* Enhanced expandable details section with smooth animation */}
-        <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showDetails ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'}`}>
-          <div className="pt-3 border-t border-gray-100 space-y-3">
-            
-            {/* Safety & Contraindications */}
-            {exercise.contraindications && exercise.contraindications.length > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-2">
-                <div className="flex items-center gap-1 mb-1">
-                  <AlertTriangle className="h-3 w-3 text-red-600" />
-                  <span className="text-[10px] font-semibold text-red-700">Contraindications</span>
-                </div>
-                <p className="text-[9px] text-red-600 leading-tight">
-                  {exercise.contraindications.slice(0, 2).join(', ')}
-                  {exercise.contraindications.length > 2 && '...'}
-                </p>
-              </div>
-            )}
-
-            {/* Teaching Focus */}
-            {exercise.teachingFocus && exercise.teachingFocus.length > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
-                <div className="flex items-center gap-1 mb-1">
-                  <Target className="h-3 w-3 text-blue-600" />
-                  <span className="text-[10px] font-semibold text-blue-700">Teaching Focus</span>
-                </div>
-                <p className="text-[9px] text-blue-600 leading-tight">
-                  {exercise.teachingFocus.slice(0, 3).join(', ')}
-                </p>
-              </div>
-            )}
-
-            {/* Cues */}
-            {exercise.cues && exercise.cues.length > 0 && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-2">
-                <div className="flex items-center gap-1 mb-1">
-                  <Zap className="h-3 w-3 text-green-600" />
-                  <span className="text-[10px] font-semibold text-green-700">Key Cue</span>
-                </div>
-                <p className="text-[9px] text-green-600 leading-tight">
-                  {exercise.cues[0]}
-                </p>
-              </div>
-            )}
-
-            {/* Progressions & Regressions */}
-            <div className="grid grid-cols-2 gap-2">
-              {exercise.regressions && exercise.regressions.length > 0 && (
-                <div className="text-[9px]">
-                  <span className="text-gray-500 font-medium">Regression:</span>
-                  <p className="text-green-600 font-medium truncate">{exercise.regressions[0]}</p>
+        {/* Enhanced expandable details section with scrollable content */}
+        <div className={`transition-all duration-500 ease-in-out ${showDetails ? 'max-h-72 opacity-100' : 'max-h-0 opacity-0'}`}>
+          <div className="overflow-y-auto max-h-64 pt-3 border-t border-gray-100">
+            <div className="space-y-3 pr-1">
+              
+              {/* Safety & Contraindications */}
+              {exercise.contraindications && exercise.contraindications.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <AlertTriangle className="h-3 w-3 text-red-600" />
+                    <span className="text-[10px] font-semibold text-red-700">Contraindications</span>
+                  </div>
+                  <p className="text-[9px] text-red-600 leading-tight">
+                    {exercise.contraindications.slice(0, 2).join(', ')}
+                    {exercise.contraindications.length > 2 && '...'}
+                  </p>
                 </div>
               )}
-              {exercise.progressions && exercise.progressions.length > 0 && (
-                <div className="text-[9px]">
-                  <span className="text-gray-500 font-medium">Progression:</span>
-                  <p className="text-blue-600 font-medium truncate">{exercise.progressions[0]}</p>
+
+              {/* Teaching Focus */}
+              {exercise.teachingFocus && exercise.teachingFocus.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Target className="h-3 w-3 text-blue-600" />
+                    <span className="text-[10px] font-semibold text-blue-700">Teaching Focus</span>
+                  </div>
+                  <p className="text-[9px] text-blue-600 leading-tight">
+                    {exercise.teachingFocus.slice(0, 3).join(', ')}
+                  </p>
                 </div>
               )}
-            </div>
 
-            {/* Modifications */}
-            {exercise.modifications && exercise.modifications.length > 0 && (
-              <div className="text-[9px]">
-                <span className="text-gray-500 font-medium">Modifications:</span>
-                <p className="text-orange-600 font-medium truncate">{exercise.modifications[0]}</p>
+              {/* Cues */}
+              {exercise.cues && exercise.cues.length > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-2">
+                  <div className="flex items-center gap-1 mb-1">
+                    <Zap className="h-3 w-3 text-green-600" />
+                    <span className="text-[10px] font-semibold text-green-700">Key Cue</span>
+                  </div>
+                  <p className="text-[9px] text-green-600 leading-tight">
+                    {exercise.cues[0]}
+                  </p>
+                </div>
+              )}
+
+              {/* Progressions & Regressions */}
+              <div className="grid grid-cols-2 gap-2">
+                {exercise.regressions && exercise.regressions.length > 0 && (
+                  <div className="text-[9px]">
+                    <span className="text-gray-500 font-medium">Regression:</span>
+                    <p className="text-green-600 font-medium truncate">{exercise.regressions[0]}</p>
+                  </div>
+                )}
+                {exercise.progressions && exercise.progressions.length > 0 && (
+                  <div className="text-[9px]">
+                    <span className="text-gray-500 font-medium">Progression:</span>
+                    <p className="text-blue-600 font-medium truncate">{exercise.progressions[0]}</p>
+                  </div>
+                )}
               </div>
-            )}
 
-            {/* Muscle Groups */}
-            {exercise.muscleGroups && exercise.muscleGroups.length > 0 && (
-              <div className="text-[9px]">
-                <span className="text-gray-500 font-medium">Target:</span>
-                <p className="text-gray-700 font-medium">
-                  {exercise.muscleGroups.slice(0, 3).join(', ')}
-                  {exercise.muscleGroups.length > 3 && ` +${exercise.muscleGroups.length - 3}`}
-                </p>
+              {/* Modifications */}
+              {exercise.modifications && exercise.modifications.length > 0 && (
+                <div className="text-[9px]">
+                  <span className="text-gray-500 font-medium">Modifications:</span>
+                  <p className="text-orange-600 font-medium truncate">{exercise.modifications[0]}</p>
+                </div>
+              )}
+
+              {/* Muscle Groups */}
+              {exercise.muscleGroups && exercise.muscleGroups.length > 0 && (
+                <div className="text-[9px]">
+                  <span className="text-gray-500 font-medium">Target:</span>
+                  <p className="text-gray-700 font-medium">
+                    {exercise.muscleGroups.slice(0, 3).join(', ')}
+                    {exercise.muscleGroups.length > 3 && ` +${exercise.muscleGroups.length - 3}`}
+                  </p>
+                </div>
+              )}
+
+              {/* Tap to close hint */}
+              <div className="text-center pt-2">
+                <p className="text-[8px] text-gray-400">Tap outside to close details</p>
               </div>
-            )}
-
-            {/* Tap to close hint */}
-            <div className="text-center pt-2">
-              <p className="text-[8px] text-gray-400">Tap outside to close details</p>
             </div>
           </div>
         </div>
