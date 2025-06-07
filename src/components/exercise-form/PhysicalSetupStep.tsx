@@ -11,7 +11,7 @@ interface PhysicalSetupStepProps {
   formData: Partial<Exercise>;
   setFormData: (data: Partial<Exercise>) => void;
   selectedSprings: {[key: string]: number};
-  setSelectedSprings: (springs: {[key: string]: number}) => void;
+  setSelectedSprings: React.Dispatch<React.SetStateAction<{[key: string]: number}>>;
 }
 
 export const PhysicalSetupStep = ({
