@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Play, Pause, SkipBack, SkipForward, ArrowLeft, RotateCcw, Heart, Share, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { Exercise, ClassPlan } from '@/types/reformer';
 import { SpringVisual } from '@/components/SpringVisual';
@@ -23,6 +24,9 @@ export const ClassTeachingMode = ({
   // Filter out callouts from exercises
   const exercises = classPlan.exercises.filter(ex => ex.category !== 'callout');
   const currentExercise = exercises[currentExerciseIndex];
+
+  // Calculate overall class progress
+  const classProgress = exercises.length > 0 ? ((currentExerciseIndex + 1) / exercises.length) * 100 : 0;
 
   // Use reformer images
   const reformerImages = [
@@ -104,8 +108,16 @@ export const ClassTeachingMode = ({
       {/* Background gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-sage-900/30 to-black/80"></div>
       
+      {/* Class Progress Bar at the very top */}
+      <div className="relative z-20 px-6 pt-6">
+        <Progress 
+          value={classProgress} 
+          className="h-1 bg-white/20 mb-6"
+        />
+      </div>
+      
       {/* Top navigation */}
-      <div className="relative z-20 flex items-center justify-between p-6 pt-12">
+      <div className="relative z-20 flex items-center justify-between px-6">
         <Button 
           onClick={onClose} 
           variant="ghost" 
@@ -133,9 +145,9 @@ export const ClassTeachingMode = ({
         </div>
       </div>
 
-      {/* Main content - centered with proper spacing */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-8 py-4 pb-60">
-        {/* Exercise title and spring at the top */}
+      {/* Main content - properly spaced layout */}
+      <div className="relative z-10 flex flex-col items-center px-8 py-4">
+        {/* Exercise name at the top */}
         <div className="text-center mb-8 max-w-lg">
           <div className="flex items-center justify-center gap-3 mb-2">
             <h1 className="text-3xl font-bold text-white">{currentExercise.name}</h1>
@@ -145,7 +157,7 @@ export const ClassTeachingMode = ({
         </div>
 
         {/* Large circular image with progress ring */}
-        <div className="relative mb-8">
+        <div className="relative mb-6">
           <CircularProgress 
             percentage={progressPercentage} 
             size={280} 
@@ -172,6 +184,49 @@ export const ClassTeachingMode = ({
           <div className="absolute inset-0 w-[280px] h-[280px] rounded-full bg-gradient-to-r from-sage-400/20 via-sage-500/20 to-sage-600/20 blur-3xl -z-10"></div>
         </div>
 
+        {/* Media controls positioned just below the image */}
+        <div className="mb-6">
+          <div className="flex items-center gap-3 bg-white/15 backdrop-blur-xl rounded-full px-5 py-2.5 shadow-2xl">
+            <Button 
+              onClick={previousExercise} 
+              disabled={currentExerciseIndex === 0} 
+              variant="ghost" 
+              size="icon" 
+              className="w-9 h-9 text-white/80 hover:text-white disabled:opacity-30 hover:bg-transparent"
+            >
+              <SkipBack className="h-4 w-4" />
+            </Button>
+            
+            <Button 
+              onClick={resetTimer} 
+              variant="ghost" 
+              size="icon" 
+              className="w-9 h-9 text-white/80 hover:text-white hover:bg-transparent"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+            
+            {/* Play/pause button */}
+            <Button 
+              onClick={handlePlayPause} 
+              size="icon" 
+              className="w-11 h-11 rounded-full bg-white text-black hover:bg-white/90 shadow-xl hover:scale-105 transition-all duration-200" 
+            >
+              {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
+            </Button>
+            
+            <Button 
+              onClick={nextExercise} 
+              disabled={currentExerciseIndex === exercises.length - 1} 
+              variant="ghost" 
+              size="icon" 
+              className="w-9 h-9 text-white/80 hover:text-white disabled:opacity-30 hover:bg-transparent rotate-180"
+            >
+              <SkipBack className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
         {/* Teaching cues - prominently displayed for instructors */}
         {currentExercise.cues && currentExercise.cues.length > 0 && (
           <div className="max-w-2xl mx-auto mb-8 bg-white/15 backdrop-blur-sm rounded-2xl p-6">
@@ -190,61 +245,11 @@ export const ClassTeachingMode = ({
         <Button
           onClick={() => setShowDetailPanel(true)}
           variant="ghost"
-          className="text-white/60 hover:text-white hover:bg-white/10 rounded-full px-6 py-3 mb-6 flex items-center gap-2 transition-all duration-300 hover:scale-105"
+          className="text-white/60 hover:text-white hover:bg-white/10 rounded-full px-6 py-3 mb-20 flex items-center gap-2 transition-all duration-300 hover:scale-105"
         >
           <ChevronUp className="h-5 w-5" />
           <span className="text-base">View all exercise details</span>
         </Button>
-      </div>
-
-      {/* Repositioned media controls - moved higher to prevent content coverage */}
-      <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-30">
-        <div className="flex items-center gap-3 bg-white/15 backdrop-blur-xl rounded-full px-5 py-2.5 shadow-2xl">
-          <Button 
-            onClick={previousExercise} 
-            disabled={currentExerciseIndex === 0} 
-            variant="ghost" 
-            size="icon" 
-            className="w-9 h-9 text-white/80 hover:text-white disabled:opacity-30 hover:bg-transparent"
-          >
-            <SkipBack className="h-4 w-4" />
-          </Button>
-          
-          <Button 
-            onClick={resetTimer} 
-            variant="ghost" 
-            size="icon" 
-            className="w-9 h-9 text-white/80 hover:text-white hover:bg-transparent"
-          >
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-          
-          {/* Play/pause button */}
-          <Button 
-            onClick={handlePlayPause} 
-            size="icon" 
-            className="w-11 h-11 rounded-full bg-white text-black hover:bg-white/90 shadow-xl hover:scale-105 transition-all duration-200" 
-          >
-            {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 ml-0.5" />}
-          </Button>
-          
-          <Button 
-            onClick={nextExercise} 
-            disabled={currentExerciseIndex === exercises.length - 1} 
-            variant="ghost" 
-            size="icon" 
-            className="w-9 h-9 text-white/80 hover:text-white disabled:opacity-30 hover:bg-transparent rotate-180"
-          >
-            <SkipBack className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* Exercise counter */}
-        <div className="text-center mt-3">
-          <p className="text-xs text-white/40">
-            Exercise {currentExerciseIndex + 1} of {exercises.length}
-          </p>
-        </div>
       </div>
 
       {/* Enhanced Detail Panel - Comprehensive slide-up modal */}
@@ -343,7 +348,7 @@ export const ClassTeachingMode = ({
                 {/* Modifications */}
                 {currentExercise.modifications && currentExercise.modifications.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-sage-800 mb-2">Modifications</h3>
+                    <h3 className="font-semibold text-sage-800 mb-2">🔧 Modifications</h3>
                     <ul className="space-y-2">
                       {currentExercise.modifications.map((mod, index) => (
                         <li key={index} className="text-sage-600 flex items-start gap-2">
