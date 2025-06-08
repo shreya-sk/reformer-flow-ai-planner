@@ -134,17 +134,26 @@ export const ClassTeachingMode = ({
       </div>
 
       {/* Main content - centered with proper spacing */}
-      <div className="relative z-10 flex flex-col items-center justify-center px-8 py-4 pb-40">
+      <div className="relative z-10 flex flex-col items-center justify-center px-8 py-4 pb-60">
+        {/* Exercise title and spring at the top */}
+        <div className="text-center mb-8 max-w-lg">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-white">{currentExercise.name}</h1>
+            <SpringVisual springs={currentExercise.springs} className="scale-125" />
+          </div>
+          <p className="text-white/70 text-base capitalize">{currentExercise.difficulty} • {currentExercise.duration} min</p>
+        </div>
+
         {/* Large circular image with progress ring */}
-        <div className="relative mb-6">
+        <div className="relative mb-8">
           <CircularProgress 
             percentage={progressPercentage} 
-            size={320} 
+            size={280} 
             strokeWidth={4}
             className="absolute inset-0"
           />
           
-          <div className="w-80 h-80 rounded-full p-1 bg-gradient-to-r from-sage-400 via-sage-500 to-sage-600 shadow-2xl">
+          <div className="w-[280px] h-[280px] rounded-full p-1 bg-gradient-to-r from-sage-400 via-sage-500 to-sage-600 shadow-2xl">
             <div className="w-full h-full rounded-full overflow-hidden bg-sage-800">
               <img 
                 src={currentExercise.image || getExerciseImage()}
@@ -155,30 +164,21 @@ export const ClassTeachingMode = ({
           </div>
           
           {/* Floating timer */}
-          <div className="absolute top-6 right-6 bg-black/60 backdrop-blur-sm rounded-full px-4 py-2">
+          <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm rounded-full px-4 py-2">
             <span className="text-white text-sm font-mono">{formatTime(exerciseTimeLeft)}</span>
           </div>
           
           {/* Glow effect */}
-          <div className="absolute inset-0 w-80 h-80 rounded-full bg-gradient-to-r from-sage-400/20 via-sage-500/20 to-sage-600/20 blur-3xl -z-10"></div>
+          <div className="absolute inset-0 w-[280px] h-[280px] rounded-full bg-gradient-to-r from-sage-400/20 via-sage-500/20 to-sage-600/20 blur-3xl -z-10"></div>
         </div>
 
-        {/* Exercise title and spring in one line */}
-        <div className="text-center mb-6 max-w-sm">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <h1 className="text-2xl font-bold text-white">{currentExercise.name}</h1>
-            <SpringVisual springs={currentExercise.springs} className="scale-110" />
-          </div>
-          <p className="text-white/70 text-sm capitalize">{currentExercise.difficulty} • {currentExercise.duration} min</p>
-        </div>
-
-        {/* Teaching cues - improved spacing and visibility */}
+        {/* Teaching cues - prominently displayed for instructors */}
         {currentExercise.cues && currentExercise.cues.length > 0 && (
-          <div className="max-w-lg mx-auto mb-8 bg-white/15 backdrop-blur-sm rounded-2xl p-6">
-            <h3 className="text-lg font-semibold text-white mb-4 text-center">Teaching Cues</h3>
+          <div className="max-w-2xl mx-auto mb-8 bg-white/15 backdrop-blur-sm rounded-2xl p-6">
+            <h3 className="text-xl font-semibold text-white mb-4 text-center">Teaching Cues</h3>
             <div className="space-y-3">
-              {currentExercise.cues.slice(0, 3).map((cue, index) => (
-                <p key={index} className="text-base text-white font-light leading-relaxed text-center">
+              {currentExercise.cues.slice(0, 4).map((cue, index) => (
+                <p key={index} className="text-lg text-white font-light leading-relaxed text-center">
                   • {cue}
                 </p>
               ))}
@@ -190,10 +190,10 @@ export const ClassTeachingMode = ({
         <Button
           onClick={() => setShowDetailPanel(true)}
           variant="ghost"
-          className="text-white/60 hover:text-white hover:bg-white/10 rounded-full px-4 py-2 mb-4 flex items-center gap-2 transition-all duration-300 hover:scale-105"
+          className="text-white/60 hover:text-white hover:bg-white/10 rounded-full px-6 py-3 mb-6 flex items-center gap-2 transition-all duration-300 hover:scale-105"
         >
           <ChevronUp className="h-5 w-5" />
-          <span className="text-sm">More details</span>
+          <span className="text-base">View all exercise details</span>
         </Button>
       </div>
 
@@ -247,7 +247,7 @@ export const ClassTeachingMode = ({
         </div>
       </div>
 
-      {/* Enhanced Detail Panel - Slide up modal */}
+      {/* Enhanced Detail Panel - Comprehensive slide-up modal */}
       {showDetailPanel && (
         <>
           {/* Backdrop */}
@@ -256,7 +256,7 @@ export const ClassTeachingMode = ({
             onClick={() => setShowDetailPanel(false)}
           />
           
-          {/* Comprehensive Detail Panel */}
+          {/* Comprehensive Detail Panel with ALL exercise information */}
           <div className="fixed inset-x-0 bottom-0 top-1/4 z-50 bg-gradient-to-b from-white to-sage-50 rounded-t-3xl shadow-2xl animate-slide-in-bottom overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-sage-200 bg-white/90 backdrop-blur-sm">
@@ -277,7 +277,7 @@ export const ClassTeachingMode = ({
               </Button>
             </div>
 
-            {/* Scrollable Content */}
+            {/* Scrollable Content - ALL exercise details */}
             <div className="p-6 overflow-y-auto h-full pb-20">
               <div className="space-y-6">
                 {/* Description */}
@@ -355,6 +355,36 @@ export const ClassTeachingMode = ({
                   </div>
                 )}
 
+                {/* Progressions */}
+                {currentExercise.progressions && currentExercise.progressions.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-green-700 mb-2">📈 Progressions</h3>
+                    <ul className="space-y-2">
+                      {currentExercise.progressions.map((prog, index) => (
+                        <li key={index} className="text-green-600 flex items-start gap-2">
+                          <span className="text-green-400 mt-1">•</span>
+                          <span>{prog}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Regressions */}
+                {currentExercise.regressions && currentExercise.regressions.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-orange-700 mb-2">📉 Regressions</h3>
+                    <ul className="space-y-2">
+                      {currentExercise.regressions.map((reg, index) => (
+                        <li key={index} className="text-orange-600 flex items-start gap-2">
+                          <span className="text-orange-400 mt-1">•</span>
+                          <span>{reg}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {/* Contraindications */}
                 {currentExercise.contraindications && currentExercise.contraindications.length > 0 && (
                   <div>
@@ -370,18 +400,42 @@ export const ClassTeachingMode = ({
                   </div>
                 )}
 
-                {/* Progressions */}
-                {currentExercise.progressions && currentExercise.progressions.length > 0 && (
+                {/* Pregnancy Safety */}
+                <div>
+                  <h3 className="font-semibold text-sage-800 mb-2">🤰 Pregnancy Safety</h3>
+                  <div className={`p-3 rounded-lg ${currentExercise.isPregnancySafe ? 'bg-green-100 border border-green-200' : 'bg-red-100 border border-red-200'}`}>
+                    <p className={`text-sm font-medium ${currentExercise.isPregnancySafe ? 'text-green-800' : 'text-red-800'}`}>
+                      {currentExercise.isPregnancySafe ? '✓ Safe for pregnancy' : '✗ Not recommended during pregnancy'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Transitions */}
+                {currentExercise.transitions && currentExercise.transitions.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-green-700 mb-2">📈 Progressions</h3>
+                    <h3 className="font-semibold text-sage-800 mb-2">🔄 Transitions</h3>
                     <ul className="space-y-2">
-                      {currentExercise.progressions.map((prog, index) => (
-                        <li key={index} className="text-green-600 flex items-start gap-2">
-                          <span className="text-green-400 mt-1">•</span>
-                          <span>{prog}</span>
+                      {currentExercise.transitions.map((transition, index) => (
+                        <li key={index} className="text-sage-600 flex items-start gap-2">
+                          <span className="text-sage-400 mt-1">•</span>
+                          <span>{transition}</span>
                         </li>
                       ))}
                     </ul>
+                  </div>
+                )}
+
+                {/* Teaching Focus */}
+                {currentExercise.teachingFocus && currentExercise.teachingFocus.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-sage-800 mb-2">Teaching Focus</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {currentExercise.teachingFocus.map((focus, index) => (
+                        <span key={index} className="bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-full text-sm">
+                          {focus}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -399,6 +453,28 @@ export const ClassTeachingMode = ({
                   </div>
                 )}
 
+                {/* Target Areas */}
+                {currentExercise.targetAreas && currentExercise.targetAreas.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-sage-800 mb-2">Target Areas</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {currentExercise.targetAreas.map((area, index) => (
+                        <span key={index} className="bg-teal-100 text-teal-700 border border-teal-200 px-3 py-1 rounded-full text-sm">
+                          {area}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Notes */}
+                {currentExercise.notes && (
+                  <div>
+                    <h3 className="font-semibold text-sage-800 mb-2">Notes</h3>
+                    <p className="text-sage-600 leading-relaxed">{currentExercise.notes}</p>
+                  </div>
+                )}
+
                 {/* Additional Info */}
                 <div className="bg-sage-100 rounded-xl p-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
@@ -410,10 +486,24 @@ export const ClassTeachingMode = ({
                       <span className="font-medium text-sage-700">Category:</span>
                       <span className="text-sage-600 ml-2 capitalize">{currentExercise.category}</span>
                     </div>
+                    <div>
+                      <span className="font-medium text-sage-700">Position:</span>
+                      <span className="text-sage-600 ml-2 capitalize">{currentExercise.position}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-sage-700">Intensity:</span>
+                      <span className="text-sage-600 ml-2 capitalize">{currentExercise.intensityLevel}</span>
+                    </div>
                     {currentExercise.repsOrDuration && (
                       <div className="col-span-2">
                         <span className="font-medium text-sage-700">Reps/Duration:</span>
                         <span className="text-sage-600 ml-2">{currentExercise.repsOrDuration}</span>
+                      </div>
+                    )}
+                    {currentExercise.tempo && (
+                      <div className="col-span-2">
+                        <span className="font-medium text-sage-700">Tempo:</span>
+                        <span className="text-sage-600 ml-2">{currentExercise.tempo}</span>
                       </div>
                     )}
                   </div>
