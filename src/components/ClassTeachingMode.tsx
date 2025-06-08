@@ -108,12 +108,17 @@ export const ClassTeachingMode = ({
       {/* Background gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-sage-900/30 to-black/80"></div>
       
-      {/* Class Progress Bar at the very top */}
+      {/* Class Progress Bar at the very top with percentage */}
       <div className="relative z-20 px-6 pt-6">
-        <Progress 
-          value={classProgress} 
-          className="h-1 bg-white/20 mb-6"
-        />
+        <div className="flex items-center gap-3 mb-6">
+          <Progress 
+            value={classProgress} 
+            className="h-1 bg-white/20 flex-1"
+          />
+          <span className="text-white/60 text-sm font-mono min-w-[3rem]">
+            {Math.round(classProgress)}%
+          </span>
+        </div>
       </div>
       
       {/* Top navigation */}
@@ -348,7 +353,9 @@ export const ClassTeachingMode = ({
                 {/* Modifications */}
                 {currentExercise.modifications && currentExercise.modifications.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-sage-800 mb-2">🔧 Modifications</h3>
+                    <h3 className="font-semibold text-sage-800 mb-2 flex items-center gap-2">
+                      🔧 Modifications
+                    </h3>
                     <ul className="space-y-2">
                       {currentExercise.modifications.map((mod, index) => (
                         <li key={index} className="text-sage-600 flex items-start gap-2">
@@ -360,10 +367,22 @@ export const ClassTeachingMode = ({
                   </div>
                 )}
 
+                {/* Show message if no modifications are available */}
+                {(!currentExercise.modifications || currentExercise.modifications.length === 0) && (
+                  <div>
+                    <h3 className="font-semibold text-sage-800 mb-2 flex items-center gap-2">
+                      🔧 Modifications
+                    </h3>
+                    <p className="text-sage-400 text-sm italic">No modifications available for this exercise</p>
+                  </div>
+                )}
+
                 {/* Progressions */}
                 {currentExercise.progressions && currentExercise.progressions.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-green-700 mb-2">📈 Progressions</h3>
+                    <h3 className="font-semibold text-green-700 mb-2 flex items-center gap-2">
+                      📈 Progressions
+                    </h3>
                     <ul className="space-y-2">
                       {currentExercise.progressions.map((prog, index) => (
                         <li key={index} className="text-green-600 flex items-start gap-2">
@@ -375,10 +394,22 @@ export const ClassTeachingMode = ({
                   </div>
                 )}
 
+                {/* Show message if no progressions are available */}
+                {(!currentExercise.progressions || currentExercise.progressions.length === 0) && (
+                  <div>
+                    <h3 className="font-semibold text-green-700 mb-2 flex items-center gap-2">
+                      📈 Progressions
+                    </h3>
+                    <p className="text-green-400 text-sm italic">No progressions available for this exercise</p>
+                  </div>
+                )}
+
                 {/* Regressions */}
                 {currentExercise.regressions && currentExercise.regressions.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-orange-700 mb-2">📉 Regressions</h3>
+                    <h3 className="font-semibold text-orange-700 mb-2 flex items-center gap-2">
+                      📉 Regressions
+                    </h3>
                     <ul className="space-y-2">
                       {currentExercise.regressions.map((reg, index) => (
                         <li key={index} className="text-orange-600 flex items-start gap-2">
@@ -390,10 +421,22 @@ export const ClassTeachingMode = ({
                   </div>
                 )}
 
+                {/* Show message if no regressions are available */}
+                {(!currentExercise.regressions || currentExercise.regressions.length === 0) && (
+                  <div>
+                    <h3 className="font-semibold text-orange-700 mb-2 flex items-center gap-2">
+                      📉 Regressions
+                    </h3>
+                    <p className="text-orange-400 text-sm italic">No regressions available for this exercise</p>
+                  </div>
+                )}
+
                 {/* Contraindications */}
                 {currentExercise.contraindications && currentExercise.contraindications.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-red-700 mb-2">⚠️ Contraindications</h3>
+                    <h3 className="font-semibold text-red-700 mb-2 flex items-center gap-2">
+                      ⚠️ Contraindications
+                    </h3>
                     <ul className="space-y-2">
                       {currentExercise.contraindications.map((contra, index) => (
                         <li key={index} className="text-red-600 flex items-start gap-2">
@@ -405,9 +448,21 @@ export const ClassTeachingMode = ({
                   </div>
                 )}
 
-                {/* Pregnancy Safety */}
+                {/* Show message if no contraindications are available */}
+                {(!currentExercise.contraindications || currentExercise.contraindications.length === 0) && (
+                  <div>
+                    <h3 className="font-semibold text-red-700 mb-2 flex items-center gap-2">
+                      ⚠️ Contraindications
+                    </h3>
+                    <p className="text-red-400 text-sm italic">No specific contraindications noted for this exercise</p>
+                  </div>
+                )}
+
+                {/* Pregnancy Safety - Always show */}
                 <div>
-                  <h3 className="font-semibold text-sage-800 mb-2">🤰 Pregnancy Safety</h3>
+                  <h3 className="font-semibold text-sage-800 mb-2 flex items-center gap-2">
+                    🤰 Pregnancy Safety
+                  </h3>
                   <div className={`p-3 rounded-lg ${currentExercise.isPregnancySafe ? 'bg-green-100 border border-green-200' : 'bg-red-100 border border-red-200'}`}>
                     <p className={`text-sm font-medium ${currentExercise.isPregnancySafe ? 'text-green-800' : 'text-red-800'}`}>
                       {currentExercise.isPregnancySafe ? '✓ Safe for pregnancy' : '✗ Not recommended during pregnancy'}
@@ -418,7 +473,9 @@ export const ClassTeachingMode = ({
                 {/* Transitions */}
                 {currentExercise.transitions && currentExercise.transitions.length > 0 && (
                   <div>
-                    <h3 className="font-semibold text-sage-800 mb-2">🔄 Transitions</h3>
+                    <h3 className="font-semibold text-sage-800 mb-2 flex items-center gap-2">
+                      🔄 Transitions
+                    </h3>
                     <ul className="space-y-2">
                       {currentExercise.transitions.map((transition, index) => (
                         <li key={index} className="text-sage-600 flex items-start gap-2">
