@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,7 @@ export const ModernExerciseModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm sm:max-w-lg max-h-[85vh] p-0 bg-white rounded-2xl overflow-hidden">
+      <DialogContent className="max-w-sm sm:max-w-lg max-h-[90vh] p-0 bg-white rounded-2xl overflow-hidden">
         {/* Header Image */}
         <div className="relative h-40 overflow-hidden rounded-t-2xl">
           <img
@@ -130,10 +131,16 @@ export const ModernExerciseModal = ({
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6">
-          <ScrollArea className="max-h-[60vh]">
-            <div className="space-y-6">
+        {/* Content with enhanced mobile scrolling */}
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea 
+            className="h-full max-h-[calc(90vh-200px)]"
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain'
+            }}
+          >
+            <div className="p-6 space-y-6" style={{ touchAction: 'pan-y' }}>
               {/* Description */}
               {exercise.description && (
                 <div>
@@ -169,7 +176,7 @@ export const ModernExerciseModal = ({
                 </button>
               </div>
 
-              {/* Expandable content - Fixed for scrolling */}
+              {/* Expandable content - Enhanced for mobile scrolling */}
               {showAllDetails && (
                 <div className="space-y-6 animate-in fade-in-0 duration-300">
                   {/* Equipment */}
