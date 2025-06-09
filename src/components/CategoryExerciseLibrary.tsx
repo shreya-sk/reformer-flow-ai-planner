@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +10,7 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ModernExerciseModal } from './ModernExerciseModal';
 import { InteractiveExerciseForm } from './InteractiveExerciseForm';
 import { SmartAddButton } from './SmartAddButton';
-import { MobileExerciseGrid } from './mobile/MobileExerciseGrid';
+import { MobileExerciseCard } from './mobile/MobileExerciseCard';
 
 interface CategoryExerciseLibraryProps {
   onExerciseSelect?: (exercise: Exercise) => void;
@@ -125,7 +124,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   };
 
   const handleExerciseClick = (exercise: Exercise) => {
-    // For mobile, this will be handled by the card's internal expansion
+    // This will be handled by the card's internal expansion
     console.log('Exercise selected:', exercise.name);
   };
 
@@ -285,30 +284,45 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
           </div>
         </div>
 
-        {/* Mobile Exercise Grid with proper mobile cards */}
-        <MobileExerciseGrid
-          exercises={filteredExercises}
-          showHidden={false}
-          onExerciseSelect={handleExerciseClick}
-          onAddToClass={handleAddToClass}
-          onToggleFavorite={(exerciseId, e) => {
-            e.stopPropagation();
-            toggleFavoriteExercise(exerciseId);
-          }}
-          onToggleHidden={(exerciseId, e) => {
-            e.stopPropagation();
-            toggleHiddenExercise(exerciseId);
-          }}
-          onEdit={handleEditExercise}
-          onDuplicate={handleDuplicateExercise}
-          onDelete={handleDeleteExercise}
-          onCustomizeSystemExercise={handleCustomizeSystemExercise}
-          observeImage={observeImage}
-          favoriteExercises={preferences.favoriteExercises || []}
-          hiddenExercises={preferences.hiddenExercises || []}
-          darkMode={preferences.darkMode}
-          feedbackState={feedbackState}
-        />
+        {/* 2-Column Mobile Exercise Grid with expansion functionality */}
+        <div className="grid grid-cols-2 gap-3 p-4">
+          {filteredExercises.length === 0 ? (
+            <div className="col-span-2 flex flex-col items-center justify-center h-64 text-center p-8">
+              <div className="text-4xl mb-4">🏋️‍♀️</div>
+              <h3 className="text-lg font-medium text-gray-800 mb-2">No exercises found</h3>
+              <p className="text-gray-600 text-sm">
+                Try adjusting your filters or search terms
+              </p>
+            </div>
+          ) : (
+            filteredExercises.map((exercise) => (
+              <MobileExerciseCard
+                key={exercise.id}
+                exercise={exercise}
+                isFavorite={preferences.favoriteExercises?.includes(exercise.id) || false}
+                isHidden={preferences.hiddenExercises?.includes(exercise.id) || false}
+                darkMode={preferences.darkMode}
+                feedbackState={feedbackState[exercise.id]}
+                onSelect={() => handleExerciseClick(exercise)}
+                onAddToClass={() => handleAddToClass(exercise)}
+                onToggleFavorite={(e) => {
+                  e.stopPropagation();
+                  toggleFavoriteExercise(exercise.id);
+                }}
+                onToggleHidden={(e) => {
+                  e.stopPropagation();
+                  toggleHiddenExercise(exercise.id);
+                }}
+                onEdit={handleEditExercise}
+                onDuplicate={handleDuplicateExercise}
+                onDelete={handleDeleteExercise}
+                onCustomizeSystemExercise={handleCustomizeSystemExercise}
+                observeImage={observeImage}
+                className="h-fit" // Allow cards to expand naturally
+              />
+            ))
+          )}
+        </div>
       </div>
     );
   }
