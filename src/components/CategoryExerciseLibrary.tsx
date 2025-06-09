@@ -11,6 +11,7 @@ import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ModernExerciseModal } from './ModernExerciseModal';
 import { InteractiveExerciseForm } from './InteractiveExerciseForm';
 import { SmartAddButton } from './SmartAddButton';
+import { MobileExerciseGrid } from './mobile/MobileExerciseGrid';
 
 interface CategoryExerciseLibraryProps {
   onExerciseSelect?: (exercise: Exercise) => void;
@@ -49,8 +50,9 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [feedbackState, setFeedbackState] = useState<{[key: string]: 'success' | 'error' | null}>({});
   const { exercises, createUserExercise, updateUserExercise, customizeSystemExercise } = useExercises();
-  const { preferences, toggleFavoriteExercise, togglePregnancySafeOnly } = useUserPreferences();
+  const { preferences, toggleFavoriteExercise, togglePregnancySafeOnly, toggleHiddenExercise } = useUserPreferences();
 
   // Group exercises by category
   const categorizedExercises = useMemo(() => {
@@ -123,8 +125,25 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   };
 
   const handleExerciseClick = (exercise: Exercise) => {
-    // Always open detail modal when clicking exercise
-    setSelectedExercise(exercise);
+    // For mobile, this will be handled by the card's internal expansion
+    console.log('Exercise selected:', exercise.name);
+  };
+
+  const handleAddToClass = (exercise: Exercise) => {
+    if (onExerciseSelect) {
+      console.log('🔵 CategoryExerciseLibrary: Adding exercise to class:', exercise.name);
+      
+      // Show success feedback
+      setFeedbackState(prev => ({ ...prev, [exercise.id]: 'success' }));
+      
+      // Call the parent handler
+      onExerciseSelect(exercise);
+      
+      // Clear feedback after delay
+      setTimeout(() => {
+        setFeedbackState(prev => ({ ...prev, [exercise.id]: null }));
+      }, 2000);
+    }
   };
 
   const handleAddExercise = () => {
@@ -132,7 +151,8 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
     setShowExerciseForm(true);
   };
 
-  const handleDuplicateExercise = (exercise: Exercise) => {
+  const handleDuplicateExercise = (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
     setExerciseToEdit({
       ...exercise,
       id: '',
@@ -142,13 +162,21 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
     setShowExerciseForm(true);
   };
 
-  const handleEditExercise = (exercise: Exercise) => {
+  const handleEditExercise = (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
     setExerciseToEdit(exercise);
     setShowExerciseForm(true);
     setSelectedExercise(null);
   };
 
-  const handleCustomizeSystemExercise = async (exercise: Exercise) => {
+  const handleDeleteExercise = (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
+    // TODO: Implement delete functionality
+    console.log('Delete exercise:', exercise.name);
+  };
+
+  const handleCustomizeSystemExercise = async (exercise: Exercise, e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       await customizeSystemExercise(exercise, {});
       setSaveSuccess("Exercise customized successfully!");
@@ -189,6 +217,12 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
     }
   };
 
+  // Image observer for lazy loading
+  const observeImage = (element: HTMLElement) => {
+    // Simple implementation - in a real app you'd use IntersectionObserver
+    console.log('Observing image:', element);
+  };
+
   if (showExerciseForm) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-4">
@@ -219,7 +253,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
 
   if (selectedCategory) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50">
         {/* Status Messages */}
         {saveError && (
           <div className="fixed top-4 left-4 right-4 z-50 bg-red-100 border border-red-300 text-red-800 px-4 py-3 rounded-lg">
@@ -234,7 +268,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
         )}
 
         {/* Enhanced Header with Search and Icons */}
-        <div className="space-y-4 mb-6">
+        <div className="space-y-4 mb-6 p-4">
           {/* Top row with back button and category name */}
           <div className="flex items-center gap-3">
             <Button
@@ -251,97 +285,30 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
           </div>
         </div>
 
-        {/* Exercise Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {filteredExercises.map((exercise) => (
-            <Card 
-              key={exercise.id}
-              className="cursor-pointer hover:shadow-lg transition-all duration-300 bg-white/80 backdrop-blur-sm border-0 rounded-2xl overflow-hidden"
-              onClick={() => handleExerciseClick(exercise)}
-            >
-              <CardContent className="p-0">
-                <div className="relative aspect-square">
-                  <img
-                    src={exercise.image || '/lovable-uploads/58262717-b6a8-4556-9428-71532ab70286.png'}
-                    alt={exercise.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                  
-                  {/* Smart Add Button - Top Left */}
-                  {onExerciseSelect && (
-                    <div className="absolute top-2 left-2">
-                      <SmartAddButton
-                        exercise={exercise}
-                        size="sm"
-                        className="w-8 h-8 p-0 rounded-full"
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Action buttons - Top Right */}
-                  <div className="absolute top-2 right-2 flex gap-1">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavoriteExercise(exercise.id);
-                      }}
-                      className="p-2 rounded-full bg-black/20 backdrop-blur-sm"
-                    >
-                      <Heart 
-                        className={`h-4 w-4 ${
-                          preferences.favoriteExercises?.includes(exercise.id) 
-                            ? 'fill-red-500 text-red-500' 
-                            : 'text-white'
-                        }`} 
-                      />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDuplicateExercise(exercise);
-                      }}
-                      className="p-2 rounded-full bg-black/20 backdrop-blur-sm"
-                    >
-                      <Copy className="h-4 w-4 text-white" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditExercise(exercise);
-                      }}
-                      className="p-2 rounded-full bg-black/20 backdrop-blur-sm"
-                    >
-                      <Edit className="h-4 w-4 text-white" />
-                    </button>
-                  </div>
-
-                  {/* Exercise info */}
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <h3 className="font-medium text-white text-sm mb-1">{exercise.name}</h3>
-                    <div className="flex items-center gap-2 text-white/80 text-xs">
-                      <Clock className="h-3 w-3" />
-                      <span>{exercise.duration}min</span>
-                      <span>•</span>
-                      <span className="capitalize">{exercise.difficulty}</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Modern Exercise Modal */}
-        {selectedExercise && (
-          <ModernExerciseModal
-            exercise={selectedExercise}
-            isOpen={!!selectedExercise}
-            onClose={() => setSelectedExercise(null)}
-            onAddToCart={onExerciseSelect ? () => onExerciseSelect(selectedExercise) : undefined}
-            onEdit={() => handleEditExercise(selectedExercise)}
-          />
-        )}
+        {/* Mobile Exercise Grid with proper mobile cards */}
+        <MobileExerciseGrid
+          exercises={filteredExercises}
+          showHidden={false}
+          onExerciseSelect={handleExerciseClick}
+          onAddToClass={handleAddToClass}
+          onToggleFavorite={(exerciseId, e) => {
+            e.stopPropagation();
+            toggleFavoriteExercise(exerciseId);
+          }}
+          onToggleHidden={(exerciseId, e) => {
+            e.stopPropagation();
+            toggleHiddenExercise(exerciseId);
+          }}
+          onEdit={handleEditExercise}
+          onDuplicate={handleDuplicateExercise}
+          onDelete={handleDeleteExercise}
+          onCustomizeSystemExercise={handleCustomizeSystemExercise}
+          observeImage={observeImage}
+          favoriteExercises={preferences.favoriteExercises || []}
+          hiddenExercises={preferences.hiddenExercises || []}
+          darkMode={preferences.darkMode}
+          feedbackState={feedbackState}
+        />
       </div>
     );
   }
