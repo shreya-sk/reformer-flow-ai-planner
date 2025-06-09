@@ -3,14 +3,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ChevronRight, Dumbbell, Heart, Clock, Search, Filter, Baby, Plus, Copy, Edit, Settings } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { ChevronRight, Dumbbell, Heart, Clock, Search, Filter, Baby, Plus, Copy, Edit, Settings, ChevronDown, ChevronUp, Target, Zap, AlertTriangle } from 'lucide-react';
 import { Exercise, ExerciseCategory } from '@/types/reformer';
 import { useExercises } from '@/hooks/useExercises';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 import { ModernExerciseModal } from './ModernExerciseModal';
 import { InteractiveExerciseForm } from './InteractiveExerciseForm';
 import { SmartAddButton } from './SmartAddButton';
-import { MobileExerciseCard } from './mobile/MobileExerciseCard';
+import { SpringVisual } from './SpringVisual';
 
 interface CategoryExerciseLibraryProps {
   onExerciseSelect?: (exercise: Exercise) => void;
@@ -50,6 +51,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [feedbackState, setFeedbackState] = useState<{[key: string]: 'success' | 'error' | null}>({});
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const { exercises, createUserExercise, updateUserExercise, customizeSystemExercise } = useExercises();
   const { preferences, toggleFavoriteExercise, togglePregnancySafeOnly, toggleHiddenExercise } = useUserPreferences();
 
@@ -124,7 +126,8 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
   };
 
   const handleExerciseClick = (exercise: Exercise) => {
-    // This will be handled by the card's internal expansion
+    // Toggle expansion
+    setExpandedCardId(expandedCardId === exercise.id ? null : exercise.id);
     console.log('Exercise selected:', exercise.name);
   };
 
@@ -222,6 +225,33 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
     console.log('Observing image:', element);
   };
 
+  const renderDetailSection = (title: string, content: string[] | string, icon?: React.ReactNode) => {
+    if (!content || (Array.isArray(content) && content.length === 0) || content === '') return null;
+    
+    return (
+      <div className="mb-4 last:mb-0">
+        <div className="flex items-center gap-2 mb-2">
+          {icon}
+          <span className="font-semibold text-sage-800 text-sm">{title}</span>
+        </div>
+        <div className="text-sage-700 text-sm leading-relaxed">
+          {Array.isArray(content) ? (
+            <ul className="space-y-1">
+              {content.map((item, idx) => (
+                <li key={idx} className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 bg-sage-400 rounded-full mt-2 flex-shrink-0"></span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>{content}</p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (showExerciseForm) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-25 via-white to-sage-50 p-4">
@@ -284,7 +314,7 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
           </div>
         </div>
 
-        {/* 2-Column Mobile Exercise Grid with expansion functionality */}
+        {/* 2-Column Exercise Cards with Expansion */}
         <div className="grid grid-cols-2 gap-3 p-4">
           {filteredExercises.length === 0 ? (
             <div className="col-span-2 flex flex-col items-center justify-center h-64 text-center p-8">
@@ -295,32 +325,198 @@ export const CategoryExerciseLibrary = ({ onExerciseSelect }: CategoryExerciseLi
               </p>
             </div>
           ) : (
-            filteredExercises.map((exercise) => (
-              <MobileExerciseCard
-                key={exercise.id}
-                exercise={exercise}
-                isFavorite={preferences.favoriteExercises?.includes(exercise.id) || false}
-                isHidden={preferences.hiddenExercises?.includes(exercise.id) || false}
-                darkMode={preferences.darkMode}
-                feedbackState={feedbackState[exercise.id]}
-                onSelect={() => handleExerciseClick(exercise)}
-                onAddToClass={() => handleAddToClass(exercise)}
-                onToggleFavorite={(e) => {
-                  e.stopPropagation();
-                  toggleFavoriteExercise(exercise.id);
-                }}
-                onToggleHidden={(e) => {
-                  e.stopPropagation();
-                  toggleHiddenExercise(exercise.id);
-                }}
-                onEdit={handleEditExercise}
-                onDuplicate={handleDuplicateExercise}
-                onDelete={handleDeleteExercise}
-                onCustomizeSystemExercise={handleCustomizeSystemExercise}
-                observeImage={observeImage}
-                className="h-fit" // Allow cards to expand naturally
-              />
-            ))
+            filteredExercises.map((exercise) => {
+              const isExpanded = expandedCardId === exercise.id;
+              const isFavorite = preferences.favoriteExercises?.includes(exercise.id) || false;
+              const feedbackStateValue = feedbackState[exercise.id];
+              
+              return (
+                <Card 
+                  key={exercise.id}
+                  className={`cursor-pointer transition-all duration-300 border-sage-200/60 bg-white/95 backdrop-blur-sm hover:shadow-md ${
+                    isExpanded ? 'col-span-2' : ''
+                  } ${
+                    feedbackStateValue === 'success' ? 'ring-2 ring-green-400' : ''
+                  }`}
+                  onClick={() => handleExerciseClick(exercise)}
+                >
+                  <CardContent className="p-4">
+                    {/* Basic Card Info */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sage-900 text-sm truncate mb-1">
+                          {exercise.name}
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-xs bg-sage-50 text-sage-700 border-sage-200">
+                            {exercise.category}
+                          </Badge>
+                          <Badge variant="secondary" className="text-xs capitalize bg-sage-100 text-sage-700">
+                            {exercise.difficulty}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      {/* Expand/Collapse Icon */}
+                      <div className="ml-2">
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4 text-sage-600" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-sage-600" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Quick Info */}
+                    <div className="flex items-center gap-3 text-xs text-sage-600 mb-2">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{exercise.duration} min</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span>Springs:</span>
+                        <SpringVisual springs={exercise.springs} />
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-1 mt-3">
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAddToClass(exercise);
+                        }}
+                        className="flex-1 h-8 text-xs bg-sage-600 hover:bg-sage-700"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavoriteExercise(exercise.id);
+                        }}
+                        className={`h-8 w-8 p-0 ${isFavorite ? 'text-red-500' : 'text-sage-400'}`}
+                      >
+                        <Heart className={`h-3 w-3 ${isFavorite ? 'fill-current' : ''}`} />
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => handleEditExercise(exercise, e)}
+                        className="h-8 w-8 p-0 text-blue-600"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => handleDuplicateExercise(exercise, e)}
+                        className="h-8 w-8 p-0 text-sage-600"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+
+                    {/* Expanded Content with Smooth Scroll */}
+                    {isExpanded && (
+                      <div className="mt-4 border-t border-sage-200/60 pt-4">
+                        <ScrollArea 
+                          className="max-h-80 pr-4 overflow-auto"
+                          style={{
+                            WebkitOverflowScrolling: 'touch',
+                            scrollBehavior: 'smooth'
+                          }}
+                        >
+                          <div className="space-y-4">
+                            {/* Description */}
+                            {exercise.description && (
+                              <div className="p-3 bg-gradient-to-r from-sage-50/60 to-white rounded-xl border border-sage-200/40">
+                                <h5 className="font-semibold text-sage-800 text-sm mb-2">Description</h5>
+                                <p className="text-sage-700 text-sm leading-relaxed">{exercise.description}</p>
+                              </div>
+                            )}
+
+                            {/* Quick Info Bar */}
+                            {(exercise.repsOrDuration || exercise.tempo) && (
+                              <div className="flex gap-4 p-3 bg-sage-50/80 rounded-xl border border-sage-200/40">
+                                {exercise.repsOrDuration && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-sage-700">Reps/Duration:</span>
+                                    <span className="ml-2 text-sage-600">{exercise.repsOrDuration}</span>
+                                  </div>
+                                )}
+                                {exercise.tempo && (
+                                  <div className="text-sm">
+                                    <span className="font-medium text-sage-700">Tempo:</span>
+                                    <span className="ml-2 text-sage-600">{exercise.tempo}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Setup */}
+                            {renderDetailSection('Setup', exercise.setup)}
+
+                            {/* Teaching Cues */}
+                            {renderDetailSection('Teaching Cues', exercise.cues, <Zap className="h-4 w-4 text-sage-600" />)}
+
+                            {/* Breathing Cues */}
+                            {renderDetailSection('Breathing Cues', exercise.breathingCues)}
+
+                            {/* Target Areas */}
+                            {renderDetailSection('Target Areas', exercise.targetAreas, <Target className="h-4 w-4 text-sage-600" />)}
+
+                            {/* Teaching Focus */}
+                            {renderDetailSection('Teaching Focus', exercise.teachingFocus)}
+
+                            {/* Modifications */}
+                            {renderDetailSection('Modifications', exercise.modifications)}
+
+                            {/* Progressions */}
+                            {renderDetailSection('Progressions', exercise.progressions)}
+
+                            {/* Regressions */}
+                            {renderDetailSection('Regressions', exercise.regressions)}
+
+                            {/* Contraindications */}
+                            {renderDetailSection('Contraindications', exercise.contraindications, <AlertTriangle className="h-4 w-4 text-orange-600" />)}
+
+                            {/* Notes */}
+                            {exercise.notes && (
+                              <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-200/40">
+                                <h5 className="font-semibold text-amber-800 text-sm mb-2">Notes</h5>
+                                <p className="text-amber-700 text-sm leading-relaxed">{exercise.notes}</p>
+                              </div>
+                            )}
+
+                            {/* Exercise Status Badges */}
+                            <div className="flex gap-2 pt-2">
+                              {exercise.isCustom && (
+                                <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                                  Custom Exercise
+                                </Badge>
+                              )}
+                              {exercise.isPregnancySafe && (
+                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                  Pregnancy Safe
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </div>
       </div>
