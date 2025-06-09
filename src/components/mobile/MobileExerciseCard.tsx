@@ -45,6 +45,7 @@ export const MobileExerciseCard = ({
   const [isAdding, setIsAdding] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
+  const [scrollStartPos, setScrollStartPos] = useState({ x: 0, y: 0 });
 
   const isCustom = exercise.isCustom || false;
   const isSystemExercise = exercise.isSystemExercise || false;
@@ -56,72 +57,88 @@ export const MobileExerciseCard = ({
     }
   }, [exercise.image, observeImage]);
 
-  // Improved click-outside handler that respects scrolling
+  // Improved click-outside handler that properly respects scrolling
   useEffect(() => {
+    if (!showDetails) return;
+
     const handlePointerDown = (event: PointerEvent) => {
-      if (!showDetails || !cardRef.current) return;
-      
-      // Don't close if we're scrolling
-      if (isScrolling) return;
+      const target = event.target as Node;
       
       // Don't close if clicking inside the card
-      if (cardRef.current.contains(event.target as Node)) return;
+      if (cardRef.current?.contains(target)) return;
       
-      // Close the details
-      setShowDetails(false);
+      // Store initial touch position
+      setScrollStartPos({ x: event.clientX, y: event.clientY });
     };
 
-    if (showDetails) {
-      // Use a small delay to allow scroll detection
-      const timeoutId = setTimeout(() => {
-        document.addEventListener('pointerdown', handlePointerDown);
-      }, 100);
+    const handlePointerUp = (event: PointerEvent) => {
+      const target = event.target as Node;
       
-      return () => {
-        clearTimeout(timeoutId);
-        document.removeEventListener('pointerdown', handlePointerDown);
-      };
-    }
-  }, [showDetails, isScrolling]);
+      // Don't close if clicking inside the card
+      if (cardRef.current?.contains(target)) return;
+      
+      // Don't close if we're actively scrolling
+      if (isScrolling) return;
+      
+      // Calculate movement distance
+      const deltaX = Math.abs(event.clientX - scrollStartPos.x);
+      const deltaY = Math.abs(event.clientY - scrollStartPos.y);
+      
+      // Only close if this was a tap (minimal movement)
+      if (deltaX < 10 && deltaY < 10) {
+        setShowDetails(false);
+      }
+    };
 
-  // Handle scroll detection
+    document.addEventListener('pointerdown', handlePointerDown, { passive: true });
+    document.addEventListener('pointerup', handlePointerUp, { passive: true });
+    
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [showDetails, isScrolling, scrollStartPos]);
+
+  // Enhanced scroll detection with better timing
   useEffect(() => {
     const scrollArea = scrollAreaRef.current;
     if (!scrollArea || !showDetails) return;
 
     let scrollTimeout: NodeJS.Timeout;
 
-    const handleScroll = () => {
+    const handleScrollStart = () => {
       setIsScrolling(true);
+      clearTimeout(scrollTimeout);
+    };
+
+    const handleScrollEnd = () => {
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
         setIsScrolling(false);
-      }, 150);
+      }, 100);
     };
 
     const handleTouchStart = () => {
-      setIsScrolling(false);
+      handleScrollStart();
     };
 
     const handleTouchMove = () => {
-      setIsScrolling(true);
+      handleScrollStart();
     };
 
     const handleTouchEnd = () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        setIsScrolling(false);
-      }, 300);
+      handleScrollEnd();
     };
 
-    scrollArea.addEventListener('scroll', handleScroll, { passive: true });
+    // Add scroll event listeners
+    scrollArea.addEventListener('scroll', handleScrollStart, { passive: true });
     scrollArea.addEventListener('touchstart', handleTouchStart, { passive: true });
     scrollArea.addEventListener('touchmove', handleTouchMove, { passive: true });
     scrollArea.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
       clearTimeout(scrollTimeout);
-      scrollArea.removeEventListener('scroll', handleScroll);
+      scrollArea.removeEventListener('scroll', handleScrollStart);
       scrollArea.removeEventListener('touchstart', handleTouchStart);
       scrollArea.removeEventListener('touchmove', handleTouchMove);
       scrollArea.removeEventListener('touchend', handleTouchEnd);
@@ -173,11 +190,6 @@ export const MobileExerciseCard = ({
     if (!showDetails && !isScrolling) {
       onSelect(exercise);
     }
-  };
-
-  // Handle scroll area clicks without closing details
-  const handleScrollAreaClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
   };
 
   return (
@@ -325,17 +337,17 @@ export const MobileExerciseCard = ({
           </div>
         </div>
 
-        {/* Expandable details section with improved mobile scrolling */}
+        {/* Expandable details section with enhanced mobile scrolling */}
         {showDetails && (
           <div className="pt-3 border-t border-gray-100">
             <div 
               ref={scrollAreaRef}
-              onClick={handleScrollAreaClick}
               className="max-h-80 overflow-y-auto overscroll-contain"
               style={{
                 WebkitOverflowScrolling: 'touch',
                 touchAction: 'pan-y',
-                scrollBehavior: 'smooth'
+                scrollBehavior: 'smooth',
+                overscrollBehavior: 'contain'
               }}
             >
               <div className="space-y-3 pr-2 pb-2">

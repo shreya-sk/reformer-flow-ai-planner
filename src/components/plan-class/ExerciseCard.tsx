@@ -139,7 +139,14 @@ export const ExerciseCard = ({
           {/* Expanded Content with Smooth Animation */}
           <CollapsibleContent className="overflow-hidden transition-all duration-300 ease-out data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
             <div className="mt-4 ml-6 border-t border-sage-200/60 pt-4">
-              <ScrollArea className="max-h-80 pr-4">
+              <ScrollArea 
+                className="max-h-96 pr-4"
+                style={{
+                  WebkitOverflowScrolling: 'touch',
+                  overscrollBehavior: 'contain',
+                  touchAction: 'pan-y'
+                }}
+              >
                 <div className="space-y-4">
                   {/* Quick Info Bar */}
                   {(exercise.repsOrDuration || exercise.tempo) && (
