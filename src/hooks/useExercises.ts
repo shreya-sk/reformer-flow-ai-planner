@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Exercise, ExerciseCategory, SpringSetting, DifficultyLevel, MuscleGroup, Equipment, TeachingFocus } from '@/types/reformer';
@@ -14,11 +13,12 @@ export const useExercises = () => {
     try {
       setLoading(true);
       
-      // Fetch system exercises (only active ones)
+      // Fetch system exercises (only active ones) - force refresh to get updated data
       const { data: systemData, error: systemError } = await supabase
         .from('system_exercises')
         .select('*')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .order('name');
 
       if (systemError) throw systemError;
 
@@ -168,6 +168,20 @@ export const useExercises = () => {
         user: userExercises.length,
         store: storeExercises.length
       });
+      
+      // Log sample exercise data to verify rich content
+      if (systemExercises.length > 0) {
+        const sampleExercise = systemExercises[0];
+        console.log('📋 Sample exercise data:', {
+          name: sampleExercise.name,
+          hasSetup: !!sampleExercise.setup,
+          cuesCount: sampleExercise.cues.length,
+          modificationsCount: sampleExercise.modifications.length,
+          progressionsCount: sampleExercise.progressions.length,
+          contraindicationsCount: sampleExercise.contraindications.length,
+          breathingCuesCount: sampleExercise.breathingCues.length
+        });
+      }
       
       setExercises(allExercises as Exercise[]);
     } catch (err) {
