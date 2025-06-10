@@ -76,14 +76,14 @@ export default defineConfig(({ mode }) => ({
             type: 'image/x-icon'
           },
           {
-            src: '/app-icon-192.svg',
-            type: 'image/svg+xml',
+            src: '/app-icon-192.png',
+            type: 'image/png',
             sizes: '192x192',
             purpose: 'any maskable'
           },
           {
-            src: '/app-icon-512.svg',
-            type: 'image/svg+xml',
+            src: '/app-icon-512.png',
+            type: 'image/png',
             sizes: '512x512',
             purpose: 'any maskable'
           }
@@ -95,14 +95,14 @@ export default defineConfig(({ mode }) => ({
             short_name: 'Plan Class',
             description: 'Create a new Pilates class plan',
             url: '/plan',
-            icons: [{ src: '/app-icon-192.svg', sizes: '192x192', type: 'image/svg+xml' }]
+            icons: [{ src: '/app-icon-192.png', sizes: '192x192', type: 'image/png' }]
           },
           {
             name: 'Exercise Library',
             short_name: 'Library', 
             description: 'Browse exercise library',
             url: '/library',
-            icons: [{ src: '/app-icon-192.svg', sizes: '192x192', type: 'image/svg+xml' }]
+            icons: [{ src: '/app-icon-192.png', sizes: '192x192', type: 'image/png' }]
           }
         ]
       },
